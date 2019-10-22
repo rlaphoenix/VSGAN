@@ -26,12 +26,13 @@ class VSGAN:
     def load_model(self, model, scale):
         self.model_file = model
         self.model_scale = scale
-        # attempt to use Old Arch, and if that fails, attempt to use Current Arch
+        # attempt to use New Arch, and if that fails, attempt to use Old Arch
         # if both fail to be loaded, it will raise it's original exception
-        for arch in range(1):
+        for arch in range(2):
             self.rrdb_net_model = self.get_rrdb_net_arch(arch)
             try:
                 self.rrdb_net_model.load_state_dict(torch.load(self.model_file), strict=True)
+                break
             except RuntimeError:
                 if arch == 1:
                     raise
