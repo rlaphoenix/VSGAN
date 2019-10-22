@@ -18,7 +18,7 @@ MODEL = None
 
 
 # - Start VSGAN operations
-def start(clip, model, scale, device="cuda", old_arch=False):
+def start(clip, model, scale, device="cuda", chunk=False, old_arch=False):
     global DEVICE
     global MODEL
     # Setup a device, use CPU instead if cuda isn't available
@@ -50,19 +50,48 @@ def start(clip, model, scale, device="cuda", old_arch=False):
     original_format = clip.format
     # convert clip to RGB24 as it cannot read any other color space
     buffer = mvsfunc.ToRGB(clip, depth=8)  # expecting RGB24 8bit
-    # take a frame when being used by VapourSynth and send it to the execute function
-    # returns the edited frame in a 1 frame clip based on the trained model
-    buffer = core.std.FrameEval(
-        core.std.BlankClip(
-            buffer,
-            width=clip.width * scale,
-            height=clip.height * scale
-        ),
-        functools.partial(
-            execute,
-            clip=buffer
+    if chunk:
+        crops = {
+            "left": core.std.CropRel(buffer, left=0, top=0, right=buffer.width / 2, bottom=0),
+            "right": core.std.CropRel(buffer, left=buffer.width / 2, top=0, right=0, bottom=0)
+        }
+        # top left, bottom left, top right, bottom right
+        results = []
+        for crop in [
+            core.std.CropRel(crops["left"], left=0, top=0, right=0, bottom=crops["left"].height / 2),
+            core.std.CropRel(crops["left"], left=0, top=crops["left"].height / 2, right=0, bottom=0),
+            core.std.CropRel(crops["right"], left=0, top=0, right=0, bottom=crops["right"].height / 2),
+            core.std.CropRel(crops["right"], left=0, top=crops["right"].height / 2, right=0, bottom=0)
+        ]:
+            results.append(core.std.FrameEval(
+                core.std.BlankClip(
+                    crop,
+                    width=crop.width * scale,
+                    height=crop.height * scale
+                ),
+                functools.partial(
+                    execute,
+                    clip=crop
+                )
+            ))
+        buffer = core.std.StackHorizontal([
+            core.std.StackVertical([results[0], results[1]]),
+            core.std.StackVertical([results[2], results[3]])
+        ])
+    else:
+        # take a frame when being used by VapourSynth and send it to the execute function
+        # returns the edited frame in a 1 frame clip based on the trained model
+        buffer = core.std.FrameEval(
+            core.std.BlankClip(
+                buffer,
+                width=buffer.width * scale,
+                height=buffer.height * scale
+            ),
+            functools.partial(
+                execute,
+                clip=buffer
+            )
         )
-    )
     # Convert back to the original color space
     if original_format.color_family != buffer.format.color_family:
         if original_format.color_family == vs.ColorFamily.RGB:
