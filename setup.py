@@ -1,19 +1,19 @@
-import setuptools
+from setuptools import setup, find_packages
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open("README.md", "r") as f:
+    readme = f.read()
 
-setuptools.setup(
+setup(
     name="vsgan",
-    version="1.0.0.post2",
+    version="1.0.1",
     author="PRAGMA",
     author_email="pragma.exe@gmail.com",
     description="VapourSynth GAN Implementation using RRDBNet, based on ESRGAN's implementation",
     license='MIT',
-    long_description=long_description,
+    long_description=readme,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/imPRAGMA/VSGAN",
-    packages=setuptools.find_packages(),
+    packages=find_packages(),
     install_requires=[
         'numpy',
         'torch'

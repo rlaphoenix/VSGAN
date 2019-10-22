@@ -7,6 +7,7 @@
 # - RRDBNet_arch.py from the xinntao's ESRGAN repo                  #
 #   (https://github.com/xinntao/ESRGAN/blob/master/RRDBNet_arch.py) #
 # - PyTorch: https://pytorch.org/get-started/locally                #
+# - mvsfunc: https://github.com/HomeOfVapourSynthEvolution/mvsfunc  #
 #####################################################################
 #              For more details, consult the README.md              #
 #####################################################################
@@ -15,6 +16,7 @@ from vapoursynth import core
 import vapoursynth as vs
 import numpy as np
 import functools
+import mvsfunc
 import torch
 
 # - Torch&Cuda, RRDBNet Arch, and Model
@@ -39,7 +41,8 @@ def Start(clip, model, scale, old_arch=False):
     # remember the clip's original format
     orig_format = clip.format
     # convert clip to RGB24 as it cannot read any other color space
-    buffer = core.resize.Point(clip, format=vs.RGB24)
+    buffer = mvsfunc.ToRGB(clip, depth=8)
+    #buffer = core.resize.Point(clip, format=vs.RGB24)
     # take a frame when being used by VapourSynth and send it to the execute function
     # returns the edited frame in a 1 frame clip based on the trained model
     buffer = core.std.FrameEval(
@@ -54,7 +57,9 @@ def Start(clip, model, scale, old_arch=False):
         )
     )
     # Convert back to the original color space and return it to sender
-    return core.resize.Point(buffer, format=orig_format, matrix_s="709") #should matrix be gotten from original clip?
+    return buffer
+    # let's not convert back to original since changes with colorspace conversion via mvsfunc
+    #core.resize.Point(buffer, format=orig_format, matrix_s="709") #should matrix be gotten from original clip?
 
 # - Deals with the number crunching
 def Execute(n, clip):
