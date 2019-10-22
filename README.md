@@ -13,10 +13,12 @@
 VapourSynth GAN Implementation, based on ESRGAN's implementation
 
 This is a single image super-resolution generative adversarial network handler for VapourSynth.
-It is a direct port of [ESRGAN](https://github.com/xinntao/ESRGAN) by [xinntao](https://github.com/xinntao)
+Essentially turning it into a multi image or single video super-resolution generative adversarial network!
+It is a direct port of [ESRGAN by xinntao](https://github.com/xinntao/ESRGAN).
+All results, accomplishments, and such that ESRGAN does, VSGAN will do too.
 
 Using the right pre-trained model, on the right image, can have tremendous results.  
-Here's an example taken from the ESRGAN repository, since this is a direct 1:1 port, the results are the same as ESRGAN.
+Here's an example taken from the ESRGAN repository, since this is a port, the results are the same as ESRGAN.
 ![Example](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/baboon.jpg)
 
 ## :wrench: Installation and Usage
