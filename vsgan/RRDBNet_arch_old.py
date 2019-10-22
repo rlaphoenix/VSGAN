@@ -1,5 +1,4 @@
 import math
-import torch
 import torch.nn as nn
 from . import RRDBNet_arch_old_block as B
 
