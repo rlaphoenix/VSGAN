@@ -8,5 +8,16 @@
 <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square"></a>
 </p>
 
-## Installation and Usage
+## :page_facing_up: Introduction
+
+VapourSynth GAN Implementation, based on ESRGAN's implementation
+
+This is a single image super-resolution generative adversarial network handler for VapourSynth.
+It is a direct port of [ESRGAN](https://github.com/xinntao/ESRGAN) by [xinntao](https://github.com/xinntao)
+
+Using the right pre-trained model, on the right image, can have tremendous results.  
+Here's an example taken from the ESRGAN repository, since this is a direct 1:1 port, the results are the same as ESRGAN.
+![Example](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/baboon.jpg)
+
+## :wrench: Installation and Usage
 [Check out the Wiki](https://github.com/imPRAGMA/VSGAN/wiki), it will explain everything you may need to know.
