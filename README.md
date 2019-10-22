@@ -19,9 +19,9 @@ All results, accomplishments, and such that ESRGAN does, VSGAN will do too.
 
 Using the right pre-trained model, on the right image, can have tremendous results.  
 Here's an example taken from the ESRGAN repository, since this is a port, the results are the same as ESRGAN.
-![Example](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/baboon.jpg)
+![Example 1](examples/cmp_1.png)
 
-## :camera: Qualitive Comparisons
+## :camera: Qualitive Comparisons against other Super-Resolution Strategies
 ![qualitive1](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_01.jpg)
 ![qualitive2](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_02.jpg)
 ![qualitive3](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_03.jpg)
