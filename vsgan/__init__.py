@@ -23,11 +23,18 @@ class VSGAN:
         self.model_scale = None
         self.rrdb_net_model = None
 
-    def load_model(self, model, scale, old_arch=False):
+    def load_model(self, model, scale):
         self.model_file = model
         self.model_scale = scale
-        self.rrdb_net_model = self.get_rrdb_net_arch(old_arch)
-        self.rrdb_net_model.load_state_dict(torch.load(self.model_file), strict=True)
+        # attempt to use Old Arch, and if that fails, attempt to use Current Arch
+        # if both fail to be loaded, it will raise it's original exception
+        for arch in range(1):
+            self.rrdb_net_model = self.get_rrdb_net_arch(arch)
+            try:
+                self.rrdb_net_model.load_state_dict(torch.load(self.model_file), strict=True)
+            except RuntimeError:
+                if arch == 1:
+                    raise
         self.rrdb_net_model.eval()
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
@@ -64,11 +71,11 @@ class VSGAN:
         # return the new frame
         return buffer
 
-    def get_rrdb_net_arch(self, old_arch):
+    def get_rrdb_net_arch(self, arch):
         """
         Import Old or Current Era RRDB Net Architecture
         """
-        if old_arch:
+        if arch == 0:
             from . import RRDBNet_arch_old as Arch
             return Arch.RRDB_Net(
                 3, 3, 64, 23,
