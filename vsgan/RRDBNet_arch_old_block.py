@@ -113,7 +113,7 @@ def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=
     mode: CNA --> Conv -> Norm -> Act
         NAC --> Norm -> Act --> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
     """
-    if not mode in ['CNA', 'NAC', 'CNAC']:
+    if mode not in ['CNA', 'NAC', 'CNAC']:
         raise AssertionError('Wong conv mode [%s]' % mode)
     padding = get_valid_padding(kernel_size, dilation)
     p = pad(pad_type, padding) if pad_type and pad_type != 'zero' else None
@@ -125,7 +125,7 @@ def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=
     if 'CNA' in mode:
         n = norm(norm_type, out_nc) if norm_type else None
         return sequential(p, c, n, a)
-    elif mode == 'NAC':
+    if mode == 'NAC':
         if norm_type is None and act_type is not None:
             a = act(act_type, inplace=False)
             # Important!

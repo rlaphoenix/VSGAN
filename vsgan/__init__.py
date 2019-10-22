@@ -88,9 +88,8 @@ class VSGAN:
                 res_scale=1,
                 upsample_mode="upconv"
             )
-        else:
-            from . import RRDBNet_arch as Arch
-            return Arch.RRDBNet(3, 3, 64, 23, gc=32)
+        from . import RRDBNet_arch as Arch
+        return Arch.RRDBNet(3, 3, 64, 23, gc=32)
 
     @staticmethod
     def chunk_clip(clip):
