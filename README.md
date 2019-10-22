@@ -18,7 +18,7 @@ It is a direct port of [ESRGAN by xinntao](https://github.com/xinntao/ESRGAN).
 All results, accomplishments, and such that ESRGAN does, VSGAN will do too.
 
 Using the right pre-trained model, on the right image, can have tremendous results.  
-Here's an example taken from the ESRGAN repository, since this is a port, the results are the same as ESRGAN.
+Here's an example from a US Region 1 (NTSC) DVD of American Dad running with VSGAN (model not public)
 ![Example 1](examples/cmp_1.png)
 
 ## :camera: Qualitive Comparisons against other Super-Resolution Strategies
