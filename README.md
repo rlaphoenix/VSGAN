@@ -21,5 +21,11 @@ Using the right pre-trained model, on the right image, can have tremendous resul
 Here's an example taken from the ESRGAN repository, since this is a port, the results are the same as ESRGAN.
 ![Example](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/baboon.jpg)
 
+## :camera: Qualitive Comparisons
+![qualitive1](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_01.jpg)
+![qualitive2](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_02.jpg)
+![qualitive3](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_03.jpg)
+![qualitive4](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_04.jpg)
+
 ## :wrench: Installation and Usage
 [Check out the Wiki](https://github.com/imPRAGMA/VSGAN/wiki), it will explain everything you may need to know.
