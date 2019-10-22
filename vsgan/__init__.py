@@ -20,12 +20,17 @@ import mvsfunc
 import torch
 
 # - Torch&Cuda, RRDBNet Arch, and Model
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = None
 MODEL = None
 
 # - Start VSGAN operations
-def Start(clip, model, scale, old_arch=False):
+def Start(clip, model, scale, device='cuda', old_arch=False):
+    global DEVICE
     global MODEL
+    # Setup a device, use CPU instead if cuda isn't available
+    if not torch.cuda.is_available():
+        device = 'cpu'
+    DEVICE = torch.device(device)
     # select the arch to be used based on old_arch parameter
     if old_arch:
         from . import RRDBNet_arch_old as arch
