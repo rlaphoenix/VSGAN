@@ -11,18 +11,17 @@
 
 ## :page_facing_up: Introduction
 
-VapourSynth GAN Implementation, based on ESRGAN's implementation
-
 This is a single image super-resolution generative adversarial network handler for VapourSynth.
-Essentially turning it into a multi image or single video super-resolution generative adversarial network!
-It is a direct port of [ESRGAN by xinntao](https://github.com/xinntao/ESRGAN).
-All results, accomplishments, and such that ESRGAN does, VSGAN will do too.
+Since VapourSynth will take the frames from a video, and feed it to VSGAN, it is essentially a single video super-resolution gan.
+It is a direct port of [ESRGAN by xinntao](https://github.com/xinntao/ESRGAN), so all results, accomplishments, and such that ESRGAN does, VSGAN will do too.
 
 Using the right pre-trained model, on the right image, can have tremendous results.  
 Here's an example from a US Region 1 (NTSC) DVD of American Dad running with VSGAN (model not public)
 ![Example 1](examples/cmp_1.png)
 
 ## :camera: Qualitive Comparisons against other Super-Resolution Strategies
+
+Following comparisons were taken from [ESRGAN's repo](https://github.com/xinntao/ESRGAN)
 ![qualitive1](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_01.jpg)
 ![qualitive2](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_02.jpg)
 ![qualitive3](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_03.jpg)
