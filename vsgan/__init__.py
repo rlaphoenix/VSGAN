@@ -63,12 +63,13 @@ class VSGAN:
             core.std.StackVertical([results[0], results[1]]),
             core.std.StackVertical([results[2], results[3]])
         ]) if chunk else results[0]
-        # Convert back to the original color space
-        if original_format.color_family != buffer.format.color_family:
-            if original_format.color_family == vs.ColorFamily.RGB:
-                buffer = mvsfunc.ToRGB(buffer)
-            if original_format.color_family == vs.ColorFamily.YUV:
-                buffer = mvsfunc.ToYUV(buffer, css=original_format.name[3:6])
+        
+        # VSGAN used to convert back to the original color space which resulted
+        # in a LOT of guessing, which was in-accurate and may not be efficient
+        # depending on what the user is doing after running VSGAN, so in all
+        # versions after 1.0.6-post1 we return it in the colorspace the GAN
+        # provides which is always RGB24.
+
         # return the new frame
         return buffer
 
