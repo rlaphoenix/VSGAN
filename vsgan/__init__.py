@@ -40,10 +40,8 @@ class VSGAN:
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
     def run(self, clip, chunk=False):
-        # remember the clip's original format
-        original_format = clip.format
         # convert clip to RGB24 as it cannot read any other color space
-        buffer = mvsfunc.ToRGB(clip, depth=8)  # expecting RGB24 8bit
+        buffer = mvsfunc.ToRGB(clip, depth=8, kernel="spline36")  # expecting RGB24 (RGB 8bpp)
         # send the clip array to execute()
         results = []
         for c in self.chunk_clip(buffer) if chunk else [buffer]:
