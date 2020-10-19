@@ -1,10 +1,3 @@
-#####################################################################
-#                        Created by PHOENiX                         #
-#                https://github.com/rlaPHOENiX/VSGAN                #
-#####################################################################
-#              For more details, consult the README.md              #
-#####################################################################
-
 import functools
 
 import mvsfunc
@@ -17,26 +10,31 @@ from vapoursynth import core
 class VSGAN:
 
     def __init__(self, device="cuda"):
-        self.torch_device = torch.device(device if torch.cuda.is_available() else "cpu")
-        # Stubs
-        self.model_file = None
+        self.device = device.lower()
+        if self.device == "cuda" and not torch.cuda.is_available():
+            print("Warning: CUDA is not available, reverting to \"cpu\" as device...")
+            self.device = "cpu"
+        self.torch_device = None
         self.model_scale = None
         self.rrdb_net_model = None
 
     def load_model(self, model, scale):
-        self.model_file = model
         self.model_scale = scale
         # attempt to use New Arch, and if that fails, attempt to use Old Arch
         # if both fail to be loaded, it will raise it's original exception
+        # todo ; this is rubbish, find a *good* way to detect model arch type
         for arch in range(2):
             self.rrdb_net_model = self.get_rrdb_net_arch(arch)
             try:
-                self.rrdb_net_model.load_state_dict(torch.load(self.model_file), strict=True)
+                self.rrdb_net_model.load_state_dict(torch.load(model), strict=True)
                 break
             except RuntimeError:
                 if arch == 1:
                     raise
         self.rrdb_net_model.eval()
+        if not self.torch_device:
+            # only need to load a torch device once, and only when loading a model
+            self.torch_device = torch.device(self.device)
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
     def run(self, clip, chunk=False):
@@ -61,11 +59,11 @@ class VSGAN:
             core.std.StackVertical([results[0], results[1]]),
             core.std.StackVertical([results[2], results[3]])
         ]) if chunk else results[0]
-        
+
         # VSGAN used to convert back to the original color space which resulted
         # in a LOT of guessing, which was in-accurate and may not be efficient
         # depending on what the user is doing after running VSGAN, so in all
-        # versions after 1.0.6-post1 we return it in the colorspace the GAN
+        # versions after 1.0.6-post1 we return it in the color-space the GAN
         # provides which is always RGB24.
 
         # return the new frame
@@ -75,12 +73,12 @@ class VSGAN:
         """
         Import Old or Current Era RRDB Net Architecture
         """
-        in_nc = 3   # num of input channels
+        in_nc = 3  # num of input channels
         out_nc = 3  # num of output channels
-        nf = 64     # num of filters todo; get dynamically from pth
-        nb = 23     # num of blocks todo; get dynamically from pth
+        nf = 64  # num of filters todo; get dynamically from pth
+        nb = 23  # num of blocks todo; get dynamically from pth
         gc = 32
-        
+
         if arch == 0:
             from . import RRDBNet_arch_old as Arch
             return Arch.RRDB_Net(
@@ -161,6 +159,8 @@ class VSGAN:
         Essentially the same as ESRGAN, except it replaces the cv2 functions with ones geared towards VapourSynth
         https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
         """
+        if not self.rrdb_net_model or not self.torch_device:
+            raise Exception("Error: Model not yet loaded a torch device...")
         # get the frame being used
         frame = clip.get_frame(n)
         img = self.cv2_imread(frame=frame, plane_count=clip.format.num_planes)
