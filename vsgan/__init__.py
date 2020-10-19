@@ -1,6 +1,6 @@
 #####################################################################
-#                         Created by PRAGMA                         #
-#                 https://github.com/imPRAGMA/VSGAN                 #
+#                        Created by PHOENiX                         #
+#                https://github.com/rlaPHOENiX/VSGAN                #
 #####################################################################
 #              For more details, consult the README.md              #
 #####################################################################
@@ -75,11 +75,16 @@ class VSGAN:
         """
         Import Old or Current Era RRDB Net Architecture
         """
+        in_nc = 3   # num of input channels
+        out_nc = 3  # num of output channels
+        nf = 64     # num of filters todo; get dynamically from pth
+        nb = 23     # num of blocks todo; get dynamically from pth
+        gc = 32
+        
         if arch == 0:
             from . import RRDBNet_arch_old as Arch
             return Arch.RRDB_Net(
-                3, 3, 64, 23,
-                gc=32,
+                in_nc, out_nc, nf, nb, gc,
                 upscale=self.model_scale,
                 norm_type=None,
                 act_type="leakyrelu",
@@ -88,7 +93,7 @@ class VSGAN:
                 upsample_mode="upconv"
             )
         from . import RRDBNet_arch as Arch
-        return Arch.RRDBNet(3, 3, 64, 23, gc=32)
+        return Arch.RRDBNet(in_nc, out_nc, nf, nb, gc)
 
     @staticmethod
     def chunk_clip(clip):
