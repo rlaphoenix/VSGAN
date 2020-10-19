@@ -1,0 +1,4 @@
+numpy~=1.19.2
+torch~=1.6.0
+VapourSynth~=51
+setuptools~=50.3.2
