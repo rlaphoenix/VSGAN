@@ -10,7 +10,7 @@ from vapoursynth import core
 class VSGAN:
 
     def __init__(self, device="cuda"):
-        self.device = device.lower()
+        self.device = device.lower() if isinstance(device, str) else device
         if self.device == "cuda" and not torch.cuda.is_available():
             print("Warning: CUDA is not available, reverting to \"cpu\" as device...")
             self.device = "cpu"
