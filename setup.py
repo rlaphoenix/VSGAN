@@ -5,14 +5,14 @@ with open("README.md", "r") as f:
 
 setup(
     name="vsgan",
-    version="1.0.8",
+    version="1.1.0",
     author="PRAGMA",
     author_email="pragma.exe@gmail.com",
     description="VapourSynth GAN Implementation using RRDBNet, based on ESRGAN's implementation",
     license="MIT",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/imPRAGMA/VSGAN",
+    url="https://github.com/rlaPHOENiX/VSGAN",
     packages=find_packages(),
     install_requires=[
         "numpy",
