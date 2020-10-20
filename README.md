@@ -91,10 +91,7 @@ Quick Example
     vsgan = VSGAN("cuda")
     # load a model into the VSGAN instance
     # you can run load_model() on the instance at any point to change the model
-    vsgan.load_model(
-        model=r"C:\User\PHOENiX\Documents\Models\PSNR_x4_DB.pth",
-        scale=4
-    )
+    vsgan.load_model(r"C:\User\PHOENiX\Documents\ESRGAN Models\PSNR_x4_DB.pth")
     # use the VSGAN instance (with its loaded model) on a clip
     clip = vsgan.run(clip)
 
@@ -102,8 +99,6 @@ Quick Example
 
     # don't forget to set the output in your vapoursynth script
     clip.set_output()
-
-    # There's more you can do with load_model as well as run, see definitions below.
 
 # Definitions
 
@@ -113,13 +108,11 @@ Create a PyTorch Device instance using VSGAN for the provided device
 
 *  `device` can be either a string or an int, acceptable values are "cpu", "cuda", and a device id number (e.g. 0, 1), default is "cuda" if available, otherwise it will use "cpu"
 
-### VSGAN.load_model(model=[string], scale=[int], old_arch=[bool])
+### VSGAN.load_model(model=[string])
 
 Load a model into the VSGAN Device instance
 
-*  `model` must be a path to the .pth model. use r'' if the path has crazy characters like back-slashes `(\)`
-*  `scale` must be an int > 0 and must match the model it was trained with
-*  `old_arch` should only be used if the model does not work with the current arch or is a 1x scale model
+*  `model` must be a path to the .pth model. Use for example r'C:\Users\John Doe\Model.pth' if the path has crazy characters like back-slashes `(\)` or spaces.
 
 ### VSGAN.run(clip=clip, chunk=[bool])
 
