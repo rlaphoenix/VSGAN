@@ -18,20 +18,38 @@ class VSGAN:
         self.model_scale = None
         self.rrdb_net_model = None
 
-    def load_model(self, model, scale):
-        self.model_scale = scale
-        # attempt to use New Arch, and if that fails, attempt to use Old Arch
-        # if both fail to be loaded, it will raise it's original exception
-        # todo ; this is rubbish, find a *good* way to detect model arch type
-        for arch in range(2):
-            self.rrdb_net_model = self.get_rrdb_net_arch(arch)
-            try:
-                self.rrdb_net_model.load_state_dict(torch.load(model), strict=True)
-                break
-            except RuntimeError:
-                if arch == 1:
-                    raise
+    def load_model(self, model):
+        state_dict = torch.load(model)
+
+        # Check if new-arch and convert
+        if 'conv_first.weight' in state_dict:
+            state_dict = self.convert_new_to_old(state_dict)
+
+        # extract model information
+        scale2 = 0
+        max_part = 0
+        scalemin = 6
+        for part in list(state_dict):
+            parts = part.split('.')
+            n_parts = len(parts)
+            if n_parts == 5 and parts[2] == 'sub':
+                nb = int(parts[3])
+            elif n_parts == 3:
+                part_num = int(parts[1])
+                if part_num > scalemin and parts[0] == 'model' and parts[2] == 'weight':
+                    scale2 += 1
+                if part_num > max_part:
+                    max_part = part_num
+                    out_nc = state_dict[part].shape[0]
+        upscale = 2 ** scale2
+        in_nc = state_dict['model.0.weight'].shape[1]
+        nf = state_dict['model.0.weight'].shape[0]
+        self.model_scale = upscale
+
+        self.rrdb_net_model = self.get_rrdb_net_arch(in_nc, out_nc, nf, nb)
+        self.rrdb_net_model.load_state_dict(state_dict, strict=False)
         self.rrdb_net_model.eval()
+
         if not self.torch_device:
             # only need to load a torch device once, and only when loading a model
             self.torch_device = torch.device(self.device)
@@ -68,30 +86,58 @@ class VSGAN:
 
         # return the new frame
         return buffer
+    
+    def convert_new_to_old(state_dict):
+        old_net = {}
+        items = []
+        for k, v in state_dict.items():
+            items.append(k)
 
-    def get_rrdb_net_arch(self, arch):
-        """
-        Import Old or Current Era RRDB Net Architecture
-        """
-        in_nc = 3  # num of input channels
-        out_nc = 3  # num of output channels
-        nf = 64  # num of filters todo; get dynamically from pth
-        nb = 23  # num of blocks todo; get dynamically from pth
-        gc = 32
+        old_net['model.0.weight'] = state_dict['conv_first.weight']
+        old_net['model.0.bias'] = state_dict['conv_first.bias']
 
-        if arch == 0:
-            from . import RRDBNet_arch_old as Arch
-            return Arch.RRDB_Net(
-                in_nc, out_nc, nf, nb, gc,
-                upscale=self.model_scale,
-                norm_type=None,
-                act_type="leakyrelu",
-                mode="CNA",
-                res_scale=1,
-                upsample_mode="upconv"
-            )
-        from . import RRDBNet_arch as Arch
-        return Arch.RRDBNet(in_nc, out_nc, nf, nb, gc)
+        for k in items.copy():
+            if 'RDB' in k:
+                ori_k = k.replace('RRDB_trunk.', 'model.1.sub.')
+                if '.weight' in k:
+                    ori_k = ori_k.replace('.weight', '.0.weight')
+                elif '.bias' in k:
+                    ori_k = ori_k.replace('.bias', '.0.bias')
+                old_net[ori_k] = state_dict[k]
+                items.remove(k)
+
+        old_net['model.1.sub.23.weight'] = state_dict['trunk_conv.weight']
+        old_net['model.1.sub.23.bias'] = state_dict['trunk_conv.bias']
+        old_net['model.3.weight'] = state_dict['upconv1.weight']
+        old_net['model.3.bias'] = state_dict['upconv1.bias']
+        old_net['model.6.weight'] = state_dict['upconv2.weight']
+        old_net['model.6.bias'] = state_dict['upconv2.bias']
+        old_net['model.8.weight'] = state_dict['HRconv.weight']
+        old_net['model.8.bias'] = state_dict['HRconv.bias']
+        old_net['model.10.weight'] = state_dict['conv_last.weight']
+        old_net['model.10.bias'] = state_dict['conv_last.bias']
+        return old_net
+
+    def get_rrdb_net_arch(self, in_nc=3, out_nc=3, nf=64, nb=23, gc=32):
+        """
+        Import RRDB Net Architecture
+        """
+        # in_nc = 3  # num of input channels
+        # out_nc = 3  # num of output channels
+        # nf = 64  # num of filters
+        # nb = 23  # num of blocks todo
+        # gc = 32
+
+        from . import RRDBNet_arch_old as Arch
+        return Arch.RRDB_Net(
+            in_nc, out_nc, nf, nb, gc,
+            upscale=self.model_scale,
+            norm_type=None,
+            act_type="leakyrelu",
+            mode="CNA",
+            res_scale=1,
+            upsample_mode="upconv"
+        )
 
     @staticmethod
     def chunk_clip(clip):
