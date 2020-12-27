@@ -75,7 +75,7 @@ class VSGAN:
             )
         # send the clip array to execute()
         results = []
-        for c in self.chunk_clip(clip) if chunk else [clip]:
+        for c in self.chunk(clip) if chunk else [clip]:
             results.append(core.std.FrameEval(
                 core.std.BlankClip(
                     clip=c,
@@ -170,7 +170,7 @@ class VSGAN:
             upsample_mode="upconv"
         )
 
-    def chunk_clip(self, clip):
+    def chunk(self, clip):
         """
         Split clip down the center into two clips (a left and right clip)
         Then split those 2 clips in the center into two clips (a top and bottom clip).
