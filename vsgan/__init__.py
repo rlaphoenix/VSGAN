@@ -57,10 +57,15 @@ class VSGAN:
 
     def run(self, clip, chunk=False):
         # convert clip to RGB24 as it cannot read any other color space
-        buffer = mvsfunc.ToRGB(clip, depth=8, kernel="spline36")  # expecting RGB24 (RGB 8bpp)
+        if clip.format.color_family.name != "RGB":
+            raise ValueError(
+                "VSGAN: Clip color format must be RGB as the ESRGAN model can only work with RGB data :(\n"
+                "You can use mvsfunc.ToRGB or core.resize's format option. It might need to be bit depth of 8bpp.\n"
+                "If you need to specify a kernel for chroma, I recommend Spline or Bicubic."
+            )
         # send the clip array to execute()
         results = []
-        for c in self.chunk_clip(buffer) if chunk else [buffer]:
+        for c in self.chunk_clip(clip) if chunk else [clip]:
             results.append(core.std.FrameEval(
                 core.std.BlankClip(
                     clip=c,
@@ -73,19 +78,13 @@ class VSGAN:
                 )
             ))
         # if chunked, rejoin the chunked clips otherwise return the result
-        buffer = core.std.StackHorizontal([
+        clip = core.std.StackHorizontal([
             core.std.StackVertical([results[0], results[1]]),
             core.std.StackVertical([results[2], results[3]])
         ]) if chunk else results[0]
 
-        # VSGAN used to convert back to the original color space which resulted
-        # in a LOT of guessing, which was in-accurate and may not be efficient
-        # depending on what the user is doing after running VSGAN, so in all
-        # versions after 1.0.6-post1 we return it in the color-space the GAN
-        # provides which is always RGB24.
-
-        # return the new frame
-        return buffer
+        # return the new result clip
+        return clip
     
     def convert_new_to_old(state_dict):
         old_net = {}
