@@ -54,10 +54,12 @@ Important note for Windows users: It is very important for you to tick the check
 
 Go to the [Get Started Locally page](https://pytorch.org/get-started/locally) and choose the following options:
 
-    PyTorch Build: `Stable`  
-    Package: `Pip`
-    Language: `Python`
-    CUDA: Latest available version, must match the installed version.
+```
+PyTorch Build: `Stable`  
+Package: `Pip`
+Language: `Python`
+CUDA: Latest available version, must match the installed version.
+```
 
 Then run the command provided by the `Run this Command:` text field.
 
