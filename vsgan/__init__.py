@@ -114,7 +114,7 @@ class VSGAN:
         # return the new result clip
         return clip
 
-    def execute(self, n: int, clip: vs.VideoNode):
+    def execute(self, n: int, clip: vs.VideoNode) -> vs.VideoNode:
         """
         Copies the xinntao ESRGAN repo's main execution code. The only real difference is it doesn't use cv2, and
         instead uses vapoursynth ports of cv2's functionality for read and writing "images".
@@ -250,19 +250,20 @@ class VSGAN:
             image = image.reshape([1] + list(image.shape))
         # Define the shapes items
         plane_count = image.shape[-1]
-        image_width = image.shape[-2]
-        image_height = image.shape[-3]
-        image_length = image.shape[-4]
-        # this is a clip (or array buffer for frames) that we will insert the GAN'd frames into
+        # this is a clip (or array buffer for frames) that we will insert the GAN frames into
         buffer = core.std.BlankClip(
-            clip=None,
-            width=image_width,
-            height=image_height,
+            width=image.shape[-2],
+            height=image.shape[-3],
             format=vs.PresetFormat[out_color_space],
-            length=image_length
+            length=image.shape[-4]
         )
 
-        def replace_planes(n: int, f):
+        def replace_planes(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
+            """
+            :param n: frame number
+            :param f: frame
+            :returns: frame with planes replaced
+            """
             frame = f.copy()
             for i, plane_num in enumerate(reversed(range(plane_count))):
                 # todo ; any better way to do this without storing the np.array in a variable?
