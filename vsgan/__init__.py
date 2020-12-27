@@ -20,7 +20,7 @@ class VSGAN:
             )
         elif device == "cpu!":
             device = "cpu"
-        if device != "cpu" and torch.cuda.is_available():
+        if device != "cpu" and not torch.cuda.is_available():
             raise EnvironmentError(
                 "VSGAN: CUDA is not available, make sure you installed NVIDIA CUDA and that your GPU is available.")
         self.device = device
