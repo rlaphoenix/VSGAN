@@ -164,13 +164,13 @@ class VSGAN:
     def split(clip, axis):
         if axis == 0:
             return [
-                core.std.CropAbs(clip, left=0, right=clip.width / 2),
-                core.std.CropAbs(clip, left=clip.width / 2, right=0)
+                core.std.Crop(clip, left=0, right=clip.width / 2),
+                core.std.Crop(clip, left=clip.width / 2, right=0)
             ]
         elif axis == 1:
             return [
-                core.std.CropAbs(clip, top=0, bottom=clip.height / 2),
-                core.std.CropAbs(clip, top=clip.height / 2, bottom=0)
+                core.std.Crop(clip, top=0, bottom=clip.height / 2),
+                core.std.Crop(clip, top=clip.height / 2, bottom=0)
             ]
         raise ValueError("Invalid split axis...")
 
