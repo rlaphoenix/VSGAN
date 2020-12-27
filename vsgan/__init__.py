@@ -11,9 +11,17 @@ class VSGAN:
 
     def __init__(self, device="cuda"):
         self.device = device.lower() if isinstance(device, str) else device
-        if self.device == "cuda" and not torch.cuda.is_available():
-            print("Warning: CUDA is not available, reverting to \"cpu\" as device...")
-            self.device = "cpu"
+        if device == "cpu":
+            raise ValueError(
+                "VSGAN: Using your CPU as a device for VSGAN/PyTorch has been blocked, use a GPU device, e.g. `cuda` or `0`.\n"
+                "Using ESRGAN on a CPU will run it at very high utilisation and temps and may straight up kill it.\n"
+                "It isn't worth it either as it takes literally hours for a single 720x480 frame.\n"
+                "If you are sure you would like to use your CPU, then use `cpu!` as the device argument."
+            )
+        elif device == "cpu!":
+            device = "cpu"
+        if device != "cpu" and torch.cuda.is_available():
+            raise EnvironmentError("VSGAN: CUDA is not available, make sure you installed NVIDIA CUDA and that your GPU is available.")
         self.torch_device = None
         self.model_scale = None
         self.rrdb_net_model = None
