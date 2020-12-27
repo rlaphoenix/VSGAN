@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="vsgan",
-    version="1.2.0",
+    version="1.2.1",
     author="PRAGMA",
     author_email="pragma.exe@gmail.com",
     description="VapourSynth GAN Implementation using RRDBNet, based on ESRGAN's implementation",
