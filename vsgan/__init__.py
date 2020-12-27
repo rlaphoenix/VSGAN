@@ -1,6 +1,5 @@
 import functools
 
-import mvsfunc
 import numpy as np
 import torch
 import vapoursynth as vs
@@ -21,7 +20,8 @@ class VSGAN:
         elif device == "cpu!":
             device = "cpu"
         if device != "cpu" and torch.cuda.is_available():
-            raise EnvironmentError("VSGAN: CUDA is not available, make sure you installed NVIDIA CUDA and that your GPU is available.")
+            raise EnvironmentError(
+                "VSGAN: CUDA is not available, make sure you installed NVIDIA CUDA and that your GPU is available.")
         self.torch_device = None
         self.model_scale = None
         self.rrdb_net_model = None
@@ -93,7 +93,7 @@ class VSGAN:
 
         # return the new result clip
         return clip
-    
+
     def convert_new_to_old(state_dict):
         old_net = {}
         items = []
