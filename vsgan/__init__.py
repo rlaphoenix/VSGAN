@@ -96,6 +96,26 @@ class VSGAN:
         # return the new result clip
         return clip
 
+    def execute(self, n, clip):
+        """
+        Essentially the same as ESRGAN, except it replaces the cv2 functions with ones geared towards VapourSynth
+        https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
+        """
+        if not self.rrdb_net_model or not self.torch_device:
+            raise Exception("Error: Model not yet loaded a torch device...")
+        # get the frame being used
+        frame = clip.get_frame(n)
+        img = self.cv2_imread(frame=frame, plane_count=clip.format.num_planes)
+        img = img * 1.0 / 255
+        img = torch.from_numpy(np.transpose(img[:, :, [2, 1, 0]], (2, 0, 1))).float()
+        img_lr = img.unsqueeze(0)
+        img_lr = img_lr.to(self.torch_device)
+        with torch.no_grad():
+            output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
+        output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
+        output = (output * 255.0).round()
+        return self.cv2_imwrite(image=output, out_color_space=clip.format.name)
+
     @staticmethod
     def convert_new_to_old(state_dict):
         old_net = {}
@@ -218,23 +238,3 @@ class VSGAN:
 
         # take the blank clip and insert the new data into the planes and return it back to sender
         return core.std.ModifyFrame(clip=buffer, clips=buffer, selector=replace_planes)
-
-    def execute(self, n, clip):
-        """
-        Essentially the same as ESRGAN, except it replaces the cv2 functions with ones geared towards VapourSynth
-        https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
-        """
-        if not self.rrdb_net_model or not self.torch_device:
-            raise Exception("Error: Model not yet loaded a torch device...")
-        # get the frame being used
-        frame = clip.get_frame(n)
-        img = self.cv2_imread(frame=frame, plane_count=clip.format.num_planes)
-        img = img * 1.0 / 255
-        img = torch.from_numpy(np.transpose(img[:, :, [2, 1, 0]], (2, 0, 1))).float()
-        img_lr = img.unsqueeze(0)
-        img_lr = img_lr.to(self.torch_device)
-        with torch.no_grad():
-            output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
-        output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
-        output = (output * 255.0).round()
-        return self.cv2_imwrite(image=output, out_color_space=clip.format.name)
