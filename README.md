@@ -119,6 +119,6 @@ This function takes the provided clip and runs every frame on [VSGAN.execute()](
 
 -   `chunk` if your system is running out of memory, try enable chunking as it will split the image into smaller sub-images and render them one by one, then finally merging them back together. Trading memory requirements for speed and accuracy. WARNING: Since the images will be processed separately, the result may have issues on the edges of the chunks, [an example of this issue](https://imgbox.com/g/Hht5NqKB0i)
 
-#### VSGAN.execute(n=[int], clip=clip]
+### VSGAN.execute(n=[int], clip=clip]
 
 Executes the GAN model on n frame from clip.
