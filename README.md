@@ -28,97 +28,98 @@ Following comparisons were taken from [ESRGAN's repo](https://github.com/xinntao
 
 ## Installation
 
-Please install the following in order as-shown.
+### Requirements
 
-### 1. VapourSynth
+1.  NVIDIA GPU that has support for CUDA 9.2+. A CUDA Compute Capability score of 6 or higher is recommended, and a score &lt;= 2 will be incredibly slow, if it works at all.
+2.  CPU that isn't from the stone age. While this is going to do 90% of stuff on the GPU, a super bottle-knecking CPU could limit you're GPU's potential.
+3.  An ESRGAN model file to use. Either train one or get an already trained one. There's new models being trained every day in all kinds of communities, with all kinds of specific purposes for each model, like denoising, upscaling, cleaning, inpainting, b&w to color, e.t.c. You can find models on the [Game Upscale Discord](https://discord.gg/cpAUpDK) or their [Upscale.wiki Model Database](https://upscale.wiki/wiki/Model_Database). The model database may not be as active as the Discord though.
 
-_Note: VapourSynth **must** be installed before VSGAN. The package available to install from pip/pypi.org is a function wrapper for Python and still requires VapourSynth to be pre-installed. [\[1\]](http://vapoursynth.com/doc/installation.html#installation-via-pip-pypi)_
+### Dependencies
 
-Official Installation Instructions are available for:
+Install dependencies in the listed order:
 
-[Windows](http://vapoursynth.com/doc/installation.html#windows-installation-instructions), [Linux](http://vapoursynth.com/doc/installation.html#linux-installation-from-packages), [Mac OS X](http://vapoursynth.com/doc/installation.html#os-x-installation-from-packages)
+1.  [Python](https://python.org) 3.6+ and [pip](https://pip.pypa.io/en/stable/installing). The required pip packages are listed in the [requirements.txt](https://github.com/rlaPHOENiX/VSMPEG/blob/master/requirements.txt) file.
+2.  [VapourSynth](https://vapoursynth.com). Ensure the Python version you have installed is supported by the version you are installing. The supported Python versions may differ per OS.
+3.  [NVIDIA CUDA](https://developer.nvidia.com/cuda-downloads).
+4.  [PyTorch](https://pytorch.org/get-started/locally) 1.6.0+, latest version is _always_ recommended.
 
-### 2. mvsfunc
+#### Important information when Installing Python, VapourSynth, and PyTorch
 
-Mvsfunc is typically installed by default.
+1.  Ensure the Python version you have installed (or are going to install) is supported by the version of VapourSynth and PyTorch you are installing. The supported Python versions in correlation to a VapourSynth or PyTorch version may differ per OS, noticeably on Windows due to it's Python environment in general.
+2.  When installing Python and VapourSynth, you will be given the option to "Install for all users" by both. Make sure your chosen answer matches for both installations or VapourSynth and Python wont be able to find each other.
 
-Somehow not installed?
+Important note for Windows users: It is very important for you to tick the checkbox "Add Python X.X to PATH" while installing. The Python installer's checkbox that states "Install launcher for all users" is not referring to the Python binaries. To install for all users you must click "Customize installation" and in there, after "Optional Features" section, it will have a checkbox titled "Install for all users" unticked by default so tick it.
 
-**Windows:**
+#### Tips on Installing PyTorch
 
-From within a command-prompt:
+Go to the [Get Started Locally page](https://pytorch.org/get-started/locally) and choose the following options:
 
-1.  Run `where vsrepo.py` and copy the full path of vsrepo.py
-2.  Run `python "C:/path/to/vsrepo.py" install mvsfunc` (keeping the quotes around the path)
+    PyTorch Build: `Stable`  
+    Package: `Pip`
+    Language: `Python`
+    CUDA: Latest available version, must match the installed version.
 
-**Linux:**
+Then run the command provided by the `Run this Command:` text field.
 
-You can most likely find it in your distro's package manager.
+#### Tips on Installing NVIDIA CUDA
 
-### 3. (optional, recommended) NVIDIA CUDA
+Go to the [NVIDIA CUDA Downloads page](https://developer.nvidia.com/cuda-downloads) and download and install the version you selected on the PyTorch page earlier.
 
-If you plan to use VSGAN with your NVIDIA GPU as a device rather than your CPU (e.g. with torch-device strings: `0`, `1`, ..., or `cuda`) then NVIDIA CUDA must be installed for torch to be able to do so.
+If you chose for example `11.0` then `11.0` and >= `11.0` versions should work, but if you chose for example `10.2`, then chances are you need specifically version `10.2`, and not > `10.2`. However, I cannot confirm if this is the case.
 
-Using VSGAN on a CPU will heavily strain your system (most likely to even unusable amounts!) and will take _forever_ to finish a single frame. I always recommend users of VSGAN to use a NVIDIA GPU with CUDA on a GTX 1050 or better. Just how fast is using a GPU compared to a CPU? A CPU could take minutes to do a single 720x480 frame x4 scale, whereas a GPU could take about half a second (on my GTX 1080ti).
+### Finally, Installing VSGAN
 
-There are far too many ways to install CUDA, many different ways on many different operating systems. Search up on ([DuckDuckGo](https://is.gd/Z4NpYy), [Google](http://google.com/search?q=nvidia+cuda+installation)) how to install it.
+It's as simple as running `pip install vsgan`
 
-### 4. VSGAN
+## Usage (Quick Example)
 
-#### Using PIP via PyPI (recommended)
+```py
+from vapoursynth import RGB24
+from vsgan import VSGAN
 
-Run `pip install vsgan` in terminal/cmd.
+# ...
 
-#### Using PIP offline
+# Create a VSGAN instance, which creates a pytorch device instance
+vsgan = VSGAN("cuda")  # available options: `"cuda"`, `0`, `1`, ..., e.t.c
+# Load an ESRGAN model into the VSGAN instance
+# Tip: You can run load_model() at any point to change the model
+vsgan.load_model(r"C:\Users\PHOENiX\Documents\ESRGAN Models\PSNR_x4_DB.pth")
+# Convert the clip to RGB24 as ESRGAN can only work with linear RGB data
+clip = core.resize.Point(clip, format=RGB24)  # RGB24 is a int constant that was imported earlier
+# Use the VSGAN instance (with its loaded model) on a clip
+clip = vsgan.run(clip)
+# Convert back to any other color space if you wish.
 
-_Note: there's no auto-updates or update notifications with this method. You may possibly be installing code that has not been tested as stable, that has not yet reached an actual update version, meaning you will be using the very-latest code which may be unstable._
+# ...
 
-    git clone https://github.com/rlaPHOENiX/VSGAN.git && cd vsgan
-    pip install .
+# don't forget to set the output in your vapoursynth script
+clip.set_output()
+```
 
-If you don't have git nor wish to, you could also download the [master.zip](https://github.com/rlaPHOENiX/VSGAN/archive/master.zip), extract it, open a command prompt into that folder via `cd`, and `pip install .`
+## Documentation
 
-## Usage
-
-Quick Example
-
-    from vsgan import VSGAN
-
-    # ...
-
-    # create a VSGAN instance, and have it make a torch device with CUDA (or `"cpu"` or `0`, `1`, e.t.c)
-    vsgan = VSGAN("cuda")
-    # load a model into the VSGAN instance
-    # you can run load_model() on the instance at any point to change the model
-    vsgan.load_model(r"C:\User\PHOENiX\Documents\ESRGAN Models\PSNR_x4_DB.pth")
-    # use the VSGAN instance (with its loaded model) on a clip
-    clip = vsgan.run(clip)
-
-    # ...
-
-    # don't forget to set the output in your vapoursynth script
-    clip.set_output()
-
-## Definitions
-
-### VSGAN(device=[int/string])
+### VSGAN(\[device: Union[int,str]="cuda"])
 
 Create a PyTorch Device instance using VSGAN for the provided device
 
--   `device` can be either a string or an int, acceptable values are "cpu", "cuda", and a device id number (e.g. 0, 1), default is "cuda" if available, otherwise it will use "cpu"
+-   `device`: Acceptable values are `"cuda"`, and a device id number (e.g. `0`, `1`). `"cpu"` is not allowed as it's simply too slow and I don't want people hurting their CPU's.
 
-### VSGAN.load_model(model=[string])
+### VSGAN.load_model(model: str)
 
 Load a model into the VSGAN Device instance
 
--   `model` must be a path to the .pth model. Use for example r'C:\\Users\\John Doe\\Model.pth' if the path has crazy characters like back-slashes `(\)` or spaces.
+-   `model`: A path to an ESRGAN .pth model file.
 
-### VSGAN.run(clip=clip, chunk=[bool])
+### VSGAN.run(clip: VideoNode[, chunk: bool=False])
 
-This function takes the provided clip and runs every frame on [VSGAN.execute()](#vsgan.execute) as frames are being processed.
+Executes VSGAN on the provided clip, returning the resulting in a new clip.
 
--   `chunk` if your system is running out of memory, try enable chunking as it will split the image into smaller sub-images and render them one by one, then finally merging them back together. Trading memory requirements for speed and accuracy. WARNING: Since the images will be processed separately, the result may have issues on the edges of the chunks, [an example of this issue](https://imgbox.com/g/Hht5NqKB0i)
+-   `clip`: Clip to use as the input frames. It must be RGB. It will also return as RGB.
+-   `chunk`: If your system is running out of memory, try enable `chunk` as it will split the image into smaller sub-images and render them one by one, then finally merging them back together. Trading memory requirements for speed and accuracy. WARNING: Since the images will be processed separately, the result may have issues on the edges of the chunks, [an example of this issue](https://imgbox.com/g/Hht5NqKB0i).
 
-### VSGAN.execute(n=[int], clip=clip]
+### VSGAN.execute(n: int, clip: VideoNode]
 
-Executes the GAN model on n frame from clip.
+Executes the GAN model on `n`th frame from `clip`.
+
+-   `n`: Frame number.
+-   `clip`: Clip to get the frame from.
