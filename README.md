@@ -98,7 +98,7 @@ clip.set_output()
 
 ## Documentation
 
-### VSGAN([device: int/str="cuda"])
+### VSGAN(\[device: int/str="cuda"])
 
 Create a PyTorch Device instance using VSGAN for the provided device
 
@@ -110,14 +110,14 @@ Load a model into the VSGAN Device instance
 
 -   `model`: A path to an ESRGAN .pth model file.
 
-### VSGAN.run(clip: VideoNode[, chunk: bool=False])
+### VSGAN.run(clip: VideoNode\[, chunk: bool=False])
 
 Executes VSGAN on the provided clip, returning the resulting in a new clip.
 
 -   `clip`: Clip to use as the input frames. It must be RGB. It will also return as RGB.
 -   `chunk`: If your system is running out of memory, try enable `chunk` as it will split the image into smaller sub-images and render them one by one, then finally merging them back together. Trading memory requirements for speed and accuracy. WARNING: Since the images will be processed separately, the result may have issues on the edges of the chunks, [an example of this issue](https://imgbox.com/g/Hht5NqKB0i).
 
-### VSGAN.execute(n: int, clip: VideoNode]
+### VSGAN.execute(n: int, clip: VideoNode)
 
 Executes the GAN model on `n`th frame from `clip`.
 
