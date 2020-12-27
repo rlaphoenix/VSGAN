@@ -1,4 +1,5 @@
 import functools
+import itertools
 
 import numpy as np
 import torch
@@ -65,11 +66,11 @@ class VSGAN:
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
     def run(self, clip, chunk=False):
-        # convert clip to RGB24 as it cannot read any other color space
         if clip.format.color_family.name != "RGB":
             raise ValueError(
                 "VSGAN: Clip color format must be RGB as the ESRGAN model can only work with RGB data :(\n"
-                "You can use mvsfunc.ToRGB or core.resize's format option. It might need to be bit depth of 8bpp.\n"
+                "You can use mvsfunc.ToRGB or use the format option on core.resize functions.\n"
+                "The clip might need to be bit depth of 8bpp for correct color input/output.\n"
                 "If you need to specify a kernel for chroma, I recommend Spline or Bicubic."
             )
         # send the clip array to execute()
@@ -95,6 +96,7 @@ class VSGAN:
         # return the new result clip
         return clip
 
+    @staticmethod
     def convert_new_to_old(state_dict):
         old_net = {}
         items = []
@@ -148,21 +150,29 @@ class VSGAN:
             upsample_mode="upconv"
         )
 
+    def chunk_clip(self, clip):
+        """
+        Split clip down the center into two clips (a left and right clip)
+        Then split those 2 clips in the center into two clips (a top and bottom clip).
+        Resulting in a total of 4 clips (aka chunk).
+        """
+        return itertools.chain.from_iterable([
+            self.split(x, axis=1) for x in self.split(clip, axis=0)
+        ])
+
     @staticmethod
-    def chunk_clip(clip):
-        # split the clip horizontally into 2 images
-        crops = {
-            "left": core.std.CropRel(clip, left=0, top=0, right=clip.width / 2, bottom=0),
-            "right": core.std.CropRel(clip, left=clip.width / 2, top=0, right=0, bottom=0)
-        }
-        # split each of the 2 images from above, vertically, into a further 2 images (totalling 4 images per frame)
-        # top left, bottom left, top right, bottom right
-        return [
-            core.std.CropRel(crops["left"], left=0, top=0, right=0, bottom=crops["left"].height / 2),
-            core.std.CropRel(crops["left"], left=0, top=crops["left"].height / 2, right=0, bottom=0),
-            core.std.CropRel(crops["right"], left=0, top=0, right=0, bottom=crops["right"].height / 2),
-            core.std.CropRel(crops["right"], left=0, top=crops["right"].height / 2, right=0, bottom=0)
-        ]
+    def split(clip, axis):
+        if axis == 0:
+            return [
+                core.std.CropAbs(clip, left=0, right=clip.width / 2),
+                core.std.CropAbs(clip, left=clip.width / 2, right=0)
+            ]
+        elif axis == 1:
+            return [
+                core.std.CropAbs(clip, top=0, bottom=clip.height / 2),
+                core.std.CropAbs(clip, top=clip.height / 2, bottom=0)
+            ]
+        raise ValueError("Invalid split axis...")
 
     @staticmethod
     def cv2_imread(frame, plane_count):
