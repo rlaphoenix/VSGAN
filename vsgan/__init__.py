@@ -75,14 +75,14 @@ class VSGAN:
         self.rrdb_net_model.eval()
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
-    def run(self, clip: vs.VideoNode, chunk: bool = False):
+    def run(self, clip: vs.VideoNode, chunk: bool = False) -> vs.VideoNode:
         """
         Executes VSGAN on the provided clip, returning the resulting in a new clip.
         :param clip: Clip to use as the input frames. It must be RGB. It will also return as RGB.
         :param chunk: Reduces VRAM usage by splitting the input frames into smaller sub-frames and renders them
         one by one, then merges them back together. Trading memory requirements for speed and accuracy.
         WARNING: The result may have issues on the edges of the chunks, example: https://imgbox.com/g/Hht5NqKB0i
-        :return:
+        :returns: ESRGAN result clip
         """
         if clip.format.color_family.name != "RGB":
             raise ValueError(
@@ -116,8 +116,8 @@ class VSGAN:
 
     def execute(self, n: int, clip: vs.VideoNode):
         """
-        Copies ESRGAN's main execution code (at least back when VSGAN was originally made).
-        The only real difference is it doesn't use cv2, and instead uses vapoursynth ports of cv2's functions.
+        Copies the xinntao ESRGAN repo's main execution code. The only real difference is it doesn't use cv2, and
+        instead uses vapoursynth ports of cv2's functionality for read and writing "images".
 
         Code adapted from:
         https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
@@ -239,11 +239,12 @@ class VSGAN:
         )
 
     @staticmethod
-    def cv2_imwrite(image, out_color_space: str = "RGB24"):
+    def cv2_imwrite(image, out_color_space: str = "RGB24") -> vs.VideoNode:
         """
         Alternative to cv2.imwrite() that will convert the data into an image readable by VapourSynth
         :param image: Image data to save
         :param out_color_space: Color space to save the image in
+        :returns: VapourSynth clip with the frame
         """
         if len(image.shape) <= 3:
             image = image.reshape([1] + list(image.shape))
