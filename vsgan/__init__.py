@@ -42,10 +42,7 @@ class VSGAN:
         at any point.
         :param model: ESRGAN .pth model file.
         """
-        state_dict = torch.load(model)
-        if "conv_first.weight" in state_dict:
-            # model is "new-arch", convert to old state dict structure
-            state_dict = self.convert_new_to_old(state_dict)
+        state_dict = self.sanitize_state_dict(torch.load(model))
         # extract model information
         scale2 = 0
         max_part = 0
@@ -145,40 +142,41 @@ class VSGAN:
         return self.cv2_imwrite(image=output, out_color_space=clip.format.name)
 
     @staticmethod
-    def convert_new_to_old(state_dict: dict) -> dict:
+    def sanitize_state_dict(state_dict: dict) -> dict:
         """
-        Convert a new-arch model state dictionary to an old-arch dictionary
+        Convert a new-arch model state dictionary to an old-arch dictionary.
+        The new-arch model's only purpose is making the dict keys more verbose, but has no purpose other
+        than that. So to easily support both new and old arch models, simply convert the key names back
+        to their "Old" counterparts.
+        
         :param state_dict: new-arch state dictionary
         :returns: old-arch state dictionary
         """
-        old_net = {}
-        items = []
-        for k, v in state_dict.items():
-            items.append(k)
-
-        old_net["model.0.weight"] = state_dict["conv_first.weight"]
-        old_net["model.0.bias"] = state_dict["conv_first.bias"]
-
-        for k in items.copy():
-            if "RDB" in k:
-                ori_k = k.replace("RRDB_trunk.", "model.1.sub.")
-                if ".weight" in k:
-                    ori_k = ori_k.replace(".weight", ".0.weight")
-                elif ".bias" in k:
-                    ori_k = ori_k.replace(".bias", ".0.bias")
-                old_net[ori_k] = state_dict[k]
-                items.remove(k)
-
-        old_net["model.1.sub.23.weight"] = state_dict["trunk_conv.weight"]
-        old_net["model.1.sub.23.bias"] = state_dict["trunk_conv.bias"]
-        old_net["model.3.weight"] = state_dict["upconv1.weight"]
-        old_net["model.3.bias"] = state_dict["upconv1.bias"]
-        old_net["model.6.weight"] = state_dict["upconv2.weight"]
-        old_net["model.6.bias"] = state_dict["upconv2.bias"]
-        old_net["model.8.weight"] = state_dict["HRconv.weight"]
-        old_net["model.8.bias"] = state_dict["HRconv.bias"]
-        old_net["model.10.weight"] = state_dict["conv_last.weight"]
-        old_net["model.10.bias"] = state_dict["conv_last.bias"]
+        if "conv_first.weight" not in state_dict:
+            # model is already old arch, this is a loose check, but should be sufficient
+            return state_dict
+        old_net = {
+            "model.0.weight": state_dict["conv_first.weight"],
+            "model.0.bias": state_dict["conv_first.bias"],
+            "model.1.sub.23.weight": state_dict["trunk_conv.weight"],
+            "model.1.sub.23.bias": state_dict["trunk_conv.bias"],
+            "model.3.weight": state_dict["upconv1.weight"],
+            "model.3.bias": state_dict["upconv1.bias"],
+            "model.6.weight": state_dict["upconv2.weight"],
+            "model.6.bias": state_dict["upconv2.bias"],
+            "model.8.weight": state_dict["HRconv.weight"],
+            "model.8.bias": state_dict["HRconv.bias"],
+            "model.10.weight": state_dict["conv_last.weight"],
+            "model.10.bias": state_dict["conv_last.bias"]
+        }
+        for key, value in state_dict.items():
+            if "RDB" in key:
+                new = key.replace("RRDB_trunk.", "model.1.sub.")
+                if ".weight" in key:
+                    new = new.replace(".weight", ".0.weight")
+                elif ".bias" in key:
+                    new = new.replace(".bias", ".0.bias")
+                old_net[new] = value
         return old_net
 
     def get_rrdb_network(self, in_nc: int = 3, out_nc: int = 3, nf: int = 64, nb: int = 23, gc: int = 32) -> RRDB_Net:
