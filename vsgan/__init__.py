@@ -14,7 +14,8 @@ class VSGAN:
 
     def __init__(self, device: Union[str, int] = "cuda"):
         """
-        Create a PyTorch Device instance, to use VSGAN with.
+        Create a PyTorch Device instance, to use VSGAN with. It validates the supplied pytorch device identifier
+        for you, and makes sure CUDA environment is available and ready.
         :param device: PyTorch device identifier, tells VSGAN which device to run ESRGAN with. e.g. `cuda`, `0`, `1`
         """
         device = device.strip().lower() if isinstance(device, str) else device
@@ -33,6 +34,7 @@ class VSGAN:
             raise EnvironmentError(f"VSGAN: Either NVIDIA CUDA or the device ({device}) isn't available.")
         self.device = device
         self.torch_device = torch.device(self.device)
+        self.model = None
         self.model_scale = None
         self.rrdb_net_model = None
 
@@ -42,7 +44,8 @@ class VSGAN:
         at any point.
         :param model: ESRGAN .pth model file.
         """
-        state_dict = self.sanitize_state_dict(torch.load(model))
+        self.model = model
+        state_dict = self.sanitize_state_dict(torch.load(self.model))
         # extract model information
         scale2 = 0
         max_part = 0
@@ -148,7 +151,7 @@ class VSGAN:
         The new-arch model's only purpose is making the dict keys more verbose, but has no purpose other
         than that. So to easily support both new and old arch models, simply convert the key names back
         to their "Old" counterparts.
-        
+
         :param state_dict: new-arch state dictionary
         :returns: old-arch state dictionary
         """
