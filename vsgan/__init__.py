@@ -1,16 +1,25 @@
 import functools
 import itertools
+from typing import Union, Iterable, List
 
 import numpy as np
 import torch
 import vapoursynth as vs
 from vapoursynth import core
 
+from vsgan.RRDBNet_arch_old import RRDB_Net
+
 
 class VSGAN:
 
-    def __init__(self, device="cuda"):
-        device = device.lower() if isinstance(device, str) else device
+    def __init__(self, device: Union[str, int] = "cuda"):
+        """
+        Create a PyTorch Device instance, to use VSGAN with.
+        :param device: PyTorch device identifier, tells VSGAN which device to run ESRGAN with. e.g. `cuda`, `0`, `1`
+        """
+        device = device.strip().lower() if isinstance(device, str) else device
+        if device == "":
+            raise ValueError("VSGAN: `device` parameter cannot be an empty string.")
         if device == "cpu":
             raise ValueError(
                 "VSGAN: Using your CPU as a device for VSGAN/PyTorch has been blocked, use a GPU device.\n"
@@ -21,14 +30,18 @@ class VSGAN:
         elif device == "cpu!":
             device = "cpu"
         if device != "cpu" and not torch.cuda.is_available():
-            raise EnvironmentError(
-                "VSGAN: CUDA is not available, make sure you installed NVIDIA CUDA and that your GPU is available.")
+            raise EnvironmentError(f"VSGAN: Either NVIDIA CUDA or the device ({device}) isn't available.")
         self.device = device
         self.torch_device = torch.device(self.device)
         self.model_scale = None
         self.rrdb_net_model = None
 
-    def load_model(self, model):
+    def load_model(self, model: str):
+        """
+        Load an ESRGAN model file into the VSGAN object instance. The model can be changed by calling load_model
+        at any point.
+        :param model: ESRGAN .pth model file.
+        """
         state_dict = torch.load(model)
         if "conv_first.weight" in state_dict:
             # model is "new-arch", convert to old state dict structure
@@ -60,12 +73,20 @@ class VSGAN:
         if out_nc is None:
             print("VSGAN Warning: Could not find out_nc, assuming it's the same as in_nc...")
 
-        self.rrdb_net_model = self.get_rrdb_net_arch(in_nc, out_nc or in_nc, nf, nb)
+        self.rrdb_net_model = self.get_rrdb_network(in_nc, out_nc or in_nc, nf, nb)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
         self.rrdb_net_model.eval()
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
-    def run(self, clip, chunk=False):
+    def run(self, clip: vs.VideoNode, chunk: bool = False):
+        """
+        Executes VSGAN on the provided clip, returning the resulting in a new clip.
+        :param clip: Clip to use as the input frames. It must be RGB. It will also return as RGB.
+        :param chunk: Reduces VRAM usage by splitting the input frames into smaller sub-frames and renders them
+        one by one, then merges them back together. Trading memory requirements for speed and accuracy.
+        WARNING: The result may have issues on the edges of the chunks, example: https://imgbox.com/g/Hht5NqKB0i
+        :return:
+        """
         if clip.format.color_family.name != "RGB":
             raise ValueError(
                 "VSGAN: Clip color format must be RGB as the ESRGAN model can only work with RGB data :(\n"
@@ -96,28 +117,40 @@ class VSGAN:
         # return the new result clip
         return clip
 
-    def execute(self, n, clip):
+    def execute(self, n: int, clip: vs.VideoNode):
         """
-        Essentially the same as ESRGAN, except it replaces the cv2 functions with ones geared towards VapourSynth
+        Copies ESRGAN's main execution code (at least back when VSGAN was originally made).
+        The only real difference is it doesn't use cv2, and instead uses vapoursynth ports of cv2's functions.
+
+        Code adapted from:
         https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
         """
-        if not self.rrdb_net_model or not self.torch_device:
-            raise Exception("Error: Model not yet loaded a torch device...")
-        # get the frame being used
-        frame = clip.get_frame(n)
-        img = self.cv2_imread(frame=frame, plane_count=clip.format.num_planes)
-        img = img * 1.0 / 255
-        img = torch.from_numpy(np.transpose(img[:, :, [2, 1, 0]], (2, 0, 1))).float()
+        if not self.rrdb_net_model:
+            raise ValueError("VSGAN: No ESRGAN model has been loaded, use VSGAN.load_model().")
+        # 255 being the max value for an RGB color space, could this be key to YUV support in the future?
+        max_n = 255.0
+        # what's up with all the different transposing of channel plane order?
+        bgr = [2, 1, 0]
+        brg = (2, 0, 1)
+        gbr = (1, 2, 0)
+        img = self.cv2_imread(frame=clip.get_frame(n), plane_count=clip.format.num_planes)
+        img = img * 1.0 / max_n
+        img = torch.from_numpy(np.transpose(img[:, :, bgr], brg)).float()
         img_lr = img.unsqueeze(0)
         img_lr = img_lr.to(self.torch_device)
         with torch.no_grad():
             output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
-        output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))
-        output = (output * 255.0).round()
+        output = np.transpose(output[bgr, :, :], gbr)
+        output = (output * max_n).round()
         return self.cv2_imwrite(image=output, out_color_space=clip.format.name)
 
     @staticmethod
-    def convert_new_to_old(state_dict):
+    def convert_new_to_old(state_dict: dict) -> dict:
+        """
+        Convert a new-arch model state dictionary to an old-arch dictionary
+        :param state_dict: new-arch state dictionary
+        :returns: old-arch state dictionary
+        """
         old_net = {}
         items = []
         for k, v in state_dict.items():
@@ -148,19 +181,16 @@ class VSGAN:
         old_net["model.10.bias"] = state_dict["conv_last.bias"]
         return old_net
 
-    def get_rrdb_net_arch(self, in_nc=3, out_nc=3, nf=64, nb=23, gc=32):
+    def get_rrdb_network(self, in_nc: int = 3, out_nc: int = 3, nf: int = 64, nb: int = 23, gc: int = 32) -> RRDB_Net:
         """
-        Import RRDB Net Architecture
-
-        :param in_nc: num of input channels
-        :param out_nc: num of output channels
-        :param nf: num of filters
-        :param nb: num of blocks
+        Create an old-arch style RRDB Network.
+        :param in_nc: Number of input channels
+        :param out_nc: Number of output channels
+        :param nf: Number of filters
+        :param nb: Number of blocks
         :param gc: ?
         """
-
-        from . import RRDBNet_arch_old as Arch
-        return Arch.RRDB_Net(
+        return RRDB_Net(
             in_nc, out_nc, nf, nb, gc,
             upscale=self.model_scale,
             norm_type=None,
@@ -170,7 +200,7 @@ class VSGAN:
             upsample_mode="upconv"
         )
 
-    def chunk(self, clip):
+    def chunk(self, clip: vs.VideoNode) -> Iterable[vs.VideoNode]:
         """
         Split clip down the center into two clips (a left and right clip)
         Then split those 2 clips in the center into two clips (a top and bottom clip).
@@ -181,7 +211,12 @@ class VSGAN:
         ])
 
     @staticmethod
-    def split(clip, axis):
+    def split(clip: vs.VideoNode, axis: int) -> List[vs.VideoNode]:
+        """
+        Split a clip in the center of an axis, into two clips.
+        :param clip: Clip to split
+        :param axis: Axis to split on (0 = vertical, 1 = horizontal)
+        """
         if axis == 0:
             return [
                 core.std.Crop(clip, left=0, right=clip.width / 2),
@@ -195,18 +230,22 @@ class VSGAN:
         raise ValueError("Invalid split axis...")
 
     @staticmethod
-    def cv2_imread(frame, plane_count):
+    def cv2_imread(frame: vs.VideoFrame, plane_count: int):
         """
         Alternative to cv2.imread() that will directly read images to a numpy array
+        :param frame: VapourSynth frame from a clip
+        :param plane_count: Amount of plane channels
         """
         return np.dstack(
             [np.array(frame.get_read_array(i), copy=False) for i in reversed(range(plane_count))]
         )
 
     @staticmethod
-    def cv2_imwrite(image, out_color_space="RGB24"):
+    def cv2_imwrite(image, out_color_space: str = "RGB24"):
         """
         Alternative to cv2.imwrite() that will convert the data into an image readable by VapourSynth
+        :param image: Image data to save
+        :param out_color_space: Color space to save the image in
         """
         if len(image.shape) <= 3:
             image = image.reshape([1] + list(image.shape))
@@ -224,7 +263,7 @@ class VSGAN:
             length=image_length
         )
 
-        def replace_planes(n, f):
+        def replace_planes(n: int, f):
             frame = f.copy()
             for i, plane_num in enumerate(reversed(range(plane_count))):
                 # todo ; any better way to do this without storing the np.array in a variable?
