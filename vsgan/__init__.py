@@ -23,21 +23,21 @@ class VSGAN:
             raise EnvironmentError(
                 "VSGAN: CUDA is not available, make sure you installed NVIDIA CUDA and that your GPU is available.")
         self.device = device
-        self.torch_device = None
+        self.torch_device = torch.device(self.device)
         self.model_scale = None
         self.rrdb_net_model = None
 
     def load_model(self, model):
         state_dict = torch.load(model)
-
-        # Check if new-arch and convert
         if "conv_first.weight" in state_dict:
+            # model is "new-arch", convert to old state dict structure
             state_dict = self.convert_new_to_old(state_dict)
-
         # extract model information
         scale2 = 0
         max_part = 0
-        scalemin = 6
+        scale_min = 6
+        nb = None
+        out_nc = None
         for part in list(state_dict):
             parts = part.split(".")
             n_parts = len(parts)
@@ -45,23 +45,23 @@ class VSGAN:
                 nb = int(parts[3])
             elif n_parts == 3:
                 part_num = int(parts[1])
-                if part_num > scalemin and parts[0] == "model" and parts[2] == "weight":
+                if part_num > scale_min and parts[0] == "model" and parts[2] == "weight":
                     scale2 += 1
                 if part_num > max_part:
                     max_part = part_num
                     out_nc = state_dict[part].shape[0]
-        upscale = 2 ** scale2
+        self.model_scale = 2 ** scale2
         in_nc = state_dict["model.0.weight"].shape[1]
         nf = state_dict["model.0.weight"].shape[0]
-        self.model_scale = upscale
 
-        self.rrdb_net_model = self.get_rrdb_net_arch(in_nc, out_nc, nf, nb)
+        if nb is None:
+            raise NotImplementedError("VSGAN: Could not find the nb in this new-arch model.")
+        if out_nc is None:
+            print("VSGAN Warning: Could not find out_nc, assuming it's the same as in_nc...")
+
+        self.rrdb_net_model = self.get_rrdb_net_arch(in_nc, out_nc or in_nc, nf, nb)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
         self.rrdb_net_model.eval()
-
-        if not self.torch_device:
-            # only need to load a torch device once, and only when loading a model
-            self.torch_device = torch.device(self.device)
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
     def run(self, clip, chunk=False):
