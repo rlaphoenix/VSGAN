@@ -203,10 +203,11 @@ class VSGAN:
         :param frame: VapourSynth frame to store retrieved planes.
         :returns: New frame with planes from numpy array
         """
+        frame = frame.copy()
         for vs_plane, np_plane in enumerate(reversed(range(array.shape[-1]))):
             np.copyto(
-                np.array(frame.get_read_array(np_plane), copy=False),
-                array[:, :, vs_plane],
+                np.asarray(frame.get_write_array(vs_plane)),
+                array[:, :, np_plane],
                 casting="unsafe"
             )
         return frame
