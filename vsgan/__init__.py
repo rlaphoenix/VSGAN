@@ -204,18 +204,18 @@ class VSGAN:
             )
         return frame
 
-    def np_to_clip(self, image: np.ndarray, out_color_space: str = "RGB24") -> vs.VideoNode:
+    def np_to_clip(self, clip: vs.VideoNode, image: np.ndarray) -> vs.VideoNode:
         """
         Convert a numpy array into a VapourSynth clip.
+        :param clip: used to inherit expected return properties only
         :param image: numpy array (expecting HWC shape order)
-        :param out_color_space: color space format to create the clip under
         :returns: VapourSynth clip with the frame applied
         """
         h, w, c = image.shape
         clip = core.std.BlankClip(
+            clip=clip,
             width=w,
             height=h,
-            format=vs.PresetFormat[out_color_space],
             length=1
         )
         return core.std.ModifyFrame(
