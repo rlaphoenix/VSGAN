@@ -1,6 +1,9 @@
 <component name="ProjectDictionaryState">
   <dictionary name="phoenix">
     <words>
+      <w>leakyrelu</w>
+      <w>upconv</w>
+      <w>upsample</w>
       <w>vram</w>
     </words>
   </dictionary>
