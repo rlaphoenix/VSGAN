@@ -129,19 +129,14 @@ class VSGAN:
             raise ValueError("VSGAN: No ESRGAN model has been loaded, use VSGAN.load_model().")
         # 255 being the max value for an RGB color space, could this be key to YUV support in the future?
         max_n = 255.0
-        # what's up with all the different transposing of channel plane order?
-        rgb = (0, 1, 2)
-        brg = (2, 0, 1)
-        bgr = (2, 1, 0)
-        gbr = (1, 2, 0)
         img = self.frame_to_np(clip.get_frame(n))
         img = img * 1.0 / max_n
-        img = torch.from_numpy(np.transpose(img[:, :, rgb], brg)).float()
-        img_lr = img.unsqueeze(0)
-        img_lr = img_lr.to(self.torch_device)
+        img = np.transpose(img[:, :, (0, 1, 2)], (2, 0, 1))  # RGB to BRG
+        img = torch.from_numpy(img).float()
+        img_lr = img.unsqueeze(0).to(self.torch_device)
         with torch.no_grad():
             output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
-        output = np.transpose(output[bgr, :, :], gbr)
+        output = np.transpose(output[(2, 1, 0), :, :], (1, 2, 0))  # BGR to GBR
         output = (output * max_n).round()
         return self.np_to_clip(image=output, out_color_space=clip.format.name)
 
