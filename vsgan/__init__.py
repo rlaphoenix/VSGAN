@@ -1,6 +1,6 @@
 import functools
 import itertools
-from typing import Union, Iterable, List
+from typing import Union, Iterable
 
 import numpy as np
 import torch
@@ -14,8 +14,8 @@ class VSGAN:
 
     def __init__(self, device: Union[str, int] = "cuda"):
         """
-        Create a PyTorch Device instance, to use VSGAN with. It validates the supplied pytorch device identifier
-        for you, and makes sure CUDA environment is available and ready.
+        Create a PyTorch Device instance, to use VSGAN with.
+        It validates the supplied pytorch device identifier, and makes sure CUDA environment is available and ready.
         :param device: PyTorch device identifier, tells VSGAN which device to run ESRGAN with. e.g. `cuda`, `0`, `1`
         """
         device = device.strip().lower() if isinstance(device, str) else device
@@ -40,8 +40,8 @@ class VSGAN:
 
     def load_model(self, model: str):
         """
-        Load an ESRGAN model file into the VSGAN object instance. The model can be changed by calling load_model
-        at any point.
+        Load an ESRGAN model file into the VSGAN object instance.
+        The model can be changed by calling load_model at any point.
         :param model: ESRGAN .pth model file.
         """
         self.model = model
@@ -193,7 +193,7 @@ class VSGAN:
         ])
 
     @staticmethod
-    def split(clip: vs.VideoNode, axis: int) -> List[vs.VideoNode]:
+    def split(clip: vs.VideoNode, axis: int = 0) -> list[vs.VideoNode]:
         """
         Split a clip in the center of an axis, into two clips.
         :param clip: Clip to split
