@@ -138,7 +138,7 @@ class VSGAN:
             output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
         output = np.transpose(output[(2, 1, 0), :, :], (1, 2, 0))  # BGR to GBR
         output = (output * max_n).round()
-        return self.np_to_clip(image=output, out_color_space=clip.format.name)
+        return self.np_to_clip(clip, output)
 
     @staticmethod
     def sanitize_state_dict(state_dict: dict) -> dict:
