@@ -28,7 +28,7 @@ class VSGAN:
                 "It isn't worth it either as it takes literally hours for a single 720x480 frame.\n"
                 "If you are sure you would like to use your CPU, then use `cpu!` as the device argument."
             )
-        elif device == "cpu!":
+        if device == "cpu!":
             device = "cpu"
         if device != "cpu" and not torch.cuda.is_available():
             raise EnvironmentError("VSGAN: Either NVIDIA CUDA or the device (%s) isn't available." % device)
@@ -73,7 +73,7 @@ class VSGAN:
         if out_nc is None:
             print("VSGAN Warning: Could not find out_nc, assuming it's the same as in_nc...")
 
-        self.rrdb_net_model = self.get_rrdb_network(in_nc, out_nc or in_nc, nf, nb)
+        self.rrdb_net_model = RRDB_Net(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
         self.rrdb_net_model.eval()
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
@@ -181,25 +181,6 @@ class VSGAN:
                     new = new.replace(".bias", ".0.bias")
                 old_net[new] = value
         return old_net
-
-    def get_rrdb_network(self, in_nc: int = 3, out_nc: int = 3, nf: int = 64, nb: int = 23, gc: int = 32) -> RRDB_Net:
-        """
-        Create an old-arch style RRDB Network.
-        :param in_nc: Number of input channels
-        :param out_nc: Number of output channels
-        :param nf: Number of filters
-        :param nb: Number of blocks
-        :param gc: ?
-        """
-        return RRDB_Net(
-            in_nc, out_nc, nf, nb, gc,
-            upscale=self.model_scale,
-            norm_type=None,
-            act_type="leakyrelu",
-            mode="CNA",
-            res_scale=1,
-            upsample_mode="upconv"
-        )
 
     def chunk(self, clip: vs.VideoNode) -> Iterable[vs.VideoNode]:
         """
