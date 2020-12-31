@@ -223,7 +223,7 @@ class VSGAN:
                 core.std.Crop(clip, left=0, right=clip.width / 2),
                 core.std.Crop(clip, left=clip.width / 2, right=0)
             ]
-        elif axis == 1:
+        if axis == 1:
             return [
                 core.std.Crop(clip, top=0, bottom=clip.height / 2),
                 core.std.Crop(clip, top=clip.height / 2, bottom=0)
