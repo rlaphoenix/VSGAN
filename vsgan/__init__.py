@@ -131,11 +131,12 @@ class VSGAN:
         max_n = 255.0
         # what's up with all the different transposing of channel plane order?
         bgr = [2, 1, 0]
+        rgb = (0, 1, 2)
         brg = (2, 0, 1)
         gbr = (1, 2, 0)
-        img = self.cv2_imread(frame=clip.get_frame(n), plane_count=clip.format.num_planes)
+        img = self.frame_to_np(clip.get_frame(n), clip.format.num_planes)
         img = img * 1.0 / max_n
-        img = torch.from_numpy(np.transpose(img[:, :, bgr], brg)).float()
+        img = torch.from_numpy(np.transpose(img[:, :, rgb], brg)).float()
         img_lr = img.unsqueeze(0)
         img_lr = img_lr.to(self.torch_device)
         with torch.no_grad():
@@ -182,6 +183,26 @@ class VSGAN:
                 old_net[new] = value
         return old_net
 
+    def np_to_clip(self, image: np.ndarray, out_color_space: str = "RGB24") -> vs.VideoNode:
+        """
+        Convert a numpy array into a VapourSynth clip.
+        :param image: numpy array (expecting HWC shape order)
+        :param out_color_space: color space format to create the clip under
+        :returns: VapourSynth clip with the frame applied
+        """
+        h, w, c = image.shape
+        clip = core.std.BlankClip(
+            width=w,
+            height=h,
+            format=vs.PresetFormat[out_color_space],
+            length=1
+        )
+        return core.std.ModifyFrame(
+            clip=clip,
+            clips=clip,
+            selector=lambda n, f: self.np_to_frame(image, f)
+        )
+
     def chunk(self, clip: vs.VideoNode) -> Iterable[vs.VideoNode]:
         """
         Split clip down the center into two clips (a left and right clip)
@@ -222,42 +243,3 @@ class VSGAN:
             [np.array(frame.get_read_array(i), copy=False) for i in reversed(range(plane_count))]
         )
 
-    @staticmethod
-    def cv2_imwrite(image, out_color_space: str = "RGB24") -> vs.VideoNode:
-        """
-        Alternative to cv2.imwrite() that will convert the data into an image readable by VapourSynth
-        :param image: Image data to save
-        :param out_color_space: Color space to save the image in
-        :returns: VapourSynth clip with the frame
-        """
-        if len(image.shape) <= 3:
-            image = image.reshape([1] + list(image.shape))
-        # Define the shapes items
-        plane_count = image.shape[-1]
-        # this is a clip (or array buffer for frames) that we will insert the GAN frames into
-        buffer = core.std.BlankClip(
-            width=image.shape[-2],
-            height=image.shape[-3],
-            format=vs.PresetFormat[out_color_space],
-            length=image.shape[-4]
-        )
-
-        def replace_planes(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
-            """
-            :param n: frame number
-            :param f: frame
-            :returns: frame with planes replaced
-            """
-            frame = f.copy()
-            for i, plane_num in enumerate(reversed(range(plane_count))):
-                # todo ; any better way to do this without storing the np.array in a variable?
-                # todo ; perhaps some way to directly copy it to s?
-                d = np.array(frame.get_write_array(plane_num), copy=False)
-                # copy the value of d, into s[frame_num, :, :, plane_num]
-                np.copyto(d, image[n, :, :, i], casting="unsafe")
-                # delete the d variable from memory
-                del d
-            return frame
-
-        # take the blank clip and insert the new data into the planes and return it back to sender
-        return core.std.ModifyFrame(clip=buffer, clips=buffer, selector=replace_planes)
