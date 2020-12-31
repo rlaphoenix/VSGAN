@@ -134,7 +134,7 @@ class VSGAN:
         brg = (2, 0, 1)
         bgr = (2, 1, 0)
         gbr = (1, 2, 0)
-        img = self.frame_to_np(clip.get_frame(n), clip.format.num_planes)
+        img = self.frame_to_np(clip.get_frame(n))
         img = img * 1.0 / max_n
         img = torch.from_numpy(np.transpose(img[:, :, rgb], brg)).float()
         img_lr = img.unsqueeze(0)
@@ -184,15 +184,12 @@ class VSGAN:
         return old_net
 
     @staticmethod
-    def frame_to_np(frame: vs.VideoFrame, plane_count: int) -> np.dstack:
+    def frame_to_np(frame: vs.VideoFrame) -> np.dstack:
         """
         Alternative to cv2.imread() that will directly read images to a numpy array.
         :param frame: VapourSynth frame from a clip
-        :param plane_count: Amount of plane channels
         """
-        return np.dstack(
-            [np.array(frame.get_read_array(i), copy=False) for i in range(plane_count)]
-        )
+        return np.dstack([np.asarray(frame.get_read_array(i)) for i in range(frame.format.num_planes)])
 
     @staticmethod
     def np_to_frame(array: np.ndarray, frame: vs.VideoFrame) -> vs.VideoFrame:
