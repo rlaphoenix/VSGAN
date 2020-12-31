@@ -130,9 +130,9 @@ class VSGAN:
         # 255 being the max value for an RGB color space, could this be key to YUV support in the future?
         max_n = 255.0
         # what's up with all the different transposing of channel plane order?
-        bgr = [2, 1, 0]
         rgb = (0, 1, 2)
         brg = (2, 0, 1)
+        bgr = (2, 1, 0)
         gbr = (1, 2, 0)
         img = self.frame_to_np(clip.get_frame(n), clip.format.num_planes)
         img = img * 1.0 / max_n
@@ -143,7 +143,7 @@ class VSGAN:
             output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
         output = np.transpose(output[bgr, :, :], gbr)
         output = (output * max_n).round()
-        return self.cv2_imwrite(image=output, out_color_space=clip.format.name)
+        return self.np_to_clip(image=output, out_color_space=clip.format.name)
 
     @staticmethod
     def sanitize_state_dict(state_dict: dict) -> dict:
@@ -182,6 +182,34 @@ class VSGAN:
                     new = new.replace(".bias", ".0.bias")
                 old_net[new] = value
         return old_net
+
+    @staticmethod
+    def frame_to_np(frame: vs.VideoFrame, plane_count: int) -> np.dstack:
+        """
+        Alternative to cv2.imread() that will directly read images to a numpy array.
+        :param frame: VapourSynth frame from a clip
+        :param plane_count: Amount of plane channels
+        """
+        return np.dstack(
+            [np.array(frame.get_read_array(i), copy=False) for i in range(plane_count)]
+        )
+
+    @staticmethod
+    def np_to_frame(array: np.ndarray, frame: vs.VideoFrame) -> vs.VideoFrame:
+        """
+        Copies each channel from a numpy array into a vs.VideoFrame.
+        It expects the numpy array to be BGR, with the dimension count (C) last in the shape, so HWC or WHC.
+        :param array: Numpy array to retrieve planes from.
+        :param frame: VapourSynth frame to store retrieved planes.
+        :returns: New frame with planes from numpy array
+        """
+        for vs_plane, np_plane in enumerate(reversed(range(array.shape[-1]))):
+            np.copyto(
+                np.array(frame.get_read_array(np_plane), copy=False),
+                array[:, :, vs_plane],
+                casting="unsafe"
+            )
+        return frame
 
     def np_to_clip(self, image: np.ndarray, out_color_space: str = "RGB24") -> vs.VideoNode:
         """
@@ -231,15 +259,3 @@ class VSGAN:
                 core.std.Crop(clip, top=clip.height / 2, bottom=0)
             ]
         raise ValueError("Invalid split axis...")
-
-    @staticmethod
-    def cv2_imread(frame: vs.VideoFrame, plane_count: int):
-        """
-        Alternative to cv2.imread() that will directly read images to a numpy array
-        :param frame: VapourSynth frame from a clip
-        :param plane_count: Amount of plane channels
-        """
-        return np.dstack(
-            [np.array(frame.get_read_array(i), copy=False) for i in reversed(range(plane_count))]
-        )
-
