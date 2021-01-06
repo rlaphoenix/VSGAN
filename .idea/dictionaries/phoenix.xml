@@ -4,6 +4,7 @@
       <w>leakyrelu</w>
       <w>upconv</w>
       <w>upsample</w>
+      <w>upscaling</w>
       <w>vram</w>
     </words>
   </dictionary>
