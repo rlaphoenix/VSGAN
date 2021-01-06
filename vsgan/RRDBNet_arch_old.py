@@ -5,10 +5,10 @@ import torch.nn as nn
 from . import RRDBNet_arch_old_block as Block
 
 
-class RRDB_Net(nn.Module):
+class RRDBNet(nn.Module):
     def __init__(self, in_nc: int, out_nc: int, nf: int, nb: int, upscale: int = 4, norm_type=None,
                  act_type: str = 'leakyrelu', mode: str = 'CNA', upsample_mode='upconv'):
-        super(RRDB_Net, self).__init__()
+        super(RRDBNet, self).__init__()
         n_upscale = int(math.log(upscale, 2))
         if upscale == 3:
             n_upscale = 1
@@ -29,7 +29,7 @@ class RRDB_Net(nn.Module):
 
         if upsample_mode == 'upconv':
             upsample_block = Block.upconv_block
-        elif upsample_mode == 'pixelshuffle':
+        elif upsample_mode == 'pixel_shuffle':
             upsample_block = Block.pixelshuffle_block
         else:
             raise NotImplementedError('upsample mode [%s] is not found' % upsample_mode)

@@ -7,7 +7,7 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan.RRDBNet_arch_old import RRDB_Net
+from vsgan.RRDBNet_arch_old import RRDBNet
 
 
 class VSGAN:
@@ -73,7 +73,7 @@ class VSGAN:
         if out_nc is None:
             print("VSGAN Warning: Could not find out_nc, assuming it's the same as in_nc...")
 
-        self.rrdb_net_model = RRDB_Net(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
+        self.rrdb_net_model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
         self.rrdb_net_model.eval()
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)

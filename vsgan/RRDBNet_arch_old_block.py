@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -109,7 +110,7 @@ def sequential(*args):
 
 
 def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=True,
-               pad_type='zero', norm_type=None, act_type='relu', mode='CNA'):
+               pad_type='zero', norm_type=None, act_type: Optional[str] = 'relu', mode='CNA'):
     """
     Conv layer with padding, normalization, activation
     mode: CNA --> Conv -> Norm -> Act
@@ -121,8 +122,8 @@ def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=
     p = pad(pad_type, padding) if pad_type and pad_type != 'zero' else None
     padding = padding if pad_type == 'zero' else 0
 
-    c = nn.Conv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, \
-                  dilation=dilation, bias=bias, groups=groups)
+    c = nn.Conv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias,
+                  groups=groups)
     a = act(act_type) if act_type else None
     if 'CNA' in mode:
         n = norm(norm_type, out_nc) if norm_type else None
@@ -150,18 +151,18 @@ class ResNetBlock(nn.Module):
     (Enhanced Deep Residual Networks for Single Image Super-Resolution, CVPRW 17)
     """
 
-    def __init__(self, in_nc, mid_nc, out_nc, kernel_size=3, stride=1, dilation=1, groups=1, \
-                 bias=True, pad_type='zero', norm_type=None, act_type='relu', mode='CNA', res_scale=1):
+    def __init__(self, in_nc, mid_nc, out_nc, kernel_size=3, stride=1, dilation=1, groups=1, bias=True, pad_type='zero',
+                 norm_type=None, act_type='relu', mode='CNA', res_scale=1):
         super(ResNetBlock, self).__init__()
-        conv0 = conv_block(in_nc, mid_nc, kernel_size, stride, dilation, groups, bias, pad_type, \
-                           norm_type, act_type, mode)
+        conv0 = conv_block(in_nc, mid_nc, kernel_size, stride, dilation, groups, bias, pad_type, norm_type, act_type,
+                           mode)
         if mode == 'CNA':
             act_type = None
         if mode == 'CNAC':  # Residual path: |-CNAC-|
             act_type = None
             norm_type = None
-        conv1 = conv_block(mid_nc, out_nc, kernel_size, stride, dilation, groups, bias, pad_type, \
-                           norm_type, act_type, mode)
+        conv1 = conv_block(mid_nc, out_nc, kernel_size, stride, dilation, groups, bias, pad_type, norm_type, act_type,
+                           mode)
         # if in_nc != out_nc:
         #     self.project = conv_block(in_nc, out_nc, 1, stride, dilation, 1, bias, pad_type, \
         #         None, None)
@@ -176,31 +177,31 @@ class ResNetBlock(nn.Module):
         return x + res
 
 
-class ResidualDenseBlock_5C(nn.Module):
+class ResidualDenseBlock5C(nn.Module):
     """
     Residual Dense Block
     style: 5 convs
     The core module of paper: (Residual Dense Network for Image Super-Resolution, CVPR 18)
     """
 
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', \
-                 norm_type=None, act_type='leakyrelu', mode='CNA'):
-        super(ResidualDenseBlock_5C, self).__init__()
+    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', norm_type=None,
+                 act_type='leakyrelu', mode='CNA'):
+        super(ResidualDenseBlock5C, self).__init__()
         # gc: growth channel, i.e. intermediate channels
-        self.conv1 = conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, \
-                                norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv2 = conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, \
-                                norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv3 = conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, \
-                                norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv4 = conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, \
-                                norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv1 = conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
+                                act_type=act_type, mode=mode)
+        self.conv2 = conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
+                                act_type=act_type, mode=mode)
+        self.conv3 = conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
+                                act_type=act_type, mode=mode)
+        self.conv4 = conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
+                                act_type=act_type, mode=mode)
         if mode == 'CNA':
             last_act = None
         else:
             last_act = act_type
-        self.conv5 = conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type, \
-                                norm_type=norm_type, act_type=last_act, mode=mode)
+        self.conv5 = conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type, norm_type=norm_type,
+                                act_type=last_act, mode=mode)
 
     def forward(self, x):
         x1 = self.conv1(x)
@@ -216,15 +217,12 @@ class RRDB(nn.Module):
     Residual in Residual Dense Block
     """
 
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', \
-                 norm_type=None, act_type='leakyrelu', mode='CNA'):
+    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type='zero', norm_type=None,
+                 act_type='leakyrelu', mode='CNA'):
         super(RRDB, self).__init__()
-        self.RDB1 = ResidualDenseBlock_5C(nc, kernel_size, gc, stride, bias, pad_type, \
-                                          norm_type, act_type, mode)
-        self.RDB2 = ResidualDenseBlock_5C(nc, kernel_size, gc, stride, bias, pad_type, \
-                                          norm_type, act_type, mode)
-        self.RDB3 = ResidualDenseBlock_5C(nc, kernel_size, gc, stride, bias, pad_type, \
-                                          norm_type, act_type, mode)
+        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
+        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
+        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
 
     def forward(self, x):
         out = self.RDB1(x)
