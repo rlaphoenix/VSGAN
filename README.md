@@ -44,7 +44,7 @@ Following comparisons were taken from [ESRGAN's repo](https://github.com/xinntao
 
 Install dependencies in the listed order:
 
-1.  [Python](https://python.org) 3.5+ and [pip](https://pip.pypa.io/en/stable/installing). The required pip packages are listed in the [requirements.txt](https://github.com/rlaPHOENiX/VSMPEG/blob/master/requirements.txt) file.
+1.  [Python](https://python.org) 3.5+ and [pip](https://pip.pypa.io/en/stable/installing).
 2.  [VapourSynth](https://vapoursynth.com). Ensure the Python version you have installed is supported by the version you are installing. The supported Python versions may differ per OS.
 3.  [NVIDIA CUDA](https://developer.nvidia.com/cuda-downloads) 9.2+, but should also be a version supported by PyTorch listed below.
 4.  [PyTorch](https://pytorch.org/get-started/locally) 1.6.0+, the latest version is _always_ recommended.
