@@ -5,7 +5,6 @@ VapourSynth Single Image Super-Resolution Generative Adversarial Network (GAN)
 [![Python Version](https://img.shields.io/badge/python-3.6%2B-informational?style=flat)](https://python.org)
 [![License](https://img.shields.io/github/license/rlaPHOENiX/VSGAN?style=flat)](https://github.com/rlaPHOENiX/VSGAN/blob/master/LICENSE)
 [![DeepSource](https://deepsource.io/gh/rlaPHOENiX/VSGAN.svg/?label=active+issues)](https://deepsource.io/gh/rlaPHOENiX/VSGAN/?ref=repository-badge)
-[![Codacy](https://app.codacy.com/project/badge/Grade/ff06331673f0459c9f3cc6443a7ac357)](https://codacy.com/gh/rlaPHOENiX/VSGAN/dashboard?utm_source=github.com&utm_medium=referral&utm_content=rlaPHOENiX/VSGAN&utm_campaign=Badge_Grade)
 [![Issues](https://img.shields.io/github/issues/rlaPHOENiX/VSGAN?style=flat)](https://github.com/rlaPHOENiX/VSGAN/issues)
 [![PR's Accepted](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](https://makeapullrequest.com)
 
