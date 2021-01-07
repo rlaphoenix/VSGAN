@@ -37,24 +37,24 @@ Following comparisons were taken from [ESRGAN's repo](https://github.com/xinntao
 ### Requirements
 
 1.  NVIDIA GPU that has support for CUDA 9.2+. A CUDA Compute Capability score of 6 or higher is recommended, and a score &lt;= 2 will be incredibly slow, if it works at all.
-2.  CPU that isn't from the stone age. While this is going to do 90% of stuff on the GPU, a super bottle-knecking CPU could limit you're GPU's potential.
-3.  An ESRGAN model file to use. Either train one or get an already trained one. There's new models being trained every day in all kinds of communities, with all kinds of specific purposes for each model, like denoising, upscaling, cleaning, inpainting, b&w to color, e.t.c. You can find models on the [Game Upscale Discord](https://discord.gg/cpAUpDK) or their [Upscale.wiki Model Database](https://upscale.wiki/wiki/Model_Database). The model database may not be as active as the Discord though.
+2.  CPU that isn't from the stone age. While this is going to do 90% of stuff on the GPU, a super bottle-necking CPU could limit you're GPU's potential.
+3.  An ESRGAN model file to use. Either train one or get an already trained one. There are new models being trained every day in all kinds of communities, with all kinds of specific purposes for each model, like de-noising, upscaling, cleaning, in-painting, b&w to color, e.t.c. You can find models on the [Game Upscale Discord](https://discord.gg/cpAUpDK) or their [Upscale.wiki Model Database](https://upscale.wiki/wiki/Model_Database). The model database may not be as active as the Discord though.
 
 ### Dependencies
 
 Install dependencies in the listed order:
 
-1.  [Python](https://python.org) 3.6+ and [pip](https://pip.pypa.io/en/stable/installing). The required pip packages are listed in the [requirements.txt](https://github.com/rlaPHOENiX/VSMPEG/blob/master/requirements.txt) file.
+1.  [Python](https://python.org) 3.5+ and [pip](https://pip.pypa.io/en/stable/installing). The required pip packages are listed in the [requirements.txt](https://github.com/rlaPHOENiX/VSMPEG/blob/master/requirements.txt) file.
 2.  [VapourSynth](https://vapoursynth.com). Ensure the Python version you have installed is supported by the version you are installing. The supported Python versions may differ per OS.
-3.  [NVIDIA CUDA](https://developer.nvidia.com/cuda-downloads).
-4.  [PyTorch](https://pytorch.org/get-started/locally) 1.6.0+, latest version is _always_ recommended.
+3.  [NVIDIA CUDA](https://developer.nvidia.com/cuda-downloads) 9.2+, but should also be a version supported by PyTorch listed below.
+4.  [PyTorch](https://pytorch.org/get-started/locally) 1.6.0+, the latest version is _always_ recommended.
 
 #### Important information when Installing Python, VapourSynth, and PyTorch
 
-1.  Ensure the Python version you have installed (or are going to install) is supported by the version of VapourSynth and PyTorch you are installing. The supported Python versions in correlation to a VapourSynth or PyTorch version may differ per OS, noticeably on Windows due to it's Python environment in general.
-2.  When installing Python and VapourSynth, you will be given the option to "Install for all users" by both. Make sure your chosen answer matches for both installations or VapourSynth and Python wont be able to find each other.
+1.  Ensure the Python version you have installed (or are going to install) is supported by the version of VapourSynth and PyTorch you are installing. The supported Python versions in correlation to a VapourSynth or PyTorch version may differ per OS, noticeably on Windows due to its Python environment in general.
+2.  When installing Python and VapourSynth, you will be given the option to "Install for all users" by both. Make sure your chosen answer matches for both installations or VapourSynth and Python won't be able to find each other.
 
-Important note for Windows users: It is very important for you to tick the checkbox "Add Python X.X to PATH" while installing. The Python installer's checkbox that states "Install launcher for all users" is not referring to the Python binaries. To install for all users you must click "Customize installation" and in there, after "Optional Features" section, it will have a checkbox titled "Install for all users" unticked by default so tick it.
+Important note for Windows users: It is very important for you to tick the checkbox "Add Python X.X to PATH" while installing. The Python installer's checkbox that states "Install launcher for all users" is not referring to the Python binaries. To install for all users you must click "Customize installation" and in there, after "Optional Features" section, it will have a checkbox titled "Install for all users" un-ticked by default so tick it.
 
 #### Tips on Installing PyTorch
 
