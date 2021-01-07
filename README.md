@@ -8,6 +8,8 @@ VapourSynth Single Image Super-Resolution Generative Adversarial Network (GAN)
 [![Issues](https://img.shields.io/github/issues/rlaPHOENiX/VSGAN?style=flat)](https://github.com/rlaPHOENiX/VSGAN/issues)
 [![PR's Accepted](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat)](https://makeapullrequest.com)
 
+* * *
+
 ## Introduction
 
 This is a single image super-resolution generative adversarial network handler for VapourSynth.
@@ -18,6 +20,8 @@ Using the right pre-trained model, on the right image, can have tremendous resul
 Here's an example from a US Region 1 (NTSC) DVD of American Dad running with VSGAN (model not public)
 ![Example 1](examples/cmp_1.png)
 
+* * *
+
 ## Qualitive Comparisons against other Super-Resolution Strategies
 
 Following comparisons were taken from [ESRGAN's repo](https://github.com/xinntao/ESRGAN)
@@ -25,6 +29,8 @@ Following comparisons were taken from [ESRGAN's repo](https://github.com/xinntao
 ![qualitive2](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_02.jpg)
 ![qualitive3](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_03.jpg)
 ![qualitive4](https://raw.githubusercontent.com/xinntao/ESRGAN/master/figures/qualitative_cmp_04.jpg)
+
+* * *
 
 ## Installation
 
@@ -71,6 +77,8 @@ If you chose for example `11.0` then `11.0` and >= `11.0` versions should work, 
 
 It's as simple as running `pip install vsgan`
 
+* * *
+
 ## Usage (Quick Example)
 
 ```py
@@ -95,6 +103,39 @@ clip = vsgan.run(clip)
 # don't forget to set the output in your vapoursynth script
 clip.set_output()
 ```
+
+* * *
+
+## Building
+
+This project is firmly requiring the use of Python PIP with [PEP 517][pep517] support. This means you need `pip >= 19`
+[(ref)][pip19].
+
+Considering version `19.0` released on the 22nd of January 2019, it isn't much of an ask in my opinion, when you end up
+with an overall much smoother build experience.
+
+Once you have pip with PEP 517 support, it's as simple as 3 calls:
+
+    pip install build
+    git clone https://github.com/rlaPHOENiX/vsgan && cd vsgan
+    python -m build
+
+To install the built project, install the .whl file available in /dist, e.g. `pip install dist/*.whl`
+
+If you want to simply install from the source, instead of `python -m build` run `pip install .`
+
+[pep517]: https://www.python.org/dev/peps/pep-0517
+
+[pip19]: https://pip.pypa.io/en/stable/news/#id415
+
+* * *
+
+## License
+
+This project is released under the MIT license.
+Please read and agree to the license before use, it can be found in the [LICENSE](LICENSE) file.
+
+* * *
 
 ## Documentation
 
