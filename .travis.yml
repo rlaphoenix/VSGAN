@@ -9,4 +9,4 @@ branches:
     # Change this to gh-pages if you're deploying using the gh-pages branch
     - gh-pages
 rvm:
-  - 2.4
+  - 2.7
