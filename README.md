@@ -10,7 +10,7 @@ VSGAN is a Single Image Super-Resolution Generative Adversarial Network (GAN) wh
 
 ## Documentation
 
-More information, installation instructions, building, quick start, and more, is available at [rlaphoenix.github.io/VSGAN](https://rlaphoenix.github.io/VSGAN).
+More information, installation, building, quick start, and more, is available at [rlaphoenix.github.io/VSGAN](https://rlaphoenix.github.io/VSGAN).
 
 The source code to the Documentation page is available on the [gh-pages branch](https://github.com/rlaPHOENiX/VSGAN/tree/gh-pages) and can be built and deployed locally.  
 You could also just read the markdown files found in the [_docs folder](https://github.com/rlaPHOENiX/VSGAN/tree/gh-pages/_docs).
