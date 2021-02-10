@@ -7,7 +7,7 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan.RRDBNet_arch_old import RRDBNet
+from vsgan.RRDBNet import RRDBNet
 
 
 class VSGAN:
