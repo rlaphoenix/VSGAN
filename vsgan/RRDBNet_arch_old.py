@@ -2,7 +2,7 @@ import math
 
 import torch.nn as nn
 
-from . import RRDBNet_arch_old_block as Block
+from vsgan import RRDBNet_arch_old_block as Block
 
 
 class RRDBNet(nn.Module):
