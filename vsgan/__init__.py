@@ -214,7 +214,7 @@ class VSGAN:
         :param image: numpy array (expecting HWC shape order)
         :returns: VapourSynth clip with the frame applied
         """
-        h, w, c = image.shape
+        h, w, _ = image.shape
         clip = core.std.BlankClip(
             clip=clip,
             width=w,
