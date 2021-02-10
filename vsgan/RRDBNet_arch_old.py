@@ -8,7 +8,26 @@ from . import RRDBNet_arch_old_block as Block
 class RRDBNet(nn.Module):
     def __init__(self, in_nc: int, out_nc: int, nf: int, nb: int, upscale: int = 4, norm_type=None,
                  act_type: str = 'leakyrelu', mode: str = 'CNA', upsample_mode='upconv'):
+        """
+        Residual in Residual Dense Block Network.
+
+        This is specifically v0.1 (aka old-arch) and is not the newest revision code
+        that's available at github:/xinntao/ESRGAN. This is on purpose, the newest
+        code has hardcoded and severely limited the potential use of the Network.
+        Specifically it has hardcoded the scale value to be `4` no matter what.
+
+        :param in_nc: Input number of channels
+        :param out_nc: Output number of channels
+        :param nf: Number of filters
+        :param nb: Number of blocks
+        :param upscale: Scale relative to input
+        :param norm_type: Normalization type
+        :param act_type: Activation type
+        :param mode: Convolution mode
+        :param upsample_mode: Upsample block type. upconv, pixel_shuffle
+        """
         super(RRDBNet, self).__init__()
+
         n_upscale = int(math.log(upscale, 2))
         if upscale == 3:
             n_upscale = 1
