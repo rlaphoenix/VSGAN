@@ -53,11 +53,12 @@ class RRDBNet(nn.Module):
         else:
             raise NotImplementedError('upsample mode [%s] is not found' % upsample_mode)
         if upscale == 3:
-            upsampler = upsample_block(nf, nf, 3, act_type=act_type)
+            upsampler = upsample_block(in_nc=nf, out_nc=nf, upscale_factor=3, act_type=act_type)
         else:
-            upsampler = [upsample_block(nf, nf, act_type=act_type) for _ in range(n_upscale)]
-        hr_conv0 = Block.conv_block(nf, nf, kernel_size=3, norm_type=None, act_type=act_type)
-        hr_conv1 = Block.conv_block(nf, out_nc, kernel_size=3, norm_type=None, act_type=None)
+            upsampler = [upsample_block(in_nc=nf, out_nc=nf, act_type=act_type) for _ in range(n_upscale)]
+
+        hr_conv0 = Block.conv_block(in_nc=nf, out_nc=nf, kernel_size=3, norm_type=None, act_type=act_type)
+        hr_conv1 = Block.conv_block(in_nc=nf, out_nc=out_nc, kernel_size=3, norm_type=None, act_type=None)
 
         self.model = Block.sequential(
             fea_conv,
@@ -68,5 +69,4 @@ class RRDBNet(nn.Module):
         )
 
     def forward(self, x):
-        x = self.model(x)
-        return x
+        return self.model(x)
