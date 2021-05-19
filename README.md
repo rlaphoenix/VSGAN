@@ -2,7 +2,7 @@
 
 VSGAN is a Single Image Super-Resolution Generative Adversarial Network (GAN) which uses the VapourSynth processing framework to handle input and output image data.
 
-[![Build Tests](https://img.shields.io/github/workflow/status/rlaPHOENiX/VSGAN/Version%20test?label=Python%203.5%2B%20builds)](https://github.com/rlaPHOENiX/VSGAN/actions?query=workflow%3A%22Version+test%22)
+[![Build Tests](https://img.shields.io/github/workflow/status/rlaPHOENiX/VSGAN/Version%20test?label=Python%203.6%2B%20builds)](https://github.com/rlaPHOENiX/VSGAN/actions?query=workflow%3A%22Version+test%22)
 [![License](https://img.shields.io/github/license/rlaPHOENiX/VSGAN?style=flat)](https://github.com/rlaPHOENiX/VSGAN/blob/master/LICENSE)
 [![DeepSource](https://deepsource.io/gh/rlaPHOENiX/VSGAN.svg/?label=active+issues)](https://deepsource.io/gh/rlaPHOENiX/VSGAN/?ref=repository-badge)
 
