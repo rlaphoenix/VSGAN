@@ -1,6 +1,28 @@
 [build-system]
-requires = [
-    "setuptools >= 40.9.0",
-    "wheel"
+requires = ['poetry-core>=1.0.0']
+build-backend = 'poetry.core.masonry.api'
+
+[tool.poetry]
+name = 'vsgan'
+version = '1.2.1'
+description = 'VapourSynth Single Image Super-Resolution Generative Adversarial Network (GAN)'
+authors = [
+    'PHOENiX <rlaphoenix@pm.me>',
 ]
-build-backend = "setuptools.build_meta"
+license = 'MIT'
+readme = 'README.md'
+homepage = 'https://github.com/rlaphoenix/vsgan'
+repository = 'https://github.com/rlaphoenix/vsgan'
+keywords = ['vapoursynth', 'upscaling', 'gan', 'deep-learning', 'esrgan']
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Developers',
+    'Natural Language :: English',
+    'Operating System :: OS Independent',
+    'Topic :: Multimedia :: Video',
+]
+
+[tool.poetry.dependencies]
+python = ">=3.6.2,<4.0"
+numpy = "1.19.5"
+torch = "^1.9.1"
