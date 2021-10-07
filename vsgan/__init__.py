@@ -184,7 +184,7 @@ class VSGAN:
         Alternative to cv2.imread() that will directly read images to a numpy array.
         :param frame: VapourSynth frame from a clip
         """
-        return np.dstack([np.asarray(frame.get_read_array(i)) for i in range(frame.format.num_planes)])
+        return np.dstack([np.asarray(frame[i]) for i in range(frame.format.num_planes)])
 
     @staticmethod
     def np_to_frame(array: np.ndarray, frame: vs.VideoFrame, order: tuple = (2, 1, 0)) -> vs.VideoFrame:
@@ -201,7 +201,7 @@ class VSGAN:
             array = np.transpose(array[:, :, order], (0, 1, 2))  # `order` to RGB
         for plane in range(array.shape[-1]):
             np.copyto(
-                np.asarray(frame.get_write_array(plane)),
+                np.asarray(frame[plane]),
                 array[:, :, plane],
                 casting="unsafe"
             )
