@@ -9,6 +9,7 @@ import vapoursynth as vs
 from vapoursynth import core
 
 from vsgan.RRDBNet import RRDBNet
+from vsgan.constants import MAX_DTYPE_VALUES
 
 
 class VSGAN:
@@ -110,10 +111,8 @@ class VSGAN:
 
     def execute(self, n: int, clip: vs.VideoNode, overlap: int = 0) -> vs.VideoNode:
         """
-        Run the ESRGAN repo's main super-resolution code on a clip's frame.
-        This function only contains about 10 lines of code from the original repo.
-        Ported code via Numpy has been used inplace of cv2 for converting between arrays,
-        tensors and vapoursynth VideoFrames and VideoNodes (clips).
+        Run the ESRGAN repo's Modified ESRGAN RRDBNet super-resolution code on a clip's frame.
+        Unlike the original code, frames are modified directly as Tensors, without CV2.
 
         Thanks to VideoHelp for initial support, and @JoeyBallentine for his work on
         seamless chunk support.
@@ -121,51 +120,42 @@ class VSGAN:
         if not self.rrdb_net_model:
             raise ValueError("VSGAN: No ESRGAN model has been loaded, use VSGAN.load_model().")
 
-        def scale(quadrant: np.ndarray) -> np.ndarray:
+        def scale(quadrant: torch.Tensor) -> torch.Tensor:
             try:
-                # original ESRGAN SR code by xinntao
-                # https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
-                max_n = 255.0
-                img = quadrant
-                img = img * 1.0 / max_n
-                img = np.transpose(img[:, :, (0, 1, 2)], (2, 0, 1))  # RGB to BRG
-                img = torch.from_numpy(img).float()
-                img_lr = img.unsqueeze(0).to(self.torch_device)
+                quadrant = quadrant.to(self.torch_device)
                 with torch.no_grad():
-                    output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
-                output = np.transpose(output[(2, 1, 0), :, :], (1, 2, 0))  # BGR to GBR
-                output = (output * max_n).round()
-                return output
-                # end
+                    return self.rrdb_net_model(quadrant).data
             except RuntimeError as e:
                 if "allocate" in str(e) or "CUDA out of memory" in str(e):
                     torch.cuda.empty_cache()
                 raise
 
-        lr_img = self.frame_to_np(clip.get_frame(n))
+        lr_img = self.frame_to_tensor(clip.get_frame(n))
 
         if not overlap:
             output_img = scale(lr_img)
         elif overlap > 0:
-            h, w, c = lr_img.shape
+            b, c, h, w = lr_img.shape
 
             out_h = h * self.model_scale
             out_w = w * self.model_scale
-            output_img = np.zeros((out_h, out_w, c), np.uint8)
+            output_img = torch.empty(
+                (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
+            )
 
-            top_left_sr = scale(lr_img[: h // 2 + overlap, : w // 2 + overlap, :])
-            top_right_sr = scale(lr_img[: h // 2 + overlap, w // 2 - overlap:, :])
-            bottom_left_sr = scale(lr_img[h // 2 - overlap:, : w // 2 + overlap, :])
-            bottom_right_sr = scale(lr_img[h // 2 - overlap:, w // 2 - overlap:, :])
+            top_left_sr = scale(lr_img[..., : h // 2 + overlap, : w // 2 + overlap])
+            top_right_sr = scale(lr_img[..., : h // 2 + overlap, w // 2 - overlap:])
+            bottom_left_sr = scale(lr_img[..., h // 2 - overlap:, : w // 2 + overlap])
+            bottom_right_sr = scale(lr_img[..., h // 2 - overlap:, w // 2 - overlap:])
 
-            output_img[: out_h // 2, : out_w // 2, :] = top_left_sr[: out_h // 2, : out_w // 2, :]
-            output_img[: out_h // 2, -out_w // 2:, :] = top_right_sr[: out_h // 2, -out_w // 2:, :]
-            output_img[-out_h // 2:, : out_w // 2, :] = bottom_left_sr[-out_h // 2:, : out_w // 2, :]
-            output_img[-out_h // 2:, -out_w // 2:, :] = bottom_right_sr[-out_h // 2:, -out_w // 2:, :]
+            output_img[..., : out_h // 2, : out_w // 2] = top_left_sr[..., : out_h // 2, : out_w // 2]
+            output_img[..., : out_h // 2, -out_w // 2:] = top_right_sr[..., : out_h // 2, -out_w // 2:]
+            output_img[..., -out_h // 2:, : out_w // 2] = bottom_left_sr[..., -out_h // 2:, : out_w // 2]
+            output_img[..., -out_h // 2:, -out_w // 2:] = bottom_right_sr[..., -out_h // 2:, -out_w // 2:]
         else:
             raise ValueError("Invalid overlap. Must be a value greater than 0, or a False-y value to disable.")
 
-        return self.np_to_clip(clip, output_img)
+        return self.tensor_to_clip(clip, output_img)
 
     @staticmethod
     def sanitize_state_dict(state_dict: dict) -> dict:
@@ -214,35 +204,68 @@ class VSGAN:
         return np.dstack([np.asarray(frame[i]) for i in range(frame.format.num_planes)])
 
     @staticmethod
-    def np_to_frame(f: vs.VideoFrame, array: np.ndarray, order: tuple = (2, 1, 0)) -> vs.VideoFrame:
+    def frame_to_tensor(frame: vs.VideoFrame, change_range=True, bgr2rgb=False, add_batch=True, normalize=False) \
+            -> torch.Tensor:
         """
-        Copies each channel from a numpy array into a vs.VideoFrame.
-        It expects the numpy array to be BGR, with the dimension count (C) last in the shape, so HWC or WHC.
+        Read an image as a numpy array and convert it to a tensor.
+        :param frame: VapourSynth frame from a clip.
+        :param normalize: Normalize (z-norm) from [0,1] range to [-1,1].
+        """
+        array = VSGAN.frame_to_np(frame)
+
+        if change_range:
+            max_val = MAX_DTYPE_VALUES.get(array.dtype, 1.0)
+            array = array.astype(np.dtype("float32")) / max_val
+
+        array = torch.from_numpy(
+            np.ascontiguousarray(np.transpose(array, (2, 0, 1)))  # HWC->CHW
+        ).float()
+
+        if bgr2rgb:
+            if array.shape[0] % 3 == 0:
+                # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
+                array = array.flip(-3)
+            elif array.shape[0] == 4:
+                # RGBA
+                array = array[[2, 1, 0, 3], :, :]
+
+        if add_batch:
+            # Add fake batch dimension = 1 . squeeze() will remove the dimensions of size 1
+            array.unsqueeze_(0)
+
+        if normalize:
+            array = ((array - 0.5) * 2.0).clamp(-1, 1)
+
+        return array
+
+    @staticmethod
+    def tensor_to_frame(f: vs.VideoFrame, t: torch.Tensor) -> vs.VideoFrame:
+        """
+        Copies each channel from a Tensor into a vs.VideoFrame.
+        It expects the tensor array to have the dimension count (C) first in the shape, so CHW or CWH.
         :param f: VapourSynth frame to store retrieved planes.
-        :param array: Numpy array to retrieve planes from.
-        :param order: Specify input order of the numpy array color dimensions. It is most likely 2,1,0 (BGR).
-        :returns: New frame with planes from numpy array
+        :param t: Tensor array to retrieve planes from.
+        :returns: New frame with planes from tensor array
         """
-        if list(order) != [0, 1, 2] and array.shape[-1] == 3:
-            array = np.transpose(array[:, :, order], (0, 1, 2))  # `order` to RGB
+        array = t.squeeze(0).detach().cpu().clamp(0, 1).numpy()
 
-        frame = f.copy()
-        for plane in range(array.shape[-1]):
-            d = np.array(frame[plane], copy=False)
-            # TODO: Figure out why non-chunked execute() calls need unsafe casting
-            np.copyto(d, array[:, :, plane], casting="unsafe")
+        d_type = np.asarray(f[0]).dtype
+        array = MAX_DTYPE_VALUES.get(d_type, 1.0) * array
+        array = array.astype(d_type)
 
-        return frame
+        for plane in range(f.format.num_planes):
+            d = np.asarray(f[plane])
+            np.copyto(d, array[plane, :, :])
+        return f
 
-    def np_to_clip(self, clip: vs.VideoNode, image: np.ndarray, order: tuple = (2, 1, 0)) -> vs.VideoNode:
+    def tensor_to_clip(self, clip: vs.VideoNode, image: torch.Tensor) -> vs.VideoNode:
         """
-        Convert a numpy array into a VapourSynth clip.
+        Convert a tensor into a VapourSynth clip.
         :param clip: used to inherit expected return properties only
-        :param image: numpy array (expecting HWC shape order)
-        :param order: Specify input order of the numpy array color dimensions. It is most likely 2,1,0 (BGR).
+        :param image: tensor (expecting CHW shape order)
         :returns: VapourSynth clip with the frame applied
         """
-        height, width, _ = image.shape
+        batch, planes, height, width = image.size()
         clip = core.std.BlankClip(
             clip=clip,
             width=width,
@@ -251,5 +274,5 @@ class VSGAN:
         return core.std.ModifyFrame(
             clip=clip,
             clips=clip,
-            selector=lambda n, f: self.np_to_frame(f, image, order)
+            selector=lambda n, f: self.tensor_to_frame(f.copy(), image)
         )
