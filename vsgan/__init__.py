@@ -219,12 +219,11 @@ class VSGAN:
         :param order: Specify input order of the numpy array color dimensions. It is most likely 2,1,0 (BGR).
         :returns: VapourSynth clip with the frame applied
         """
-        h, w, _ = image.shape
+        height, width, _ = image.shape
         clip = core.std.BlankClip(
             clip=clip,
-            width=w,
-            height=h,
-            length=1
+            width=width,
+            height=height
         )
         return core.std.ModifyFrame(
             clip=clip,
