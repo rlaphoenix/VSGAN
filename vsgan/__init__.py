@@ -203,11 +203,12 @@ class VSGAN:
 
         frame = f.copy()
         for plane in range(array.shape[-1]):
-            np.copyto(
-                np.asarray(frame[plane]),
-                array[:, :, plane],
-                casting="unsafe"
-            )
+            if plane not in frame:
+                raise IndexError("Could not access plane %d of frame in np_to_frame" % plane)
+            d = np.array(frame[plane], copy=False)
+            np.copyto(d, array[:, :, plane])
+            del d
+
         return frame
 
     def np_to_clip(self, clip: vs.VideoNode, image: np.ndarray) -> vs.VideoNode:
