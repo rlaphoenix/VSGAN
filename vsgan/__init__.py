@@ -229,8 +229,8 @@ class VSGAN:
         frame = f.copy()
         for plane in range(array.shape[-1]):
             d = np.array(frame[plane], copy=False)
-            np.copyto(d, array[:, :, plane])
-            del d
+            # TODO: Figure out why non-chunked execute() calls need unsafe casting
+            np.copyto(d, array[:, :, plane], casting="unsafe")
 
         return frame
 
