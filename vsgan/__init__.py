@@ -203,8 +203,6 @@ class VSGAN:
 
         frame = f.copy()
         for plane in range(array.shape[-1]):
-            if plane not in frame:
-                raise IndexError("Could not access plane %d of frame in np_to_frame" % plane)
             d = np.array(frame[plane], copy=False)
             np.copyto(d, array[:, :, plane])
             del d
