@@ -13,7 +13,6 @@ from vsgan.constants import MAX_DTYPE_VALUES
 
 
 class VSGAN:
-
     def __init__(self, device: Union[str, int] = "cuda"):
         """
         Create a PyTorch Device instance, to use VSGAN with.
@@ -36,11 +35,12 @@ class VSGAN:
             raise EnvironmentError("VSGAN: Either NVIDIA CUDA or the device (%s) isn't available." % device)
         self.device = device
         self.torch_device = torch.device(self.device)
+        self.clip = None
         self.model = None
         self.model_scale = None
         self.rrdb_net_model = None
 
-    def load_model(self, model: str):
+    def load_model(self, model: str) -> VSGAN:
         """
         Load an ESRGAN model file into the VSGAN object instance.
         The model can be changed by calling load_model at any point.
@@ -80,7 +80,9 @@ class VSGAN:
         self.rrdb_net_model.eval()
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
-    def run(self, clip: vs.VideoNode, overlap: int = 0) -> vs.VideoNode:
+        return self
+
+    def run(self, clip: vs.VideoNode, overlap: int = 0) -> VSGAN:
         """
         Executes VSGAN on the provided clip, returning the resulting in a new clip.
         :param clip: Clip to use as the input frames. It must be RGB. It will also return as RGB.
@@ -96,7 +98,7 @@ class VSGAN:
                 "If you need to specify a kernel for chroma, I recommend Spline or Bicubic."
             )
 
-        return core.std.FrameEval(
+        self.clip = core.std.FrameEval(
             core.std.BlankClip(
                 clip=clip,
                 width=clip.width * self.model_scale,
@@ -108,6 +110,8 @@ class VSGAN:
                 overlap=overlap
             )
         )
+
+        return self
 
     def execute(self, n: int, clip: vs.VideoNode, overlap: int = 0) -> vs.VideoNode:
         """
