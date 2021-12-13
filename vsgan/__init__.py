@@ -189,18 +189,19 @@ class VSGAN:
         return np.dstack([np.asarray(frame[i]) for i in range(frame.format.num_planes)])
 
     @staticmethod
-    def np_to_frame(array: np.ndarray, frame: vs.VideoFrame, order: tuple = (2, 1, 0)) -> vs.VideoFrame:
+    def np_to_frame(f: vs.VideoFrame, array: np.ndarray, order: tuple = (2, 1, 0)) -> vs.VideoFrame:
         """
         Copies each channel from a numpy array into a vs.VideoFrame.
         It expects the numpy array to be BGR, with the dimension count (C) last in the shape, so HWC or WHC.
+        :param f: VapourSynth frame to store retrieved planes.
         :param array: Numpy array to retrieve planes from.
-        :param frame: VapourSynth frame to store retrieved planes.
         :param order: Specify input order of the numpy array color dimensions. It is most likely 2,1,0 (BGR).
         :returns: New frame with planes from numpy array
         """
-        frame = frame.copy()
-        if list(order) != [0, 1, 2]:
+        if list(order) != [0, 1, 2] and array.shape[-1] == 3:
             array = np.transpose(array[:, :, order], (0, 1, 2))  # `order` to RGB
+
+        frame = f.copy()
         for plane in range(array.shape[-1]):
             np.copyto(
                 np.asarray(frame[plane]),
@@ -226,7 +227,7 @@ class VSGAN:
         return core.std.ModifyFrame(
             clip=clip,
             clips=clip,
-            selector=lambda n, f: self.np_to_frame(image, f)
+            selector=lambda n, f: self.np_to_frame(f, image, order)
         )
 
     def chunk(self, clip: vs.VideoNode) -> Iterable[vs.VideoNode]:
