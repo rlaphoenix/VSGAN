@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import functools
-import itertools
-from typing import Union, Iterable
+from typing import Union
 
 import numpy as np
 import torch
@@ -80,13 +79,12 @@ class VSGAN:
         self.rrdb_net_model.eval()
         self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
 
-    def run(self, clip: vs.VideoNode, chunk: bool = False) -> vs.VideoNode:
+    def run(self, clip: vs.VideoNode, overlap: int = 0) -> vs.VideoNode:
         """
         Executes VSGAN on the provided clip, returning the resulting in a new clip.
         :param clip: Clip to use as the input frames. It must be RGB. It will also return as RGB.
-        :param chunk: Reduces VRAM usage by splitting the input frames into smaller sub-frames and renders them
-        one by one, then merges them back together. Trading memory requirements for speed and accuracy.
-        WARNING: The result may have issues on the edges of the chunks, example: https://imgbox.com/g/Hht5NqKB0i
+        :param overlap: Reduces VRAM usage by seamlessly rendering the input frame(s) in quadrants.
+            This reduces memory usage but may also reduce speed. Only use this to stretch your VRAM.
         :returns: ESRGAN result clip
         """
         if clip.format.color_family.name != "RGB":
@@ -96,51 +94,78 @@ class VSGAN:
                 "The clip might need to be bit depth of 8bpp for correct color input/output.\n"
                 "If you need to specify a kernel for chroma, I recommend Spline or Bicubic."
             )
-        # send the clip array to execute()
-        results = []
-        for c in self.chunk(clip) if chunk else [clip]:
-            results.append(core.std.FrameEval(
-                core.std.BlankClip(
-                    clip=c,
-                    width=c.width * self.model_scale,
-                    height=c.height * self.model_scale
-                ),
-                functools.partial(
-                    self.execute,
-                    clip=c
-                )
-            ))
-        # if chunked, rejoin the chunked clips otherwise return the result
-        clip = core.std.StackHorizontal([
-            core.std.StackVertical([results[0], results[1]]),
-            core.std.StackVertical([results[2], results[3]])
-        ]) if chunk else results[0]
 
-        # return the new result clip
-        return clip
+        return core.std.FrameEval(
+            core.std.BlankClip(
+                clip=clip,
+                width=clip.width * self.model_scale,
+                height=clip.height * self.model_scale
+            ),
+            functools.partial(
+                self.execute,
+                clip=clip,
+                overlap=overlap
+            )
+        )
 
-    def execute(self, n: int, clip: vs.VideoNode) -> vs.VideoNode:
+    def execute(self, n: int, clip: vs.VideoNode, overlap: int = 0) -> vs.VideoNode:
         """
-        Copies the xinntao ESRGAN repo's main execution code. The only real difference is it doesn't use cv2, and
-        instead uses vapoursynth ports of cv2's functionality for read and writing "images".
+        Run the ESRGAN repo's main super-resolution code on a clip's frame.
+        This function only contains about 10 lines of code from the original repo.
+        Ported code via Numpy has been used inplace of cv2 for converting between arrays,
+        tensors and vapoursynth VideoFrames and VideoNodes (clips).
 
-        Code adapted from:
-        https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
+        Thanks to VideoHelp for initial support, and @JoeyBallentine for his work on
+        seamless chunk support.
         """
         if not self.rrdb_net_model:
             raise ValueError("VSGAN: No ESRGAN model has been loaded, use VSGAN.load_model().")
-        # 255 being the max value for an RGB color space, could this be key to YUV support in the future?
-        max_n = 255.0
-        img = self.frame_to_np(clip.get_frame(n))
-        img = img * 1.0 / max_n
-        img = np.transpose(img[:, :, (0, 1, 2)], (2, 0, 1))  # RGB to BRG
-        img = torch.from_numpy(img).float()
-        img_lr = img.unsqueeze(0).to(self.torch_device)
-        with torch.no_grad():
-            output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
-        output = np.transpose(output[(2, 1, 0), :, :], (1, 2, 0))  # BGR to GBR
-        output = (output * max_n).round()
-        return self.np_to_clip(clip, output)
+
+        def scale(quadrant: np.ndarray) -> np.ndarray:
+            try:
+                # original ESRGAN SR code by xinntao
+                # https://github.com/xinntao/ESRGAN/blob/master/test.py#L26
+                max_n = 255.0
+                img = quadrant
+                img = img * 1.0 / max_n
+                img = np.transpose(img[:, :, (0, 1, 2)], (2, 0, 1))  # RGB to BRG
+                img = torch.from_numpy(img).float()
+                img_lr = img.unsqueeze(0).to(self.torch_device)
+                with torch.no_grad():
+                    output = self.rrdb_net_model(img_lr).data.squeeze().float().cpu().clamp_(0, 1).numpy()
+                output = np.transpose(output[(2, 1, 0), :, :], (1, 2, 0))  # BGR to GBR
+                output = (output * max_n).round()
+                return output
+                # end
+            except RuntimeError as e:
+                if "allocate" in str(e) or "CUDA out of memory" in str(e):
+                    torch.cuda.empty_cache()
+                raise
+
+        lr_img = self.frame_to_np(clip.get_frame(n))
+
+        if not overlap:
+            output_img = scale(lr_img)
+        elif overlap > 0:
+            h, w, c = lr_img.shape
+
+            out_h = h * self.model_scale
+            out_w = w * self.model_scale
+            output_img = np.zeros((out_h, out_w, c), np.uint8)
+
+            top_left_sr = scale(lr_img[: h // 2 + overlap, : w // 2 + overlap, :])
+            top_right_sr = scale(lr_img[: h // 2 + overlap, w // 2 - overlap:, :])
+            bottom_left_sr = scale(lr_img[h // 2 - overlap:, : w // 2 + overlap, :])
+            bottom_right_sr = scale(lr_img[h // 2 - overlap:, w // 2 - overlap:, :])
+
+            output_img[: out_h // 2, : out_w // 2, :] = top_left_sr[: out_h // 2, : out_w // 2, :]
+            output_img[: out_h // 2, -out_w // 2:, :] = top_right_sr[: out_h // 2, -out_w // 2:, :]
+            output_img[-out_h // 2:, : out_w // 2, :] = bottom_left_sr[-out_h // 2:, : out_w // 2, :]
+            output_img[-out_h // 2:, -out_w // 2:, :] = bottom_right_sr[-out_h // 2:, -out_w // 2:, :]
+        else:
+            raise ValueError("Invalid overlap. Must be a value greater than 0, or a False-y value to disable.")
+
+        return self.np_to_clip(clip, output_img)
 
     @staticmethod
     def sanitize_state_dict(state_dict: dict) -> dict:
@@ -228,32 +253,3 @@ class VSGAN:
             clips=clip,
             selector=lambda n, f: self.np_to_frame(f, image, order)
         )
-
-    def chunk(self, clip: vs.VideoNode) -> Iterable[vs.VideoNode]:
-        """
-        Split clip down the center into two clips (a left and right clip)
-        Then split those 2 clips in the center into two clips (a top and bottom clip).
-        Resulting in a total of 4 clips (aka chunk).
-        """
-        return itertools.chain.from_iterable([
-            self.split(x, axis=1) for x in self.split(clip, axis=0)
-        ])
-
-    @staticmethod
-    def split(clip: vs.VideoNode, axis: int = 0) -> list[vs.VideoNode]:
-        """
-        Split a clip in the center of an axis, into two clips.
-        :param clip: Clip to split
-        :param axis: Axis to split on (0 = vertical, 1 = horizontal)
-        """
-        if axis == 0:
-            return [
-                core.std.Crop(clip, left=0, right=clip.width / 2),
-                core.std.Crop(clip, left=clip.width / 2, right=0)
-            ]
-        if axis == 1:
-            return [
-                core.std.Crop(clip, top=0, bottom=clip.height / 2),
-                core.std.Crop(clip, top=clip.height / 2, bottom=0)
-            ]
-        raise ValueError("Invalid split axis...")
