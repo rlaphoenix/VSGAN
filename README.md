@@ -2,10 +2,10 @@
 
 VSGAN is a Single Image Super-Resolution Generative Adversarial Network (GAN) which uses the VapourSynth processing framework to handle input and output image data.
 
-[![Build Tests](https://img.shields.io/github/workflow/status/rlaPHOENiX/VSGAN/Version%20test?label=Python%203.6%2B%20builds)](https://github.com/rlaPHOENiX/VSGAN/actions?query=workflow%3A%22Version+test%22)
-[![License](https://img.shields.io/github/license/rlaPHOENiX/VSGAN?style=flat)](https://github.com/rlaPHOENiX/VSGAN/blob/master/LICENSE)
-[![DeepSource](https://deepsource.io/gh/rlaPHOENiX/VSGAN.svg/?label=active+issues)](https://deepsource.io/gh/rlaPHOENiX/VSGAN/?ref=repository-badge)
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rlaPHOENiX/VSGAN/blob/master/VSGAN.ipynb)
+[![Build Tests](https://img.shields.io/github/workflow/status/rlaphoenix/VSGAN/Version%20test?label=Python%203.6%2B%20builds)](https://github.com/rlaphoenix/VSGAN/actions?query=workflow%3A%22Version+test%22)
+[![License](https://img.shields.io/github/license/rlaphoenix/VSGAN?style=flat)](https://github.com/rlaphoenix/VSGAN/blob/master/LICENSE)
+[![DeepSource](https://deepsource.io/gh/rlaphoenix/VSGAN.svg/?label=active+issues)](https://deepsource.io/gh/rlaphoenix/VSGAN/?ref=repository-badge)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rlaphoenix/VSGAN/blob/master/VSGAN.ipynb)
 
 * * *
 
@@ -13,8 +13,8 @@ VSGAN is a Single Image Super-Resolution Generative Adversarial Network (GAN) wh
 
 More information, installation, building, quick start, and more, is available at [rlaphoenix.github.io/VSGAN](https://rlaphoenix.github.io/VSGAN).
 
-The source code to the Documentation page is available on the [gh-pages branch](https://github.com/rlaPHOENiX/VSGAN/tree/gh-pages) and can be built and deployed locally.  
-You could also just read the markdown files found in the [_docs folder](https://github.com/rlaPHOENiX/VSGAN/tree/gh-pages/_docs).
+The source code to the Documentation page is available on the [gh-pages branch](https://github.com/rlaphoenix/VSGAN/tree/gh-pages) and can be built and deployed locally.  
+You could also just read the markdown files found in the [_docs folder](https://github.com/rlaphoenix/VSGAN/tree/gh-pages/_docs).
 
 * * *
 
