@@ -9,8 +9,6 @@
 
 VSGAN is a Single Image Super-Resolution Generative Adversarial Network (GAN) which uses the VapourSynth processing framework to handle input and output image data.
 
-* * *
-
 ## Documentation
 
 More information, installation, building, quick start, and more, is available at [rlaphoenix.github.io/VSGAN](https://rlaphoenix.github.io/VSGAN).
@@ -18,9 +16,7 @@ More information, installation, building, quick start, and more, is available at
 The source code to the Documentation page is available on the [gh-pages branch](https://github.com/rlaphoenix/VSGAN/tree/gh-pages) and can be built and deployed locally.  
 You could also just read the markdown files found in the [_docs folder](https://github.com/rlaphoenix/VSGAN/tree/gh-pages/_docs).
 
-* * *
-
 ## License
 
-This project is released under the MIT license.
+This project is released under the MIT license.  
 Please read and agree to the license before use, it can be found in the [LICENSE](LICENSE) file.
