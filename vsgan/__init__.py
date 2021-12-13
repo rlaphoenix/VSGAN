@@ -13,7 +13,7 @@ from vsgan.constants import MAX_DTYPE_VALUES
 
 
 class VSGAN:
-    def __init__(self, device: Union[str, int] = "cuda"):
+    def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
         """
         Create a PyTorch Device instance, to use VSGAN with.
         It validates the supplied pytorch device identifier, and makes sure CUDA environment is available and ready.
@@ -35,7 +35,7 @@ class VSGAN:
             raise EnvironmentError("VSGAN: Either NVIDIA CUDA or the device (%s) isn't available." % device)
         self.device = device
         self.torch_device = torch.device(self.device)
-        self.clip = None
+        self.clip = clip
         self.model = None
         self.model_scale = None
         self.rrdb_net_model = None
@@ -82,15 +82,14 @@ class VSGAN:
 
         return self
 
-    def run(self, clip: vs.VideoNode, overlap: int = 0) -> VSGAN:
+    def run(self, overlap: int = 0) -> VSGAN:
         """
         Executes VSGAN on the provided clip, returning the resulting in a new clip.
-        :param clip: Clip to use as the input frames. It must be RGB. It will also return as RGB.
         :param overlap: Reduces VRAM usage by seamlessly rendering the input frame(s) in quadrants.
             This reduces memory usage but may also reduce speed. Only use this to stretch your VRAM.
         :returns: ESRGAN result clip
         """
-        if clip.format.color_family.name != "RGB":
+        if self.clip.format.color_family.name != "RGB":
             raise ValueError(
                 "VSGAN: Clip color format must be RGB as the ESRGAN model can only work with RGB data :(\n"
                 "You can use mvsfunc.ToRGB or use the format option on core.resize functions.\n"
@@ -100,13 +99,13 @@ class VSGAN:
 
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
-                clip=clip,
-                width=clip.width * self.model_scale,
-                height=clip.height * self.model_scale
+                clip=self.clip,
+                width=self.clip.width * self.model_scale,
+                height=self.clip.height * self.model_scale
             ),
             functools.partial(
                 self.execute,
-                clip=clip,
+                clip=self.clip,
                 overlap=overlap
             )
         )
