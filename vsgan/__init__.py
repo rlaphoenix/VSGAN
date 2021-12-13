@@ -211,11 +211,12 @@ class VSGAN:
 
         return frame
 
-    def np_to_clip(self, clip: vs.VideoNode, image: np.ndarray) -> vs.VideoNode:
+    def np_to_clip(self, clip: vs.VideoNode, image: np.ndarray, order: tuple = (2, 1, 0)) -> vs.VideoNode:
         """
         Convert a numpy array into a VapourSynth clip.
         :param clip: used to inherit expected return properties only
         :param image: numpy array (expecting HWC shape order)
+        :param order: Specify input order of the numpy array color dimensions. It is most likely 2,1,0 (BGR).
         :returns: VapourSynth clip with the frame applied
         """
         h, w, _ = image.shape
