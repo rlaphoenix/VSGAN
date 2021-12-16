@@ -9,7 +9,8 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan.RRDBNet import RRDBNet
+# noinspection PyPep8Naming
+from vsgan.models.ESRGAN import Network as ESRGAN
 from vsgan.constants import MAX_DTYPE_VALUES
 
 
@@ -79,7 +80,7 @@ class VSGAN:
         if out_nc is None:
             print("[!] Could not find out_nc, assuming it's the same as in_nc...")
 
-        self.model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
+        self.model = ESRGAN(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.model.load_state_dict(self.model_state, strict=False)
         self.model.eval()
         self.model = self.model.to(self.torch_device)

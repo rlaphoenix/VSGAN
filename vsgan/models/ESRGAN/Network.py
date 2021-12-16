@@ -2,10 +2,10 @@ import math
 
 import torch.nn as nn
 
-from vsgan import RRDBNet_Blocks as Block
+from vsgan.models.ESRGAN import Blocks as Block
 
 
-class RRDBNet(nn.Module):
+class Network(nn.Module):
     def __init__(self, in_nc: int, out_nc: int, nf: int, nb: int, upscale: int = 4, norm_type=None,
                  act_type: str = 'leakyrelu', mode: str = 'CNA', upsample_mode='upconv'):
         """
@@ -26,7 +26,7 @@ class RRDBNet(nn.Module):
         :param mode: Convolution mode
         :param upsample_mode: Upsample block type. upconv, pixel_shuffle
         """
-        super(RRDBNet, self).__init__()
+        super(Network, self).__init__()
 
         n_upscale = int(math.log(upscale, 2))
         if upscale == 3:
