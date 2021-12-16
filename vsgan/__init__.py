@@ -38,7 +38,7 @@ class VSGAN:
         self.clip = clip
         self.model = None
         self.model_scale = None
-        self.rrdb_net_model = None
+        self.model_state = None
 
     def load_model(self, model: str) -> VSGAN:
         """
@@ -46,15 +46,14 @@ class VSGAN:
         The model can be changed by calling load_model at any point.
         :param model: ESRGAN .pth model file.
         """
-        self.model = model
-        state_dict = self.sanitize_state_dict(torch.load(self.model))
-        # extract model information
+        self.model_state = self.sanitize_state_dict(torch.load(model))
+
         scale2 = 0
         max_part = 0
         scale_min = 6
         nb = None
         out_nc = None
-        for part in list(state_dict):
+        for part in list(self.model_state):
             parts = part.split(".")
             n_parts = len(parts)
             if n_parts == 5 and parts[2] == "sub":
@@ -65,20 +64,21 @@ class VSGAN:
                     scale2 += 1
                 if part_num > max_part:
                     max_part = part_num
-                    out_nc = state_dict[part].shape[0]
+                    out_nc = self.model_state[part].shape[0]
+
         self.model_scale = 2 ** scale2
-        in_nc = state_dict["model.0.weight"].shape[1]
-        nf = state_dict["model.0.weight"].shape[0]
+        in_nc = self.model_state["model.0.weight"].shape[1]
+        nf = self.model_state["model.0.weight"].shape[0]
 
         if nb is None:
             raise ValueError("Could not find the nb in this new-arch model.")
         if out_nc is None:
             print("[!] Could not find out_nc, assuming it's the same as in_nc...")
 
-        self.rrdb_net_model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
-        self.rrdb_net_model.load_state_dict(state_dict, strict=False)
-        self.rrdb_net_model.eval()
-        self.rrdb_net_model = self.rrdb_net_model.to(self.torch_device)
+        self.model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
+        self.model.load_state_dict(self.model_state, strict=False)
+        self.model.eval()
+        self.model = self.model.to(self.torch_device)
 
         return self
 
@@ -120,14 +120,14 @@ class VSGAN:
         Thanks to VideoHelp for initial support, and @JoeyBallentine for his work on
         seamless chunk support.
         """
-        if not self.rrdb_net_model:
+        if not self.model:
             raise ValueError("VSGAN: No ESRGAN model has been loaded, use VSGAN.load_model().")
 
         def scale(quadrant: torch.Tensor) -> torch.Tensor:
             try:
                 quadrant = quadrant.to(self.torch_device)
                 with torch.no_grad():
-                    return self.rrdb_net_model(quadrant).data
+                    return self.model(quadrant).data
             except RuntimeError as e:
                 if "allocate" in str(e) or "CUDA out of memory" in str(e):
                     torch.cuda.empty_cache()
