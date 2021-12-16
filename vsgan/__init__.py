@@ -71,9 +71,9 @@ class VSGAN:
         nf = state_dict["model.0.weight"].shape[0]
 
         if nb is None:
-            raise NotImplementedError("VSGAN: Could not find the nb in this new-arch model.")
+            raise ValueError("Could not find the nb in this new-arch model.")
         if out_nc is None:
-            print("VSGAN Warning: Could not find out_nc, assuming it's the same as in_nc...")
+            print("[!] Could not find out_nc, assuming it's the same as in_nc...")
 
         self.rrdb_net_model = RRDBNet(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.rrdb_net_model.load_state_dict(state_dict, strict=False)
