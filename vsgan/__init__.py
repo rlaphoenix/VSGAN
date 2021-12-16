@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+from collections import OrderedDict
 from typing import Union
 
 import numpy as np
@@ -10,6 +11,9 @@ from vapoursynth import core
 
 from vsgan.RRDBNet import RRDBNet
 from vsgan.constants import MAX_DTYPE_VALUES
+
+
+model_state_T = OrderedDict[str, torch.Tensor]
 
 
 class VSGAN:
@@ -161,7 +165,7 @@ class VSGAN:
         return self.tensor_to_clip(clip, output_img)
 
     @staticmethod
-    def sanitize_state_dict(state_dict: dict) -> dict:
+    def sanitize_state_dict(state_dict: model_state_T) -> model_state_T:
         """
         Convert a new-arch model state dictionary to an old-arch dictionary.
         The new-arch model's only purpose is making the dict keys more verbose, but has no purpose other
@@ -174,7 +178,7 @@ class VSGAN:
         if "conv_first.weight" not in state_dict:
             # model is already old arch, this is a loose check, but should be sufficient
             return state_dict
-        old_net = {
+        old_net = OrderedDict({
             "model.0.weight": state_dict["conv_first.weight"],
             "model.0.bias": state_dict["conv_first.bias"],
             "model.1.sub.23.weight": state_dict["trunk_conv.weight"],
@@ -187,7 +191,7 @@ class VSGAN:
             "model.8.bias": state_dict["HRconv.bias"],
             "model.10.weight": state_dict["conv_last.weight"],
             "model.10.bias": state_dict["conv_last.bias"]
-        }
+        })
         for key, value in state_dict.items():
             if "RDB" in key:
                 new = key.replace("RRDB_trunk.", "model.1.sub.")
