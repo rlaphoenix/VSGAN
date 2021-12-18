@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 from collections import OrderedDict
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 import torch
@@ -12,7 +12,6 @@ from vapoursynth import core
 # noinspection PyPep8Naming
 from vsgan.models.ESRGAN import Network as ESRGAN
 from vsgan.constants import MAX_DTYPE_VALUES
-
 
 model_state_T = OrderedDict[str, torch.Tensor]
 
@@ -39,10 +38,10 @@ class VSGAN:
         if device != "cpu" and not torch.cuda.is_available():
             raise EnvironmentError("VSGAN: Either NVIDIA CUDA or the device (%s) isn't available." % device)
 
-        self.device = torch.device(device)
-        self.clip = clip
-        self.model = None
-        self.model_scale = None
+        self.clip: vs.VideoNode = clip
+        self.device: torch.device = torch.device(device)
+        self.model: Optional[torch.nn.Module] = None
+        self.model_scale: Optional[int] = None
 
     def load_model(self, model: str) -> VSGAN:
         """
@@ -79,10 +78,10 @@ class VSGAN:
         if out_nc is None:
             print("[!] Could not find out_nc, assuming it's the same as in_nc...")
 
-        self.model = ESRGAN(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
-        self.model.load_state_dict(model_state, strict=False)
-        self.model.eval()
-        self.model = self.model.to(self.device)
+        model = ESRGAN(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
+        model.load_state_dict(model_state, strict=False)
+        model.eval()
+        self.model = model.to(self.device)
 
         return self
 
@@ -93,6 +92,9 @@ class VSGAN:
             This reduces memory usage but may also reduce speed. Only use this to stretch your VRAM.
         :returns: ESRGAN result clip
         """
+        if not self.model:
+            raise ValueError("A model must be loaded before running.")
+
         if self.clip.format.color_family.name != "RGB":
             raise ValueError(
                 "VSGAN: Clip color format must be RGB as the ESRGAN model can only work with RGB data :(\n"
@@ -110,13 +112,15 @@ class VSGAN:
             functools.partial(
                 self.execute,
                 clip=self.clip,
+                model=self.model,
+                scale=self.model_scale,
                 overlap=overlap
             )
         )
 
         return self
 
-    def execute(self, n: int, clip: vs.VideoNode, overlap: int = 0) -> vs.VideoNode:
+    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, scale: int, overlap: int = 0) -> vs.VideoNode:
         """
         Run the ESRGAN repo's Modified ESRGAN RRDBNet super-resolution code on a clip's frame.
         Unlike the original code, frames are modified directly as Tensors, without CV2.
@@ -124,14 +128,12 @@ class VSGAN:
         Thanks to VideoHelp for initial support, and @JoeyBallentine for his work on
         seamless chunk support.
         """
-        if not self.model:
-            raise ValueError("VSGAN: No ESRGAN model has been loaded, use VSGAN.load_model().")
 
-        def scale(quadrant: torch.Tensor) -> torch.Tensor:
+        def run_model(quadrant: torch.Tensor) -> torch.Tensor:
             try:
                 quadrant = quadrant.to(self.device)
                 with torch.no_grad():
-                    return self.model(quadrant).data
+                    return model(quadrant).data
             except RuntimeError as e:
                 if "allocate" in str(e) or "CUDA out of memory" in str(e):
                     torch.cuda.empty_cache()
@@ -140,20 +142,20 @@ class VSGAN:
         lr_img = self.frame_to_tensor(clip.get_frame(n))
 
         if not overlap:
-            output_img = scale(lr_img)
+            output_img = run_model(lr_img)
         elif overlap > 0:
             b, c, h, w = lr_img.shape
 
-            out_h = h * self.model_scale
-            out_w = w * self.model_scale
+            out_h = h * scale
+            out_w = w * scale
             output_img = torch.empty(
                 (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
             )
 
-            top_left_sr = scale(lr_img[..., : h // 2 + overlap, : w // 2 + overlap])
-            top_right_sr = scale(lr_img[..., : h // 2 + overlap, w // 2 - overlap:])
-            bottom_left_sr = scale(lr_img[..., h // 2 - overlap:, : w // 2 + overlap])
-            bottom_right_sr = scale(lr_img[..., h // 2 - overlap:, w // 2 - overlap:])
+            top_left_sr = run_model(lr_img[..., : h // 2 + overlap, : w // 2 + overlap])
+            top_right_sr = run_model(lr_img[..., : h // 2 + overlap, w // 2 - overlap:])
+            bottom_left_sr = run_model(lr_img[..., h // 2 - overlap:, : w // 2 + overlap])
+            bottom_right_sr = run_model(lr_img[..., h // 2 - overlap:, w // 2 - overlap:])
 
             output_img[..., : out_h // 2, : out_w // 2] = top_left_sr[..., : out_h // 2, : out_w // 2]
             output_img[..., : out_h // 2, -out_w // 2:] = top_right_sr[..., : out_h // 2, -out_w // 2:]
