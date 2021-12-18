@@ -38,8 +38,8 @@ class VSGAN:
             device = "cpu"
         if device != "cpu" and not torch.cuda.is_available():
             raise EnvironmentError("VSGAN: Either NVIDIA CUDA or the device (%s) isn't available." % device)
-        self.device = device
-        self.torch_device = torch.device(self.device)
+
+        self.device = torch.device(device)
         self.clip = clip
         self.model = None
         self.model_scale = None
@@ -83,7 +83,7 @@ class VSGAN:
         self.model = ESRGAN(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
         self.model.load_state_dict(self.model_state, strict=False)
         self.model.eval()
-        self.model = self.model.to(self.torch_device)
+        self.model = self.model.to(self.device)
 
         return self
 
@@ -130,7 +130,7 @@ class VSGAN:
 
         def scale(quadrant: torch.Tensor) -> torch.Tensor:
             try:
-                quadrant = quadrant.to(self.torch_device)
+                quadrant = quadrant.to(self.device)
                 with torch.no_grad():
                     return self.model(quadrant).data
             except RuntimeError as e:
