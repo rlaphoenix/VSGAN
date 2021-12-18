@@ -43,7 +43,6 @@ class VSGAN:
         self.clip = clip
         self.model = None
         self.model_scale = None
-        self.model_state = None
 
     def load_model(self, model: str) -> VSGAN:
         """
@@ -51,14 +50,14 @@ class VSGAN:
         The model can be changed by calling load_model at any point.
         :param model: ESRGAN .pth model file.
         """
-        self.model_state = self.sanitize_state_dict(torch.load(model))
+        model_state = self.sanitize_state_dict(torch.load(model))
 
         scale2 = 0
         max_part = 0
         scale_min = 6
         nb = None
         out_nc = None
-        for part in list(self.model_state):
+        for part in list(model_state):
             parts = part.split(".")
             n_parts = len(parts)
             if n_parts == 5 and parts[2] == "sub":
@@ -69,11 +68,11 @@ class VSGAN:
                     scale2 += 1
                 if part_num > max_part:
                     max_part = part_num
-                    out_nc = self.model_state[part].shape[0]
+                    out_nc = model_state[part].shape[0]
 
         self.model_scale = 2 ** scale2
-        in_nc = self.model_state["model.0.weight"].shape[1]
-        nf = self.model_state["model.0.weight"].shape[0]
+        in_nc = model_state["model.0.weight"].shape[1]
+        nf = model_state["model.0.weight"].shape[0]
 
         if nb is None:
             raise ValueError("Could not find the nb in this new-arch model.")
@@ -81,7 +80,7 @@ class VSGAN:
             print("[!] Could not find out_nc, assuming it's the same as in_nc...")
 
         self.model = ESRGAN(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
-        self.model.load_state_dict(self.model_state, strict=False)
+        self.model.load_state_dict(model_state, strict=False)
         self.model.eval()
         self.model = self.model.to(self.device)
 
