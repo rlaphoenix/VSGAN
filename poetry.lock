@@ -46,7 +46,7 @@ pytorch = ["torch"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.6.2,<4.0"
-content-hash = "ab51287ba1686199105b58261429fba0f1dd4c30315b6137635738b52d0e0ac4"
+content-hash = "8ddd10b363941d5ad0d2b2c7e47e98d49e7c99191267d82989f5d27283b234cf"
 
 [metadata.files]
 dataclasses = [

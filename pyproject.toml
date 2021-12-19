@@ -29,7 +29,7 @@ torch = { version = "1.10.0+cu113", optional = true }
 
 [tool.poetry.extras]
 pytorch = ["torch"]
-docs = ["Sphinx", "furo", "m2r2", "sphinxcontrib-youtube"]
+docs = ["Sphinx", "furo", "dunamai", "m2r2", "sphinxcontrib-youtube"]
 
 [[tool.poetry.source]]
 name = "rlaphoenix"
