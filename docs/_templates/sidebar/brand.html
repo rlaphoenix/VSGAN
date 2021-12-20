@@ -3,10 +3,6 @@
       <img class="sidebar-logo" src="{{ pathto('_static/' + logo, 1) }}" alt="{{ project }}"/>
     </div>
 </a>
-<div class="sidebar-versions centered" role="note" aria-label="versions">
-    <pre class="sidebar-versions-current">{{ version }}</pre>
-    <dl class="sidebar-versions-others">
-        <dd><a href="/stable/{{ pagename }}{{ file_suffix }}" class="{% if release == version %}version-current{% endif %}">Stable</a></dd>
-        <dd><a href="/latest/{{ pagename }}{{ file_suffix }}" class="{% if release != version %}version-current{% endif %}">Latest</a></dd>
-    </dl>
+<div class="centered" role="note" aria-label="versions">
+    <pre class="sidebar-version">{{ version }}</pre>
 </div>

@@ -82,35 +82,10 @@ strong.command {
   margin: 0;
 }
 
-.sidebar-versions {
-  margin: .5rem 0;
-}
-.sidebar-versions a {
+.sidebar-version {
   color: inherit;
-}
-.sidebar-versions-current {
   font-family: var(--font-stack--monospace);
   font-size: var(--font-size--small--2);
-}
-.sidebar-versions-others {
-  display: flex;
-  margin: .5rem 0 0;
-  font-size: var(--font-size--small);
-}
-.sidebar-versions-others dd {
-  width: 50%;
-  margin: 0;
-}
-.sidebar-versions-others dd:first-of-type {
-  padding-right: .5rem;
-  text-align: right;
-}
-.sidebar-versions-others dd:last-of-type {
-  padding-left: .5rem;
-  text-align: left;
-}
-.sidebar-versions-others .version-current {
-  font-weight: bold;
 }
 
 .sidebar-search-container {
