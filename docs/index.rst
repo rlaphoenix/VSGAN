@@ -31,7 +31,7 @@ image data.
      run(overlap=32).\
      clip
 
-For more information see (:ref:`Usage <usage>`).
+For more information see (:ref:`Getting Started <getting started>`).
 
 Features of VSGAN
 -----------------
@@ -135,7 +135,7 @@ Pages
    :maxdepth: 2
 
    installation
-   usage
+   getting-started
    api
    troubleshooting
    terminology
