@@ -36,17 +36,22 @@ For more information see (:ref:`Getting Started <getting started>`).
 Features of VSGAN
 -----------------
 
-- Script-based NLE — Transform, Filter, or Enhance your input video, or the Model's result.
-- Easy Model Chaining — You can chain models or re-run the model twice-over (or more) very easily with VSGAN.
+.. _VapourSynth: https://vapoursynth.com/doc/installation.html
+.. _NLE: https://en.wikipedia.org/wiki/Non-linear_editing
+
+- VapourSynth_ — Transform, Filter, or Enhance your input video, or the VSGAN result with VapourSynth,
+  a Script-based NLE_.
+- :ref:`Easy Model Chaining <Chaining calls, or Models>` — You can chain models or re-run the model twice-over
+  (or more).
+- :ref:`Seamless Chunking <Seamless Chunking>` — Have low VRAM? Don't worry! Use `overlap` argument to
+  chunk seamlessly to lower VRAM requirements.
 - Supports All RGB formats — You can use *any* RGB video input, including float32 (e.g., RGBS) inputs.
-- Seamless Chunking support — Have low VRAM? Don't worry! Use `overlap` argument to chunk seamlessly to lower
-  VRAM requirements.
 - No Frame Extraction Necessary — Using VapourSynth you can pass a Video directly to VSGAN, without any frame
-  extraction necessary.
+  extraction needed.
 - Repeatable Edits — Any edit you make in the VapourSynth script with or without VSGAN can be re-used for any
   other video.
-- Freedom — VSGAN is released under the MIT License, ensuring it will stay free, with the ability to be used
-  commercially.
+- :ref:`Freedom <License>` — VSGAN is released under the MIT License, ensuring it will stay free, with the
+  ability to be used commercially.
 
 Quick shoutout to pvsfunc.PD2V
 ------------------------------
