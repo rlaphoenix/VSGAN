@@ -138,6 +138,7 @@ is an animation/dvd edit and not caused by VSGAN or the model.
 
    installation
    getting-started
+   models
    api
    troubleshooting
    terminology
