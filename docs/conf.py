@@ -55,7 +55,6 @@ html_sidebars = {
         'sidebar/brand.html',
         'sidebar/search.html',
         'sidebar/navigation.html',
-        'sidebar/github-buttons.html',
         'sidebar/scroll-end.html',
     ]
 }
