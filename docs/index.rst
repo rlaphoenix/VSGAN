@@ -133,11 +133,8 @@ All models unless explicitly stated, supports only models of integer scale. i.e.
 `ESRGAN <https://github.com/xinntao/ESRGAN>`_
   Enhanced Super-Resolution Generative Adversarial Networks. Supports both old and new-arch models of any scale.
 
-Pages
------
-
 .. toctree::
-   :maxdepth: 2
+   :hidden:
 
    installation
    getting-started
