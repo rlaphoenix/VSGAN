@@ -53,6 +53,16 @@ Features of VSGAN
 - :ref:`Freedom <License>` — VSGAN is released under the MIT License, ensuring it will stay free, with the
   ability to be used commercially.
 
+Supported Models
+----------------
+
+The accomplishments of each model will be reflected equally when used with VSGAN. The only difference will be
+the API as to which you use that model, which is now via VSGAN calls.
+All models unless explicitly stated, supports only models of integer scale. i.e., scales in a power of 2.
+
+`ESRGAN <https://github.com/xinntao/ESRGAN>`_
+  Enhanced Super-Resolution Generative Adversarial Networks. Supports both old and new-arch models of any scale.
+
 Quick shoutout to pvsfunc.PD2V
 ------------------------------
 
@@ -122,16 +132,6 @@ Family Guy S01E01
 This model was trained to fix inaccuracies in the DVD's color, remove Halo'ing/Glow, and remove Chroma Droop. The
 result is a very crisp output for a show originally animated in SD. Do note that the warping/stretch on the edges
 is an animation/dvd edit and not caused by VSGAN or the model.
-
-Supported Models
-----------------
-
-The accomplishments of each model will be reflected equally when used with VSGAN. The only difference will be
-the API as to which you use that model, which is now via VSGAN calls.
-All models unless explicitly stated, supports only models of integer scale. i.e., scales in a power of 2.
-
-`ESRGAN <https://github.com/xinntao/ESRGAN>`_
-  Enhanced Super-Resolution Generative Adversarial Networks. Supports both old and new-arch models of any scale.
 
 .. toctree::
    :hidden:
