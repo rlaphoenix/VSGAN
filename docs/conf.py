@@ -19,6 +19,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'm2r2',
     'sphinxcontrib.youtube',
+    'sphinxcontrib.images',
 ]
 
 master_doc = 'index'
