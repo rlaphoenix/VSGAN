@@ -80,6 +80,10 @@ Mickey's Christmas Carol
 American Dad S01E01
 ^^^^^^^^^^^^^^^^^^^
 
+.. vimeo:: 382251167
+   :aspect: 3:2
+   :width: 100%
+
 .. thumbnail:: _static/images/examples/american_dad_s01e01/before.webp
    :group: ex1
    :width: 49%
