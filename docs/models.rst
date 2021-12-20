@@ -38,6 +38,6 @@ There's a few things you must realise about training a model.
 5. Among all of this, there's quite a lot more to learn than what you would learn to use VSGAN.
    There will be a lot of words like Losses, LR, HR, GT, Validation, Act, Norm, Layer, Arch, and so on.
 
-If you still feel like you want to give it a try, go for it! Check out `traiNNer <https://github.com/victorca25/traiNNer>`
+If you still feel like you want to give it a try, go for it! Check out `traiNNer <https://github.com/victorca25/traiNNer>`_
 it's a PyTorch training and testing toolbox for various Model Architectures. For instructions on using
 traiNNer, check their readme. VSGAN will not provide help for training.
