@@ -140,3 +140,11 @@ Pages
    troubleshooting
    terminology
    license
+
+.. toctree::
+   :caption: Resources
+   :hidden:
+
+   VapourSynth Docs <https://vapoursynth.com/doc>
+   Doom9 <https://forum.doom9.org>
+   VideoHelp <https://forum.videohelp.com>
