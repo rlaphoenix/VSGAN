@@ -68,11 +68,55 @@ sourced MPEG-1/2 media. It optimally loads the video data Frame-accurately with 
 Example Results
 ---------------
 
+Mickey's Christmas Carol
+^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. vimeo:: 657905289
    :aspect: 4:3
    :width: 100%
 
 `This is what the official Disney Blu-ray looks like <https://vimeo.com/115284525>`_...
+
+American Dad S01E01
+^^^^^^^^^^^^^^^^^^^
+
+.. thumbnail:: _static/images/examples/american_dad_s01e01/before.webp
+   :group: ex1
+   :width: 49%
+   :alt: American Dad S01E01 (USA NTSC R1 DVD 720x480)
+
+   American Dad S01E01 (USA NTSC R1 DVD 720x480)
+
+.. thumbnail:: _static/images/examples/american_dad_s01e01/after.webp
+   :group: ex1
+   :width: 49%
+   :alt: American Dad S01E01 with Private Model Applied
+
+   American Dad S01E01 with Private Model Applied
+
+This model was trained to fix inaccuracies in the DVD's color, remove Halo'ing/Glow, and remove Chroma Droop. The
+result is a very crisp output for a show originally animated in SD.
+
+Family Guy S01E01
+^^^^^^^^^^^^^^^^^
+
+.. thumbnail:: _static/images/examples/family_guy_s01e01/before.webp
+   :group: ex2
+   :width: 49%
+   :alt: Family Guy S01E01 (USA NTSC R1 DVD 720x480)
+
+   Family Guy S01E01 (USA NTSC R1 DVD 720x480)
+
+.. thumbnail:: _static/images/examples/family_guy_s01e01/after.webp
+   :group: ex2
+   :width: 49%
+   :alt: Family Guy S01E01 with Private Model Applied
+
+   Family Guy S01E01 with Private Model Applied
+
+This model was trained to fix inaccuracies in the DVD's color, remove Halo'ing/Glow, and remove Chroma Droop. The
+result is a very crisp output for a show originally animated in SD. Do note that the warping/stretch on the edges
+is an animation/dvd edit and not caused by VSGAN or the model.
 
 Supported Models
 ----------------
