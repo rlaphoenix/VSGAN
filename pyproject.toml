@@ -25,7 +25,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.6.2,<4.0"
 numpy = "^1.19.5"
-torch = {version = "1.10.0+cu113", optional = true}
+torch = {version = "^1.10.0", optional = true}
 Sphinx = {version = "^4.3.2", optional = true}
 furo = {version = "^2021.11.23", optional = true}
 dunamai = {version = "^1.7.0", optional = true}
@@ -36,7 +36,3 @@ sphinxcontrib-images = {version = "^0.9.4", optional = true}
 [tool.poetry.extras]
 pytorch = ["torch"]
 docs = ["Sphinx", "furo", "dunamai", "m2r2", "sphinxcontrib-youtube", "sphinxcontrib-images"]
-
-[[tool.poetry.source]]
-name = "rlaphoenix"
-url = "https://rlaphoenix.github.io/pip-repo"
