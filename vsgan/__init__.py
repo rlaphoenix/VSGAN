@@ -19,9 +19,15 @@ model_state_T = OrderedDict[str, torch.Tensor]
 class VSGAN:
     def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
         """
-        Create a PyTorch Device instance, to use VSGAN with.
-        It validates the supplied pytorch device identifier, and makes sure CUDA environment is available and ready.
-        :param device: PyTorch device identifier, tells VSGAN which device to run ESRGAN with. e.g. `cuda`, `0`, `1`
+        Create a PyTorch Device instance to use VSGAN with.
+        It validates the supplied pytorch device identifier, and makes
+        sure CUDA environment is available and ready.
+
+        Args:
+            clip: VapourSynth Video Node (aka clip). It must be RGB
+                colorspace. RGB27 and RGB30 may not work.
+            device: PyTorch device identifier to use for the model. E.g.,
+                "cuda", "cpu", 0, 1, and so on.
         """
         device = device.strip().lower() if isinstance(device, str) else device
         if device == "":
@@ -45,9 +51,11 @@ class VSGAN:
 
     def load_model(self, model: str) -> VSGAN:
         """
-        Load an ESRGAN model file into the VSGAN object instance.
-        The model can be changed by calling load_model at any point.
-        :param model: ESRGAN .pth model file.
+        Load a model file and send to the PyTorch device. The model can be
+        changed at any point.
+
+        Args:
+            model: Path to a supported PyTorch Model file.
         """
         model_state = self.sanitize_state_dict(torch.load(model))
 
@@ -88,9 +96,17 @@ class VSGAN:
     def run(self, overlap: int = 0) -> VSGAN:
         """
         Executes VSGAN on the provided clip, returning the resulting in a new clip.
-        :param overlap: Reduces VRAM usage by seamlessly rendering the input frame(s) in quadrants.
-            This reduces memory usage but may also reduce speed. Only use this to stretch your VRAM.
-        :returns: ESRGAN result clip
+
+        The overlap value enables chunk-mode and specifies the amount to extend
+        each quadrant as to hide seams. This effectively cuts VRAM requirements
+        by 75%. Use this if you do not have enough VRAM for your input image.
+
+        It should generally be a multiple of 16. The larger the input
+        resolution, the larger overlap may need to be set. Avoid using a value
+        excessively large.
+
+        The larger the overlap value, the more VRAM you will use per-quadrant,
+        and the slower it may perform.
         """
         if not self.model:
             raise ValueError("A model must be loaded before running.")
