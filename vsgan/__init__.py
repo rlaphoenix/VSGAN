@@ -95,7 +95,8 @@ class VSGAN:
 
     def run(self, overlap: int = 0) -> VSGAN:
         """
-        Executes VSGAN on the provided clip, returning the resulting in a new clip.
+        Executes the model on each frame. It uses FrameEval as to not apply to
+        every frame immediately, instead only upon request.
 
         The overlap value enables chunk-mode and specifies the amount to extend
         each quadrant as to hide seams. This effectively cuts VRAM requirements
