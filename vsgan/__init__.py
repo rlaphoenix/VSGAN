@@ -113,10 +113,8 @@ class VSGAN:
 
         if self.clip.format.color_family.name != "RGB":
             raise ValueError(
-                "VSGAN: Clip color format must be RGB as the ESRGAN model can only work with RGB data :(\n"
-                "You can use mvsfunc.ToRGB or use the format option on core.resize functions.\n"
-                "The clip might need to be bit depth of 8bpp for correct color input/output.\n"
-                "If you need to specify a kernel for chroma, I recommend Spline or Bicubic."
+                "VSGAN only supports RGB clips. RGB24 or RGBS recommended. "
+                "You can use core.resize.* funcs to convert."
             )
 
         self.clip = core.std.FrameEval(
