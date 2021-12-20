@@ -34,10 +34,9 @@ class VSGAN:
             raise ValueError("VSGAN: `device` parameter cannot be an empty string.")
         if device == "cpu":
             raise ValueError(
-                "VSGAN: Using your CPU as a device for VSGAN/PyTorch has been blocked, use a GPU device.\n"
-                "Using ESRGAN on a CPU will run it at very high utilisation and temps and may straight up kill it.\n"
-                "It isn't worth it either as it takes literally hours for a single 720x480 frame.\n"
-                "If you are sure you would like to use your CPU, then use `cpu!` as the device argument."
+                "VSGAN blocked an attempt to use your CPU as the torch device. "
+                "Using your CPU will run it at very high utilisation and may lower its lifespan. "
+                "If you are sure you would like to use your CPU, then use `cpu!`."
             )
         if device == "cpu!":
             device = "cpu"
