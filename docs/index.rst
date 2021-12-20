@@ -148,3 +148,11 @@ Pages
    VapourSynth Docs <https://vapoursynth.com/doc>
    Doom9 <https://forum.doom9.org>
    VideoHelp <https://forum.videohelp.com>
+
+.. toctree::
+   :caption: Project
+   :hidden:
+
+   Source <https://github.com/rlaphoenix/VSGAN>
+   Issues <https://github.com/rlaphoenix/VSGAN/issues>
+   Discussions <https://github.com/rlaphoenix/VSGAN/discussions>
