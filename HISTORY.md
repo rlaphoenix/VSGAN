@@ -72,13 +72,19 @@ TODO
 
 ## 1.1.0
 
-**Improvements**
+- Add GitHub Actions for build tests and distributions
 
-- Replace hardcoded in_nc, out_nc, nf, nb, and scale with values taken directly from the model state.  
-  This allows VSGAN to support different kinds of models, like grayscale input, rgb output
-  (though untested) as well as smaller models via nf and nb reductions that are faster to train.
-  (thanks @JoeyBallentine)
-- Very slight QoL improvements, you won't notice these, but hey, cool right?
+**Fixes**
+
+- Replace hardcoded `in_nc`, `out_nc`, `nf`, `nb`, and `scale` with values taken directly from the model state (@JoeyBallentine)
+- Ensure a model has been loaded before `execute` can be called
+
+**Documentation**
+
+- Replace all references of old username to new username, fixing links and badges
+- Update the year in the LICENSE
+- Remove pointless `Created by` block of comment at the top of the main python file
+- Move majority of documentation and info from the GitHub Wikis system to the README
 
 ## 1.0.8
 
@@ -88,9 +94,9 @@ TODO
 
 **Fixes**
 
-- Get rid of the color space conversion implemented in v1.0.3 as it can be a lossy operation.
+- Get rid of the color space conversion implemented in v1.0.3 as it can be a lossy operation
   The colorspace returned (RGB) may be wanted anyhow, or the user may want to convert a different
-  way, if at all (or yet).
+  way, if at all (or yet)
 - Replace unsafe assert in RRDBNet with if+raise as asserts may be removed when optimised as python byte code files
 
 **Documentation**
@@ -139,4 +145,4 @@ TODO
 
 ## 1.0.0
 
-Initial Release.
+Initial Release
