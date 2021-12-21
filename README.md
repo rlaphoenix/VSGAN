@@ -9,5 +9,5 @@
 
 VSGAN is a Single Image Super-Resolution Generative Adversarial Network (GAN) which uses the VapourSynth processing framework to handle input and output image data.
 
-**Documentation**: https://vsgan.phoeniix.dev
+**Documentation**: https://vsgan.phoeniix.dev  
 **License**: [MIT License](LICENSE)
