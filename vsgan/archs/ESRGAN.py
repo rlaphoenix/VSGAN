@@ -77,7 +77,7 @@ class ESRGAN(nn.Module):
             ),
             block.ShortcutBlock(block.sequential(
                 # rrdb blocks
-                *[block.RRDB(
+                *[RRDB(
                     nc=self.num_filters,
                     kernel_size=3,
                     gc=32,
@@ -187,3 +187,53 @@ class ESRGAN(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
+
+class ResidualDenseBlock5C(nn.Module):
+    """
+    5 Convolution Residual Dense Block.
+    Residual Dense Network for Image Super-Resolution, CVPR 18.
+    gc: growth channel, i.e. intermediate channels
+    """
+
+    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
+                 act_type="leakyrelu", mode="CNA"):
+        super(ResidualDenseBlock5C, self).__init__()
+        last_act = None if mode == "CNA" else act_type
+
+        self.conv1 = block.conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv2 = block.conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv3 = block.conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv4 = block.conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv5 = block.conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type,
+                                      norm_type=norm_type, act_type=last_act, mode=mode)
+
+    def forward(self, x):
+        x1 = self.conv1(x)
+        x2 = self.conv2(torch.cat((x, x1), 1))
+        x3 = self.conv3(torch.cat((x, x1, x2), 1))
+        x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))
+        x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
+        return x5.mul(0.2) + x
+
+
+class RRDB(nn.Module):
+    """Residual in Residual Dense Block."""
+
+    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
+                 act_type="leakyrelu", mode="CNA"):
+        super(RRDB, self).__init__()
+        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
+        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
+        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
+
+    def forward(self, x):
+        out = self.RDB1(x)
+        out = self.RDB2(out)
+        out = self.RDB3(out)
+        # Empirically, we use 0.2 to scale the residual for better performance
+        return out.mul(0.2) + x
