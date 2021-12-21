@@ -68,7 +68,25 @@ TODO
 
 ## 1.2.0
 
-TODO
+- Remove the conversion to RGB prior to model execution. RGB is required for the Model, but let
+  the user decide how to convert to format, what algorithm, how to deal with matrix, and so on
+- Add a check to ensure input clip is RGB, since auto conversion was removed
+- Remove the ability to use your CPU as a device due to CPU lifetime and thermal concerns, ability
+  force the use of CPU is possible if you read it's warning
+
+**Fixes**
+
+- Updates the READMEs examples and documentation since v1.1.0s changes to scale and such
+
+**Documentation**
+
+- Add description to README, improve badges, general README improvements
+- Type-hinting has been added as well as some doc-strings
+
+**Dependencies**
+
+- Remove setuptools
+- Reduce VapourSynth required version to >=48
 
 ## 1.1.0
 
