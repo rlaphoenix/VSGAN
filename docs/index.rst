@@ -137,6 +137,7 @@ is an animation/dvd edit and not caused by VSGAN or the model.
    :hidden:
 
    installation
+   building
    getting-started
    models
    api
