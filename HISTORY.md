@@ -82,35 +82,60 @@ TODO
 
 ## 1.0.8
 
-TODO
+- Change the RGB conversion check's kernel to Spline36
 
 ## 1.0.7
 
-TODO
+**Fixes**
+
+- Get rid of the color space conversion implemented in v1.0.3 as it can be a lossy operation.
+  The colorspace returned (RGB) may be wanted anyhow, or the user may want to convert a different
+  way, if at all (or yet).
+- Replace unsafe assert in RRDBNet with if+raise as asserts may be removed when optimised as python byte code files
+
+**Documentation**
+
+- Fix Wiki link in README
+- Add some project badges to the README, starting to spice it up now
+- Add information on the project, and ESRGAN, with some of ESRGANs comparison images
 
 ## 1.0.6
 
-TODO
+- Detect ESRGAN old/new arch models via archaic trial-and-error
+
+**Mistakes**
+
+- (Kinda) Accidentally added JetBrains PyCharm `.idea` project folder to repo
+- A post1 re-version had to be made due to a mistake in the for loop range
 
 ## 1.0.5
 
-TODO
+- Rework code from Functional to Object-oriented Programming
+- Improve code readability, project starting to get serious
 
 ## 1.0.4
 
-TODO
+- Add initial method of chunk-mode (does not hide seams)
 
 ## 1.0.3
 
-TODO
+- Convert back to original colorspace after execution
+
+**Dependencies**
+
+- Add VapourSynth to requirements
 
 ## 1.0.2
 
-TODO
+- Add ability to select device via argument
 
 ## 1.0.1
 
-TODO
+- Improve RGB conversion using mvsfunc instead of `core.resize.Point`
+
+**Documentation**
+
+- Add a README file with some basic information
 
 ## 1.0.0
 
