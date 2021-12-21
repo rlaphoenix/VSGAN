@@ -1,3 +1,7 @@
+"""
+Common Blocks between Architectures.
+"""
+
 from collections import OrderedDict
 from typing import Optional
 
