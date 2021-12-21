@@ -143,6 +143,7 @@ is an animation/dvd edit and not caused by VSGAN or the model.
    api
    troubleshooting
    terminology
+   history
    license
 
 .. toctree::
