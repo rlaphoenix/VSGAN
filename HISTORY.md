@@ -80,6 +80,14 @@ TODO
   (thanks @JoeyBallentine)
 - Very slight QoL improvements, you won't notice these, but hey, cool right?
 
+## 1.0.8
+
+TODO
+
+## 1.0.7
+
+TODO
+
 ## 1.0.6
 
 TODO
