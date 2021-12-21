@@ -13,9 +13,9 @@ class ESRGAN(nn.Module):
     def __init__(self, model: str, norm=None, act: str = "leakyrelu", upsampler: str = "upconv",
                  mode: str = "CNA") -> None:
         """
-        ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks
+        ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
         By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
-        Chen Change Loy
+        and Chen Change Loy.
 
         This is old-arch Residual in Residual Dense Block Network and is not
         the newest revision that's available at github.com/xinntao/ESRGAN.
