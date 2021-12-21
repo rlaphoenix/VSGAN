@@ -64,11 +64,11 @@
 
 ## 1.2.1
 
---
+TODO
 
 ## 1.2.0
 
---
+TODO
 
 ## 1.1.0
 
@@ -79,3 +79,31 @@
   (though untested) as well as smaller models via nf and nb reductions that are faster to train.
   (thanks @JoeyBallentine)
 - Very slight QoL improvements, you won't notice these, but hey, cool right?
+
+## 1.0.6
+
+TODO
+
+## 1.0.5
+
+TODO
+
+## 1.0.4
+
+TODO
+
+## 1.0.3
+
+TODO
+
+## 1.0.2
+
+TODO
+
+## 1.0.1
+
+TODO
+
+## 1.0.0
+
+Initial Release.
