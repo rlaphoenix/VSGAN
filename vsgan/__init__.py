@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-from collections import OrderedDict
 from typing import Union, Optional
 
 import numpy as np
@@ -10,10 +9,8 @@ import vapoursynth as vs
 from vapoursynth import core
 
 # noinspection PyPep8Naming
-from vsgan.models.ESRGAN import Network as ESRGAN
+from vsgan.archs import ESRGAN
 from vsgan.constants import MAX_DTYPE_VALUES
-
-model_state_T = OrderedDict[str, torch.Tensor]
 
 
 class VSGAN:
@@ -46,7 +43,6 @@ class VSGAN:
         self.clip: vs.VideoNode = clip
         self.device: torch.device = torch.device(device)
         self.model: Optional[torch.nn.Module] = None
-        self.model_scale: Optional[int] = None
 
     def load_model(self, model: str) -> VSGAN:
         """
@@ -56,40 +52,9 @@ class VSGAN:
         Args:
             model: Path to a supported PyTorch Model file.
         """
-        model_state = self.sanitize_state_dict(torch.load(model))
-
-        scale2 = 0
-        max_part = 0
-        scale_min = 6
-        nb = None
-        out_nc = None
-        for part in list(model_state):
-            parts = part.split(".")
-            n_parts = len(parts)
-            if n_parts == 5 and parts[2] == "sub":
-                nb = int(parts[3])
-            elif n_parts == 3:
-                part_num = int(parts[1])
-                if part_num > scale_min and parts[0] == "model" and parts[2] == "weight":
-                    scale2 += 1
-                if part_num > max_part:
-                    max_part = part_num
-                    out_nc = model_state[part].shape[0]
-
-        self.model_scale = 2 ** scale2
-        in_nc = model_state["model.0.weight"].shape[1]
-        nf = model_state["model.0.weight"].shape[0]
-
-        if nb is None:
-            raise ValueError("Could not find the nb in this new-arch model.")
-        if out_nc is None:
-            print("[!] Could not find out_nc, assuming it's the same as in_nc...")
-
-        model = ESRGAN(in_nc, out_nc or in_nc, nf, nb, self.model_scale)
-        model.load_state_dict(model_state, strict=False)
+        model = ESRGAN(model)
         model.eval()
         self.model = model.to(self.device)
-
         return self
 
     def run(self, overlap: int = 0) -> VSGAN:
@@ -120,21 +85,20 @@ class VSGAN:
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
                 clip=self.clip,
-                width=self.clip.width * self.model_scale,
-                height=self.clip.height * self.model_scale
+                width=self.clip.width * self.model.scale,
+                height=self.clip.height * self.model.scale
             ),
             functools.partial(
                 self.execute,
                 clip=self.clip,
                 model=self.model,
-                scale=self.model_scale,
                 overlap=overlap
             )
         )
 
         return self
 
-    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, scale: int, overlap: int = 0) -> vs.VideoNode:
+    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, overlap: int = 0) -> vs.VideoNode:
         """
         Run the ESRGAN repo's Modified ESRGAN RRDBNet super-resolution code on a clip's frame.
         Unlike the original code, frames are modified directly as Tensors, without CV2.
@@ -160,8 +124,8 @@ class VSGAN:
         elif overlap > 0:
             b, c, h, w = lr_img.shape
 
-            out_h = h * scale
-            out_w = w * scale
+            out_h = h * model.scale
+            out_w = w * model.scale
             output_img = torch.empty(
                 (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
             )
@@ -179,44 +143,6 @@ class VSGAN:
             raise ValueError("Invalid overlap. Must be a value greater than 0, or a False-y value to disable.")
 
         return self.tensor_to_clip(clip, output_img)
-
-    @staticmethod
-    def sanitize_state_dict(state_dict: model_state_T) -> model_state_T:
-        """
-        Convert a new-arch model state dictionary to an old-arch dictionary.
-        The new-arch model's only purpose is making the dict keys more verbose, but has no purpose other
-        than that. So to easily support both new and old arch models, simply convert the key names back
-        to their "Old" counterparts.
-
-        :param state_dict: new-arch state dictionary
-        :returns: old-arch state dictionary
-        """
-        if "conv_first.weight" not in state_dict:
-            # model is already old arch, this is a loose check, but should be sufficient
-            return state_dict
-        old_net = OrderedDict({
-            "model.0.weight": state_dict["conv_first.weight"],
-            "model.0.bias": state_dict["conv_first.bias"],
-            "model.1.sub.23.weight": state_dict["trunk_conv.weight"],
-            "model.1.sub.23.bias": state_dict["trunk_conv.bias"],
-            "model.3.weight": state_dict["upconv1.weight"],
-            "model.3.bias": state_dict["upconv1.bias"],
-            "model.6.weight": state_dict["upconv2.weight"],
-            "model.6.bias": state_dict["upconv2.bias"],
-            "model.8.weight": state_dict["HRconv.weight"],
-            "model.8.bias": state_dict["HRconv.bias"],
-            "model.10.weight": state_dict["conv_last.weight"],
-            "model.10.bias": state_dict["conv_last.bias"]
-        })
-        for key, value in state_dict.items():
-            if "RDB" in key:
-                new = key.replace("RRDB_trunk.", "model.1.sub.")
-                if ".weight" in key:
-                    new = new.replace(".weight", ".0.weight")
-                elif ".bias" in key:
-                    new = new.replace(".bias", ".0.bias")
-                old_net[new] = value
-        return old_net
 
     @staticmethod
     def frame_to_np(frame: vs.VideoFrame) -> np.dstack:
