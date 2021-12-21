@@ -64,7 +64,7 @@
 
 ## 1.2.1
 
-TODO
+- Add ability to check what the last loaded model is via `VSGAN.model` attribute
 
 ## 1.2.0
 
