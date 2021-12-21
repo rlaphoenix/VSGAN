@@ -42,30 +42,18 @@ The simplest and most recommended method of installation would be :ref:`From PIP
 Installing VSGAN
 ----------------
 
-Portable installations should use the `python` binary in their portable directory by full path instead of
-`python` in CLI calls. For ``pip ...`` calls, do ``path/to/portable/python -m pip ...`` instead.
-
-From PIP/PyPI
-^^^^^^^^^^^^^
-
 .. code-block:: shell
 
-    $ python -m pip install --user VSGAN
+  $ python -m pip install --user VSGAN
 
-From Source Code
-^^^^^^^^^^^^^^^^
+.. warning::
 
-.. code-block:: shell
+  Portable installations should use the `python` binary in their portable directory by full path instead
+  of `python` in CLI calls. For ``pip ...`` calls, do ``path/to/portable/python -m pip ...`` instead.
 
-    $ git clone https://github.com/rlaphoenix/VSGAN
-    $ cd VSGAN
-    $ python -m pip install --user .
+.. note::
 
-Note however that there are some caveats when installing from Source Code:
-
-- Source Code may have changes that are not yet tested or stable, and may have regressions.
-- Only install from Source-code if you have a reason, e.g. to test changes.
-- Requires `Poetry <https://python-poetry.org/docs/#installation>`_ as it's used as the build system backend.
+  You may also install from source; Check out :ref:`Building`.
 
 Updating VSGAN
 --------------
