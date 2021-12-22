@@ -39,14 +39,37 @@ class ESRGAN(nn.Module):
         self.upsampler = upsampler
         self.mode = mode
 
-        self._state = torch.load(self.model)
-        self.state: STATE_T = self.new_to_old_arch(self._state)
+        self.state_map = {
+            # wanted, possible key names
+            # currently supports old, new, and newer RRDBNet arch models
+            "model.0.weight": ("conv_first.weight",),
+            "model.0.bias": ("conv_first.bias",),
+            "model.1.sub./NB/.weight": ("trunk_conv.weight", "conv_body.weight"),
+            "model.1.sub./NB/.bias": ("trunk_conv.bias", "conv_body.bias"),
+            "model.3.weight": ("upconv1.weight", "conv_up1.weight"),
+            "model.3.bias": ("upconv1.bias", "conv_up1.bias"),
+            "model.6.weight": ("upconv2.weight", "conv_up2.weight"),
+            "model.6.bias": ("upconv2.bias", "conv_up2.bias"),
+            "model.8.weight": ("HRconv.weight", "conv_hr.weight"),
+            "model.8.bias": ("HRconv.bias", "conv_hr.bias"),
+            "model.10.weight": ("conv_last.weight",),
+            "model.10.bias": ("conv_last.bias",),
+            r"model.1.sub.\1.RDB\2.conv\3.0.\4": (
+                r"RRDB_trunk\.(\d+)\.RDB(\d)\.conv(\d+)\.(weight|bias)",
+                r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)"
+            )
+        }
+        self.state = torch.load(self.model)
+        if "params_ema" in self.state:
+            self.state = self.state["params_ema"]
+        self.num_blocks = self.get_num_blocks()
+        self.plus = any("conv1x1" in k for k in self.state.keys())
+
+        self.state: STATE_T = self.new_to_old_arch(self.state)
         self.in_nc = self.state["model.0.weight"].shape[1]
         self.out_nc = self.get_out_nc() or self.in_nc  # assume same as in nc if not found
         self.scale = self.get_scale()
         self.num_filters = self.state["model.0.weight"].shape[0]
-        self.num_blocks = self.get_num_blocks()
-        self.plus = any("conv1x1" in k for k in self._state.keys())
 
         upsample_block = {
             "upconv": block.upconv_block,
@@ -123,8 +146,7 @@ class ESRGAN(nn.Module):
 
         self.load_state_dict(self.state, strict=False)
 
-    @staticmethod
-    def new_to_old_arch(state: STATE_T) -> STATE_T:
+    def new_to_old_arch(self, state: STATE_T) -> STATE_T:
         """Convert a new-arch model state dictionary to an old-arch dictionary."""
         if "params_ema" in state:
             state = state["params_ema"]
@@ -133,29 +155,13 @@ class ESRGAN(nn.Module):
             # model is already old arch, this is a loose check, but should be sufficient
             return state
 
-        replace_map = {
-            # wanted, possible key names
-            # currently supports old, new, and newer RRDBNet arch models
-            "model.0.weight": ("conv_first.weight",),
-            "model.0.bias": ("conv_first.bias",),
-            "model.1.sub.23.weight": ("trunk_conv.weight", "conv_body.weight"),
-            "model.1.sub.23.bias": ("trunk_conv.bias", "conv_body.bias"),
-            "model.3.weight": ("upconv1.weight", "conv_up1.weight"),
-            "model.3.bias": ("upconv1.bias", "conv_up1.bias"),
-            "model.6.weight": ("upconv2.weight", "conv_up2.weight"),
-            "model.6.bias": ("upconv2.bias", "conv_up2.bias"),
-            "model.8.weight": ("HRconv.weight", "conv_hr.weight"),
-            "model.8.bias": ("HRconv.bias", "conv_hr.bias"),
-            "model.10.weight": ("conv_last.weight",),
-            "model.10.bias": ("conv_last.bias",),
-            r"model.1.sub.\1.RDB\2.conv\3.0.\4": (
-                r"RRDB_trunk\.(\d+)\.RDB(\d)\.conv(\d+)\.(weight|bias)",
-                r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)"
-            )
-        }
+        # add nb to state keys
+        for kind in ("weight", "bias"):
+            self.state_map[f"model.1.sub.{self.num_blocks}.{kind}"] = self.state_map[f"model.1.sub./NB/.{kind}"]
+            del self.state_map[f"model.1.sub./NB/.{kind}"]
 
         old_state = OrderedDict()
-        for old_key, new_keys in replace_map.items():
+        for old_key, new_keys in self.state_map.items():
             for new_key in new_keys:
                 if r"\1" in old_key:
                     for k, v in state.items():
@@ -191,15 +197,18 @@ class ESRGAN(nn.Module):
         return 2 ** n
 
     def get_num_blocks(self) -> int:
-        nb = None
-        for part in list(self.state):
-            parts = part.split(".")[1:]
-            n_parts = len(parts)
-            if n_parts == 4 and parts[1] == "sub":
-                nb = int(parts[2])
-        if nb is None:
-            raise ValueError("Could not find the nb in this new-arch model.")
-        return nb
+        nbs = []
+        state_keys = self.state_map[r"model.1.sub.\1.RDB\2.conv\3.0.\4"] + (
+            r"model\.\d+\.sub\.(\d+)\.RDB(\d+)\.conv(\d+)\.0\.(weight|bias)",
+        )
+        for state_key in state_keys:
+            for k, v in self.state.items():
+                m = re.search(state_key, k)
+                if m:
+                    nbs.append(int(m.group(1)))
+            if nbs:
+                break
+        return max(*nbs) + 1
 
     def forward(self, x):
         return self.model(x)
