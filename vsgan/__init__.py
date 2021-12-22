@@ -25,6 +25,12 @@ class VSGAN:
             device: PyTorch device identifier to use for the model. E.g.,
                 "cuda", "cpu", 0, 1, and so on.
         """
+        if not isinstance(clip, vs.VideoNode):
+            raise ValueError("VSGAN: This is not a clip")
+
+        if clip.format.color_family.name != "RGB":
+            raise ValueError("VSGAN: Only RGB clips are supported. RGB24 or RGBS recommended.")
+
         device = device.strip().lower() if isinstance(device, str) else device
         if device == "":
             raise ValueError("VSGAN: `device` parameter cannot be an empty string.")
@@ -74,12 +80,6 @@ class VSGAN:
         """
         if not self.model:
             raise ValueError("A model must be loaded before running.")
-
-        if self.clip.format.color_family.name != "RGB":
-            raise ValueError(
-                "VSGAN only supports RGB clips. RGB24 or RGBS recommended. "
-                "You can use core.resize.* funcs to convert."
-            )
 
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
