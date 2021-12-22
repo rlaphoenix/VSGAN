@@ -159,7 +159,9 @@ class ESRGAN(nn.Module):
             for new_key in new_keys:
                 if r"\1" in old_key:
                     for k, v in state.items():
-                        old_state[re.sub(new_key, old_key, k)] = v
+                        sub = re.sub(new_key, old_key, k)
+                        if sub != k:
+                            old_state[sub] = v
                 else:
                     if new_key in state:
                         old_state[old_key] = state[new_key]
