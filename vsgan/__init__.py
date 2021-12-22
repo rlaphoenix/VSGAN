@@ -33,9 +33,9 @@ class VSGAN:
 
         device = device.strip().lower() if isinstance(device, str) else device
         if device == "":
-            raise ValueError("VSGAN: `device` parameter cannot be an empty string.")
+            raise ValueError("VSGAN: Device must be provided.")
         if device == "cpu":
-            raise ValueError(
+            raise UserWarning(
                 "VSGAN blocked an attempt to use your CPU as the torch device. "
                 "Using your CPU will run it at very high utilisation and may lower its lifespan. "
                 "If you are sure you would like to use your CPU, then use `cpu!`."
