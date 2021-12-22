@@ -202,7 +202,7 @@ class ESRGAN(nn.Module):
             r"model\.\d+\.sub\.(\d+)\.RDB(\d+)\.conv(\d+)\.0\.(weight|bias)",
         )
         for state_key in state_keys:
-            for k, v in self.state.items():
+            for k in self.state:
                 m = re.search(state_key, k)
                 if m:
                     nbs.append(int(m.group(1)))

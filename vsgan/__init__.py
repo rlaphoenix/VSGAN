@@ -213,7 +213,7 @@ class VSGAN:
         :param image: tensor (expecting CHW shape order)
         :returns: VapourSynth clip with the frame applied
         """
-        batch, planes, height, width = image.size()
+        _, _, height, width = image.size()
         clip = core.std.BlankClip(
             clip=clip,
             width=width,
