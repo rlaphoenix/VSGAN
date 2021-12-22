@@ -1,11 +1,9 @@
-from typing import Union, OrderedDict
+from typing import Union
 
-from torch import Tensor
-
+from vsgan.archs import ESRGAN, RealESRGAN
 from vsgan.archs.ESRGAN import ESRGAN
 from vsgan.archs.RealESRGAN import RealESRGAN
 
 MODEL_T = Union[ESRGAN, RealESRGAN]
-STATE_T = OrderedDict[str, Tensor]
 
-__ALL__ = (MODEL_T, STATE_T, ESRGAN, RealESRGAN)
+__ALL__ = (MODEL_T, ESRGAN, RealESRGAN)

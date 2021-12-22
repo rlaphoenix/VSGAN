@@ -6,7 +6,7 @@ from torch.nn import functional
 from torch.nn import init
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from vsgan.archs import STATE_T
+from vsgan.constants import STATE_T
 
 
 class RealESRGAN(nn.Module):

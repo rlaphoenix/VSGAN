@@ -1,4 +1,7 @@
+from typing import OrderedDict
+
 import numpy as np
+from torch import Tensor
 
 MAX_DTYPE_VALUES = {
     np.dtype("int8"): 127,
@@ -12,3 +15,4 @@ MAX_DTYPE_VALUES = {
     np.dtype("float32"): 1.0,
     np.dtype("float64"): 1.0,
 }
+STATE_T = OrderedDict[str, Tensor]

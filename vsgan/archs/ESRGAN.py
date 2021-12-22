@@ -5,7 +5,8 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
-from vsgan.archs import blocks as block, STATE_T
+from vsgan.archs import blocks as block
+from vsgan.constants import STATE_T
 
 
 class ESRGAN(nn.Module):
