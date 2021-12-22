@@ -39,12 +39,14 @@ class ESRGAN(nn.Module):
         self.upsampler = upsampler
         self.mode = mode
 
-        self.state: STATE_T = self.new_to_old_arch(torch.load(self.model))
+        self._state = torch.load(self.model)
+        self.state: STATE_T = self.new_to_old_arch(self._state)
         self.in_nc = self.state["model.0.weight"].shape[1]
         self.out_nc = self.get_out_nc() or self.in_nc  # assume same as in nc if not found
         self.scale = self.get_scale()
         self.num_filters = self.state["model.0.weight"].shape[0]
         self.num_blocks = self.get_num_blocks()
+        self.plus = any("conv1x1" in k for k in self._state.keys())
 
         upsample_block = {
             "upconv": block.upconv_block,
@@ -87,7 +89,8 @@ class ESRGAN(nn.Module):
                     pad_type="zero",
                     norm_type=self.norm,
                     act_type=self.act,
-                    mode="CNA"
+                    mode="CNA",
+                    plus=self.plus
                 ) for _ in range(self.num_blocks)],
                 # lr conv
                 block.conv_block(
@@ -208,10 +211,11 @@ class ResidualDenseBlock5C(nn.Module):
     """
 
     def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
-                 act_type="leakyrelu", mode="CNA"):
+                 act_type="leakyrelu", mode="CNA", plus=False):
         super(ResidualDenseBlock5C, self).__init__()
         last_act = None if mode == "CNA" else act_type
 
+        self.conv1x1 = conv1x1(nc, gc) if plus else None
         self.conv1 = block.conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
                                       norm_type=norm_type, act_type=act_type, mode=mode)
         self.conv2 = block.conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
@@ -226,8 +230,12 @@ class ResidualDenseBlock5C(nn.Module):
     def forward(self, x):
         x1 = self.conv1(x)
         x2 = self.conv2(torch.cat((x, x1), 1))
+        if self.conv1x1:
+            x2 = x2 + self.conv1x1(x)
         x3 = self.conv3(torch.cat((x, x1, x2), 1))
         x4 = self.conv4(torch.cat((x, x1, x2, x3), 1))
+        if self.conv1x1:
+            x4 = x4 + x2
         x5 = self.conv5(torch.cat((x, x1, x2, x3, x4), 1))
         return x5.mul(0.2) + x
 
@@ -236,11 +244,11 @@ class RRDB(nn.Module):
     """Residual in Residual Dense Block."""
 
     def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
-                 act_type="leakyrelu", mode="CNA"):
+                 act_type="leakyrelu", mode="CNA", plus=False):
         super(RRDB, self).__init__()
-        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
-        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode)
+        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
 
     def forward(self, x):
         out = self.RDB1(x)
@@ -248,3 +256,7 @@ class RRDB(nn.Module):
         out = self.RDB3(out)
         # Empirically, we use 0.2 to scale the residual for better performance
         return out.mul(0.2) + x
+
+
+def conv1x1(in_planes: int, out_planes: int, stride=1) -> nn.Conv2d:
+    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
