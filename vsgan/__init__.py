@@ -8,8 +8,7 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-# noinspection PyPep8Naming
-from vsgan.archs import ESRGAN
+from vsgan.archs import MODEL_T
 from vsgan.constants import MAX_DTYPE_VALUES
 
 
@@ -44,15 +43,14 @@ class VSGAN:
         self.device: torch.device = torch.device(device)
         self.model: Optional[torch.nn.Module] = None
 
-    def load_model(self, model: str) -> VSGAN:
+    def load_model(self, model: MODEL_T) -> VSGAN:
         """
-        Load a model file and send to the PyTorch device. The model can be
-        changed at any point.
+        Load a model and send to the PyTorch device.
+        The model can be changed at any point.
 
         Args:
-            model: Path to a supported PyTorch Model file.
+            model: A VSGAN model class object.
         """
-        model = ESRGAN(model)
         model.eval()
         self.model = model.to(self.device)
         return self
