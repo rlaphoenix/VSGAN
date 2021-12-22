@@ -1,4 +1,5 @@
 import math
+import re
 from collections import OrderedDict
 from typing import Optional
 
@@ -122,33 +123,43 @@ class ESRGAN(nn.Module):
     @staticmethod
     def new_to_old_arch(state: STATE_T) -> STATE_T:
         """Convert a new-arch model state dictionary to an old-arch dictionary."""
+        if "params_ema" in state:
+            state = state["params_ema"]
+
         if "conv_first.weight" not in state:
             # model is already old arch, this is a loose check, but should be sufficient
             return state
 
-        old_state = OrderedDict({
-            "model.0.weight": state["conv_first.weight"],
-            "model.0.bias": state["conv_first.bias"],
-            "model.1.sub.23.weight": state["trunk_conv.weight"],
-            "model.1.sub.23.bias": state["trunk_conv.bias"],
-            "model.3.weight": state["upconv1.weight"],
-            "model.3.bias": state["upconv1.bias"],
-            "model.6.weight": state["upconv2.weight"],
-            "model.6.bias": state["upconv2.bias"],
-            "model.8.weight": state["HRconv.weight"],
-            "model.8.bias": state["HRconv.bias"],
-            "model.10.weight": state["conv_last.weight"],
-            "model.10.bias": state["conv_last.bias"]
-        })
+        replace_map = {
+            # wanted, possible key names
+            # currently supports old, new, and newer RRDBNet arch models
+            "model.0.weight": ("conv_first.weight",),
+            "model.0.bias": ("conv_first.bias",),
+            "model.1.sub.23.weight": ("trunk_conv.weight", "conv_body.weight"),
+            "model.1.sub.23.bias": ("trunk_conv.bias", "conv_body.bias"),
+            "model.3.weight": ("upconv1.weight", "conv_up1.weight"),
+            "model.3.bias": ("upconv1.bias", "conv_up1.bias"),
+            "model.6.weight": ("upconv2.weight", "conv_up2.weight"),
+            "model.6.bias": ("upconv2.bias", "conv_up2.bias"),
+            "model.8.weight": ("HRconv.weight", "conv_hr.weight"),
+            "model.8.bias": ("HRconv.bias", "conv_hr.bias"),
+            "model.10.weight": ("conv_last.weight",),
+            "model.10.bias": ("conv_last.bias",),
+            r"model.1.sub.\1.RDB\2.conv\3.0.\4": (
+                r"RRDB_trunk\.(\d+)\.RDB(\d)\.conv(\d+)\.(weight|bias)",
+                r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)"
+            )
+        }
 
-        for key, value in state.items():
-            if "RDB" in key:
-                new = key.replace("RRDB_trunk.", "model.1.sub.")
-                if ".weight" in key:
-                    new = new.replace(".weight", ".0.weight")
-                elif ".bias" in key:
-                    new = new.replace(".bias", ".0.bias")
-                old_state[new] = value
+        old_state = OrderedDict()
+        for old_key, new_keys in replace_map.items():
+            for new_key in new_keys:
+                if r"\1" in old_key:
+                    for k, v in state.items():
+                        old_state[re.sub(new_key, old_key, k)] = v
+                else:
+                    if new_key in state:
+                        old_state[old_key] = state[new_key]
 
         return old_state
 
