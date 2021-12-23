@@ -5,6 +5,7 @@ from typing import Optional
 
 import torch
 import torch.nn as nn
+from torch import pixel_unshuffle
 
 from vsgan.archs import blocks as block
 from vsgan.constants import STATE_T
@@ -144,6 +145,11 @@ class ESRGAN(nn.Module):
             )
         )
 
+        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and \
+                self.out_nc in (self.in_nc / 4, self.in_nc / 16):
+            # x2, x1 with pixel shuffle applied, get real scale
+            self.scale = int(self.scale / math.sqrt(self.in_nc / self.out_nc))
+
         self.load_state_dict(self.state, strict=False)
 
     def new_to_old_arch(self, state: STATE_T) -> STATE_T:
@@ -211,7 +217,13 @@ class ESRGAN(nn.Module):
         return max(*nbs) + 1
 
     def forward(self, x):
-        return self.model(x)
+        if self.in_nc == 12 and self.out_nc == 3:
+            feat = pixel_unshuffle(x, downscale_factor=2)
+        elif self.in_nc == 48 and self.out_nc == 3:
+            feat = pixel_unshuffle(x, downscale_factor=4)
+        else:
+            feat = x
+        return self.model(feat)
 
 
 class ResidualDenseBlock5C(nn.Module):
