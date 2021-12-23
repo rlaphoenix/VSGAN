@@ -72,6 +72,12 @@ class ESRGAN(nn.Module):
         self.scale = self.get_scale()
         self.num_filters = self.state["model.0.weight"].shape[0]
 
+        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and \
+                self.out_nc in (self.in_nc / 4, self.in_nc / 16):
+            self.shuffle_factor = int(math.sqrt(self.in_nc / self.out_nc))
+        else:
+            self.shuffle_factor = None
+
         upsample_block = {
             "upconv": block.upconv_block,
             "pixel_shuffle": block.pixelshuffle_block
@@ -145,10 +151,9 @@ class ESRGAN(nn.Module):
             )
         )
 
-        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and \
-                self.out_nc in (self.in_nc / 4, self.in_nc / 16):
-            # x2, x1 with pixel shuffle applied, get real scale
-            self.scale = int(self.scale / math.sqrt(self.in_nc / self.out_nc))
+        # vapoursynth calls expect the real scale even if shuffled
+        if self.shuffle_factor:
+            self.scale = self.scale // self.shuffle_factor
 
         self.load_state_dict(self.state, strict=False)
 
@@ -217,13 +222,9 @@ class ESRGAN(nn.Module):
         return max(*nbs) + 1
 
     def forward(self, x):
-        if self.in_nc == 12 and self.out_nc == 3:
-            feat = pixel_unshuffle(x, downscale_factor=2)
-        elif self.in_nc == 48 and self.out_nc == 3:
-            feat = pixel_unshuffle(x, downscale_factor=4)
-        else:
-            feat = x
-        return self.model(feat)
+        if self.shuffle_factor:
+            x = pixel_unshuffle(x, downscale_factor=self.shuffle_factor)
+        return self.model(x)
 
 
 class ResidualDenseBlock5C(nn.Module):
