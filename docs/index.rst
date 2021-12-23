@@ -56,10 +56,6 @@ Features of VSGAN
 Supported Models
 ----------------
 
-The accomplishments of each model will be reflected equally when used with VSGAN. The only difference will be
-the API as to which you use that model, which is now via VSGAN calls.
-All models unless explicitly stated, supports only models of integer scale. i.e., scales in a power of 2.
-
 `ESRGAN <https://arxiv.org/abs/1809.00219>`_
   Enhanced Super-Resolution Generative Adversarial Networks. Supports both old and new-arch models of any scale.
 
