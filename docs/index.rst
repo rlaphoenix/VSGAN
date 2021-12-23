@@ -66,6 +66,9 @@ Supported Models
   Training Real-World Blind Super-Resolution with Pure Synthetic Data. Supports 2x and 1x models if they used
   pixel-shuffle.
 
+`A-ESRGAN <https://arxiv.org/abs/2112.10046>`_
+  Training Real-World Blind Super-Resolution with Attention U-Net Discriminators.
+
 Quick shoutout to pvsfunc.PD2V
 ------------------------------
 
