@@ -1,5 +1,20 @@
 # Release History
 
+## 1.5.0
+
+- Adds support for ESRGAN+ models, Real-ESRGAN models (including 2x and 1x if pixel-shuffle was used),
+  and A-ESRGAN models
+- Add support for Newer-New-arch in ESRGAN new_to_old state dict conversion
+- Rework model/arch file system structure to /models, /models/blocks and /models/ESRGAN
+- Rework ESRGAN architecture as a singular class, with all ESRGAN-specific operation done within it
+- Move ESRGAN-specific blocks within ESRGAN.py
+- Remove some unused blocks
+
+**Fixes**
+
+- Ensure `clip` parameter of VSGAN is a VapourSynth VideoNode object (a clip)
+- Move RGB clip check to the constructor of VSGAN rather than `run()`
+
 ## 1.4.1
 
 - Reword some error/warning messages, less opinionated, more concise
