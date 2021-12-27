@@ -195,7 +195,7 @@ class VSGAN:
         :param t: Tensor array to retrieve planes from.
         :returns: New frame with planes from tensor array
         """
-        array = t.squeeze(0).detach().cpu().clamp(0, 1).numpy()
+        array = t.squeeze(0).detach().clamp(0, 1).cpu().numpy()
 
         d_type = np.asarray(f[0]).dtype
         array = MAX_DTYPE_VALUES.get(d_type, 1.0) * array
