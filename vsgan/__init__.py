@@ -96,15 +96,16 @@ class VSGAN:
                 self.execute,
                 clip=self.clip,
                 model=self.model,
+                half=self.half,
                 overlap=overlap,
-                half=self.half
             )
         )
 
         return self
 
-    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, overlap: int = 0,
-                half: bool = False) -> vs.VideoNode:
+    @torch.inference_mode()
+    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool = False,
+                overlap: int = 0) -> vs.VideoNode:
         """
         Run the ESRGAN repo's Modified ESRGAN RRDBNet super-resolution code on a clip's frame.
         Unlike the original code, frames are modified directly as Tensors, without CV2.
@@ -112,41 +113,35 @@ class VSGAN:
         Thanks to VideoHelp for initial support, and @JoeyBallentine for his work on
         seamless chunk support.
         """
-
-        def run_model(quadrant: torch.Tensor) -> torch.Tensor:
-            try:
-                quadrant = quadrant.to(self.device)
-                with torch.no_grad():
-                    return model(quadrant).data
-            except RuntimeError as e:
-                if "allocate" in str(e) or "CUDA out of memory" in str(e):
-                    torch.cuda.empty_cache()
-                raise
-
         lr_img = self.frame_to_tensor(clip.get_frame(n), change_order=True, add_batch=True, half=half)
+        try:
+            if not overlap:
+                output_img = model(lr_img.to(self.device)).data
+            elif overlap > 0:
+                # seamless tiles
+                b, c, h, w = lr_img.shape
 
-        if not overlap:
-            output_img = run_model(lr_img)
-        elif overlap > 0:
-            b, c, h, w = lr_img.shape
+                out_h = h * model.scale
+                out_w = w * model.scale
+                output_img = torch.empty(
+                    (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
+                )
 
-            out_h = h * model.scale
-            out_w = w * model.scale
-            output_img = torch.empty(
-                (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
-            )
+                top_left_sr = model(lr_img[..., : h // 2 + overlap, : w // 2 + overlap].to(self.device)).data
+                top_right_sr = model(lr_img[..., : h // 2 + overlap, w // 2 - overlap:].to(self.device)).data
+                bottom_left_sr = model(lr_img[..., h // 2 - overlap:, : w // 2 + overlap].to(self.device)).data
+                bottom_right_sr = model(lr_img[..., h // 2 - overlap:, w // 2 - overlap:].to(self.device)).data
 
-            top_left_sr = run_model(lr_img[..., : h // 2 + overlap, : w // 2 + overlap])
-            top_right_sr = run_model(lr_img[..., : h // 2 + overlap, w // 2 - overlap:])
-            bottom_left_sr = run_model(lr_img[..., h // 2 - overlap:, : w // 2 + overlap])
-            bottom_right_sr = run_model(lr_img[..., h // 2 - overlap:, w // 2 - overlap:])
-
-            output_img[..., : out_h // 2, : out_w // 2] = top_left_sr[..., : out_h // 2, : out_w // 2]
-            output_img[..., : out_h // 2, -out_w // 2:] = top_right_sr[..., : out_h // 2, -out_w // 2:]
-            output_img[..., -out_h // 2:, : out_w // 2] = bottom_left_sr[..., -out_h // 2:, : out_w // 2]
-            output_img[..., -out_h // 2:, -out_w // 2:] = bottom_right_sr[..., -out_h // 2:, -out_w // 2:]
-        else:
-            raise ValueError("Invalid overlap. Must be a value greater than 0, or a False-y value to disable.")
+                output_img[..., : out_h // 2, : out_w // 2] = top_left_sr[..., : out_h // 2, : out_w // 2]
+                output_img[..., : out_h // 2, -out_w // 2:] = top_right_sr[..., : out_h // 2, -out_w // 2:]
+                output_img[..., -out_h // 2:, : out_w // 2] = bottom_left_sr[..., -out_h // 2:, : out_w // 2]
+                output_img[..., -out_h // 2:, -out_w // 2:] = bottom_right_sr[..., -out_h // 2:, -out_w // 2:]
+            else:
+                raise ValueError("Invalid overlap. Must be a value greater than 0, or a False-y value to disable.")
+        except RuntimeError as e:
+            if "allocate" in str(e) or "CUDA out of memory" in str(e):
+                torch.cuda.empty_cache()
+            raise
 
         return self.tensor_to_clip(clip, output_img)
 
