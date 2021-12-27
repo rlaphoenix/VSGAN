@@ -48,18 +48,23 @@ class VSGAN:
         self.clip: vs.VideoNode = clip
         self.device: torch.device = torch.device(device)
         self.model: Optional[torch.nn.Module] = None
+        self.half: bool = False
 
-    def load_model(self, model: str) -> VSGAN:
+    def load_model(self, model: str, half: bool = False) -> VSGAN:
         """
         Load a model file and send to the PyTorch device. The model can be
         changed at any point.
 
         Args:
             model: Path to a supported PyTorch Model file.
+            half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
         model = ESRGAN(model)
         model.eval()
         self.model = model.to(self.device)
+        if half:
+            self.model.half()
+        self.half = half
         return self
 
     def run(self, overlap: int = 0) -> VSGAN:
@@ -91,13 +96,15 @@ class VSGAN:
                 self.execute,
                 clip=self.clip,
                 model=self.model,
-                overlap=overlap
+                overlap=overlap,
+                half=self.half
             )
         )
 
         return self
 
-    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, overlap: int = 0) -> vs.VideoNode:
+    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, overlap: int = 0,
+                half: bool = False) -> vs.VideoNode:
         """
         Run the ESRGAN repo's Modified ESRGAN RRDBNet super-resolution code on a clip's frame.
         Unlike the original code, frames are modified directly as Tensors, without CV2.
@@ -116,7 +123,7 @@ class VSGAN:
                     torch.cuda.empty_cache()
                 raise
 
-        lr_img = self.frame_to_tensor(clip.get_frame(n))
+        lr_img = self.frame_to_tensor(clip.get_frame(n), half=half)
 
         if not overlap:
             output_img = run_model(lr_img)
@@ -152,12 +159,13 @@ class VSGAN:
         return np.dstack([np.asarray(frame[i]) for i in range(frame.format.num_planes)])
 
     @staticmethod
-    def frame_to_tensor(frame: vs.VideoFrame, change_range=True, bgr2rgb=False, add_batch=True, normalize=False) \
-            -> torch.Tensor:
+    def frame_to_tensor(frame: vs.VideoFrame, change_range=True, bgr2rgb=False, add_batch=True, normalize=False,
+                        half: bool = False) -> torch.Tensor:
         """
         Read an image as a numpy array and convert it to a tensor.
         :param frame: VapourSynth frame from a clip.
         :param normalize: Normalize (z-norm) from [0,1] range to [-1,1].
+        :param half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
         array = VSGAN.frame_to_np(frame)
 
@@ -168,6 +176,9 @@ class VSGAN:
         array = torch.from_numpy(
             np.ascontiguousarray(np.transpose(array, (2, 0, 1)))  # HWC->CHW
         ).float()
+
+        if half:
+            array = array.half()
 
         if bgr2rgb:
             if array.shape[0] % 3 == 0:
