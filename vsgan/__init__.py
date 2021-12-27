@@ -123,7 +123,7 @@ class VSGAN:
                     torch.cuda.empty_cache()
                 raise
 
-        lr_img = self.frame_to_tensor(clip.get_frame(n), half=half)
+        lr_img = self.frame_to_tensor(clip.get_frame(n), change_order=True, add_batch=True, half=half)
 
         if not overlap:
             output_img = run_model(lr_img)
@@ -159,8 +159,8 @@ class VSGAN:
         return np.dstack([np.asarray(frame[i]) for i in range(frame.format.num_planes)])
 
     @staticmethod
-    def frame_to_tensor(frame: vs.VideoFrame, change_range=True, bgr2rgb=False, add_batch=True, normalize=False,
-                        half: bool = False) -> torch.Tensor:
+    def frame_to_tensor(frame: vs.VideoFrame, change_range=True, change_order=False, bgr2rgb=False, add_batch=False,
+                        normalize=False, half: bool = False) -> torch.Tensor:
         """
         Read an image as a numpy array and convert it to a tensor.
         :param frame: VapourSynth frame from a clip.
@@ -173,9 +173,10 @@ class VSGAN:
             max_val = MAX_DTYPE_VALUES.get(array.dtype, 1.0)
             array = array.astype(np.dtype("float32")) / max_val
 
-        array = torch.from_numpy(
-            np.ascontiguousarray(np.transpose(array, (2, 0, 1)))  # HWC->CHW
-        ).float()
+        if change_order:
+            array = np.transpose(array, (2, 0, 1))  # HWC->CHW
+
+        array = torch.from_numpy(np.ascontiguousarray(array)).float()
 
         if half:
             array = array.half()
