@@ -49,6 +49,7 @@ class VSGAN:
         self.device: torch.device = torch.device(device)
         self.model: Optional[torch.nn.Module] = None
         self.half: bool = False
+        self.tensor_cache: dict = {}
 
     def load_model(self, model: str, half: bool = False) -> VSGAN:
         """
@@ -67,7 +68,7 @@ class VSGAN:
         self.half = half
         return self
 
-    def run(self, overlap: int = 0) -> VSGAN:
+    def run(self, overlap: int = 0, interval: int = 0) -> VSGAN:
         """
         Executes the model on each frame. It uses FrameEval as to not apply to
         every frame immediately, instead only upon request.
@@ -98,14 +99,15 @@ class VSGAN:
                 model=self.model,
                 half=self.half,
                 overlap=overlap,
+                interval=interval
             )
         )
 
         return self
 
     @torch.inference_mode()
-    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool = False,
-                overlap: int = 0) -> vs.VideoNode:
+    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool = False, overlap: int = 0,
+                interval: int = 0) -> vs.VideoNode:
         """
         Run the ESRGAN repo's Modified ESRGAN RRDBNet super-resolution code on a clip's frame.
         Unlike the original code, frames are modified directly as Tensors, without CV2.
@@ -113,6 +115,36 @@ class VSGAN:
         Thanks to VideoHelp for initial support, and @JoeyBallentine for his work on
         seamless chunk support.
         """
+
+        # -- EGVSR Models
+
+        if interval > 0:
+            if str(n) not in self.tensor_cache:
+                self.tensor_cache.clear()
+
+                lr_images = [self.frame_to_tensor(clip.get_frame(n))]
+                for i in range(1, interval):
+                    if (n + i) >= clip.num_frames:
+                        break
+                    lr_images.append(self.frame_to_tensor(clip.get_frame(n + i)))
+                lr_images = torch.stack(lr_images)
+                lr_images = lr_images.unsqueeze(0)
+                if half:
+                    lr_images = lr_images.half()
+
+                output, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
+                output = output.squeeze(0)
+
+                for i in range(output.shape[0]):  # interval
+                    self.tensor_cache[str(n + i)] = output[i, :, :, :]
+
+                del lr_images
+                torch.cuda.empty_cache()
+
+            return self.tensor_to_clip(clip, self.tensor_cache[str(n)])
+
+        # -- ESRGAN Models
+
         lr_img = self.frame_to_tensor(clip.get_frame(n), change_order=True, add_batch=True, half=half)
         try:
             if not overlap:
