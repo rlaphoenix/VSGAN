@@ -60,7 +60,8 @@ class VSGAN:
             model: Path to a supported PyTorch Model file.
             half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
-        model = ESRGAN(model)
+        state = torch.load(model)
+        model = ESRGAN(state)
         model.eval()
         self.model = model.to(self.device)
         if half:

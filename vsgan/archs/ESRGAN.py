@@ -12,7 +12,7 @@ from vsgan.constants import STATE_T
 
 
 class ESRGAN(nn.Module):
-    def __init__(self, model: str, norm=None, act: str = "leakyrelu", upsampler: str = "upconv",
+    def __init__(self, state: STATE_T, norm=None, act: str = "leakyrelu", upsampler: str = "upconv",
                  mode: str = "CNA") -> None:
         """
         ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
@@ -27,6 +27,7 @@ class ESRGAN(nn.Module):
         This network supports model files from both new and old-arch.
 
         Args:
+            state: PyTorch Model State dictionary.
             norm: Normalization layer
             act: Activation layer
             upsampler: Upsample layer. upconv, pixel_shuffle
@@ -34,7 +35,7 @@ class ESRGAN(nn.Module):
         """
         super(ESRGAN, self).__init__()
 
-        self.model = model
+        self.state = state
         self.norm = norm
         self.act = act
         self.upsampler = upsampler
@@ -60,9 +61,10 @@ class ESRGAN(nn.Module):
                 r"body\.(\d+)\.rdb(\d)\.conv(\d+)\.(weight|bias)"
             )
         }
-        self.state = torch.load(self.model)
+
         if "params_ema" in self.state:
             self.state = self.state["params_ema"]
+
         self.num_blocks = self.get_num_blocks()
         self.plus = any("conv1x1" in k for k in self.state.keys())
 
