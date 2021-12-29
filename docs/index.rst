@@ -64,7 +64,8 @@ Supported Models
 
 `Real-ESRGAN <https://arxiv.org/abs/2107.10833>`_
   Training Real-World Blind Super-Resolution with Pure Synthetic Data. Supports 2x and 1x models if they used
-  pixel-shuffle.
+  pixel-shuffle. Includes support for Real-ESRGAN v2 the arch mainly intended as an ultra-light model for fast
+  video inference. However, it's *not* a video network.
 
 `A-ESRGAN <https://arxiv.org/abs/2112.10046>`_
   Training Real-World Blind Super-Resolution with Attention U-Net Discriminators.
