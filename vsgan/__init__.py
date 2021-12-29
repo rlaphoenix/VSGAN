@@ -146,7 +146,7 @@ class VSGAN:
 
         # -- ESRGAN Models
 
-        lr_img = self.frame_to_tensor(clip.get_frame(n), change_order=True, add_batch=True, half=half)
+        lr_img = self.frame_to_tensor(clip.get_frame(n), add_batch=True, half=half)
         try:
             if not overlap:
                 output_img = model(lr_img.to(self.device)).data
