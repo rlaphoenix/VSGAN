@@ -150,7 +150,8 @@ class VSGAN:
 
         # -- ESRGAN Models
 
-        lr_img = self.frame_to_tensor(clip.get_frame(n), add_batch=True, half=half)
+        lr_img = self.frame_to_tensor(clip.get_frame(n), half=half)
+        lr_img.unsqueeze_(0)
         try:
             if not overlap:
                 output_img = model(lr_img.to(self.device)).data
@@ -188,27 +189,35 @@ class VSGAN:
         Alternative to cv2.imread() that will directly read images to a numpy array.
         :param frame: VapourSynth frame from a clip
         """
-        return np.dstack([np.asarray(frame[i]) for i in range(frame.format.num_planes)])
+        return np.stack([
+            np.asarray(frame[plane])
+            for plane in range(frame.format.num_planes)
+        ])
 
     @staticmethod
-    def frame_to_tensor(frame: vs.VideoFrame, change_range=True, change_order=False, bgr2rgb=False, add_batch=False,
+    def frame_to_tensor(frame: vs.VideoFrame, order: tuple[int, ...] = (0, 1, 2), clamp_zero=True, bgr2rgb=False,
                         normalize=False, half: bool = False) -> torch.Tensor:
         """
-        Read an image as a numpy array and convert it to a tensor.
-        :param frame: VapourSynth frame from a clip.
-        :param normalize: Normalize (z-norm) from [0,1] range to [-1,1].
-        :param half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
+        Convert a VapourSynth VideoFrame to a PyTorch Tensor.
+
+        Args:
+            frame: VapourSynth frame from a clip.
+            order: Change shape order to specified order. Default: CHW.
+            clamp_zero: Clamp to 0,1 range.
+            bgr2rgb: Flip Plane order from BGR to RGB. May be needed if loaded via OpenCV.
+            normalize: Normalize (z-norm) from [0,1] range to [-1,1].
+            half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
         array = VSGAN.frame_to_np(frame)
 
-        if change_range:
+        if clamp_zero:
             max_val = MAX_DTYPE_VALUES.get(array.dtype, 1.0)
             array = array.astype(np.dtype("float32")) / max_val
 
-        if change_order:
-            array = np.transpose(array, (2, 0, 1))  # HWC->CHW
+        if order != (0, 1, 2) and len(order) == 3:
+            array = np.transpose(array, order)
 
-        array = torch.from_numpy(np.ascontiguousarray(array)).float()
+        array = torch.from_numpy(array).float()
 
         if half:
             array = array.half()
@@ -220,10 +229,6 @@ class VSGAN:
             elif array.shape[0] == 4:
                 # RGBA
                 array = array[[2, 1, 0, 3], :, :]
-
-        if add_batch:
-            # Add fake batch dimension = 1 . squeeze() will remove the dimensions of size 1
-            array.unsqueeze_(0)
 
         if normalize:
             array = ((array - 0.5) * 2.0).clamp(-1, 1)
