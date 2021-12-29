@@ -8,7 +8,7 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan.archs import ESRGAN
+from vsgan.archs import ESRGAN, RealESRGANv2
 from vsgan.constants import MAX_DTYPE_VALUES
 
 
@@ -61,7 +61,11 @@ class VSGAN:
             half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
         state = torch.load(model)
-        model = ESRGAN(state)
+        if "params" in state and "body.0.weight" in state["params"]:
+            arch = RealESRGANv2
+        else:
+            arch = ESRGAN
+        model = arch(state)
         model.eval()
         self.model = model.to(self.device)
         if half:
