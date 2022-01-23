@@ -7,183 +7,213 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.0] - 2021-12-24
 
-- Adds support for ESRGAN+ models, Real-ESRGAN models (including 2x and 1x if pixel-shuffle was used),
-  and A-ESRGAN models
-- Add support for Newer-New-arch in ESRGAN new_to_old state dict conversion
-- Rework model/arch file system structure to /models, /models/blocks and /models/ESRGAN
-- Rework ESRGAN architecture as a singular class, with all ESRGAN-specific operation done within it
-- Move ESRGAN-specific blocks within ESRGAN.py
-- Remove some unused blocks
+### Added
 
-**Fixes**
+- Add support for ESRGAN+ models, Real-ESRGAN models (including 2x and 1x if pixel-shuffle was used),
+  and A-ESRGAN models.
+- Add support for Newer-New-arch in ESRGAN new-to-old state dict conversion.
 
-- Ensure `clip` parameter of VSGAN is a VapourSynth VideoNode object (a clip)
-- Move RGB clip check to the constructor of VSGAN rather than `run()`
+### Changed
+
+- Rework model/arch file system structure to /models, /models/blocks and /models/ESRGAN.
+- Rework ESRGAN architecture as a singular class, with all ESRGAN-specific operation done within it.
+- Move ESRGAN-specific blocks within ESRGAN.py.
+
+### Removed
+
+- Removed some unused blocks from RRDBNet.
+
+### Fixed
+
+- Ensure `clip` parameter of VSGAN is a VapourSynth VideoNode object (a clip).
+- Move RGB clip check to the constructor of VSGAN rather than `run()`.
 
 ## [1.4.1] - 2021-12-21
 
-- Reword some error/warning messages, less opinionated, more concise
+### Added
+
+- Created new sphinx documentation, replacing the old Jekyll documentation.
+- Added HISTORY.md file for recording history (now CHANGELOG.md).
+
+### Changed
+
+- Reword some error/warning messages, now less opinionated and more concise.
 - Some attributes have been renamed to be more ambiguous in the hopes more Model Architectures get
-  supported in the future
+  supported in the future.
 
-**Documentation**
+### Fixed
 
-- Create new sphinx documentation. Add much more information, much better structure and readability
-- Add HISTORY.md
-
-**Fixes**
-
-- Fix model chaining. It now gets the correct model and model scale values for each FrameEval call
-- Fixed the pytorch extra group to correctly be optional and correctly reference a dependency
-- Some type-hinting has been corrected
+- Fix model chaining. It now gets the correct model and model scale values for each FrameEval call.
+- Fixed the pytorch extra group to correctly be optional and correctly reference a dependency.
+- Some type-hinting has been corrected.
 
 ## [1.4.0] - 2021-12-13
 
-- Heavily improve main model execute code
-- Add support for all RGB formats including float support to execute
-- Replace current chunk system with a seamless chunk system using overlap
-- Add self-chaining system, calls can be made directly after another
-- Remove .idea folder, add to gitignore
+### Added
 
-**Fixes**
+- Added support for all RGB formats including float.
 
-- Only transpose C for RGB if it's 3-channels
+### Changed
 
-**Documentation**
+- Heavily improved main model execution code.
+- Replace current chunk system with a seamless chunk system using overlap.
+- Add self-chaining system, calls can be made directly after another.
+- Made torch dependency optional and pointed directly to torch+cuda.
+  This is due to conflicting kinds of torch installation methods.
 
-- Lower-case all references to rlaPHOENiX with rlaphoenix
-- Add banner image to README, Right-align colab button, remove unnecessary HRs
+### Removed
 
-**Dependencies**
+- Remove JetBrains `.idea` folder, added to gitignore.
 
-- Make torch optional, point directly to cuda torch
+### Fixed
+
+- Only transpose C for RGB if it's 3-channels.
 
 ## [1.3.1] - 2021-10-25
 
-**Fixes**
+### Fixed
 
-- Fix type annotations on < 3.9
-- Use version 3.9.x for Dist workflow after 3.10 was added to GitHub Actions
+- Fix type annotations on Python versions older than 3.9.
+- Use Python version 3.9.x for Dist workflow as 3.10 is not yet supported.
 
 ## [1.3.0] - 2021-10-07
 
-- Drop support for <= Python 3.6.1, due to bugs discovered in NumPy.
-- Rename cv2_imread to frame_to_np, don't reverse to BGR as it's unnecessary
-- More efficiently write an array to a vs.VideoFrame for a speed improvement
-- Fix bug in relation to frame write array
-- Remove the need for plane_count, just get it from the input frame
-- Don't define the transposes, it's unnecessary
-- Inherit output clip properties from input clip
-- Allow specification of the input array dimension order
-- Replace setup.py/setuptools with Poetry
-- Add Jekyll Documentation in `gh-pages` branch
-- Moved README's info, comparison images, and such to the docs
-- Create a VSGAN Jupyter Notebook (Colab), with an Open in Colab Badge on the README
-- Rework release-packager for auto release+pypi
-- Replace deprecated get_read/write_array calls with indexing (Add support for VS API V4 beta)
+### Added
+
+- Allow specification of the input array dimension order.
+- Add Jekyll Documentation in `gh-pages` branch.
+- Added a VSGAN Jupyter Notebook (Colab), with an Open in Colab Badge on the README.
+
+### Changed
+
+- Drop support for Python versions older than 3.6.2, due to bugs discovered in NumPy.
+- Replace setup.py/setuptools with Poetry.
+- Rename `cv2_imread` to `frame_to_np`, don't reverse to BGR as it's unnecessary.
+- More efficiently write an array to a VapourSynth VideoFrame.
+- Inherit output clip properties from input clip.
+- Moved README's information to the docs.
+- Reworked the CD GitHub Workflow to auto-create a GitHub Release and push to PyPI.
+
+### Removed
+
+- Remove the need for plane_count, now gets it from the input frame.
+- Don't define the transposes, it's unnecessary.
+
+### Fixed
+
+- Fixed a bug with frame plane access on VapourSynth API 4.
 
 ## [1.2.1] - 2020-12-27
 
-- Add ability to check what the last loaded model is via `VSGAN.model` attribute
+### Added
+
+- Add ability to check what the last loaded model is via `VSGAN.model` attribute.
 
 ## [1.2.0] - 2020-12-27
 
+### Added
+
+- Added type-hinting across the code base as well as some doc-strings.
+
+### Changed
+
+- A heavy warning discouraging the use of your CPU as a PyTorch device was added. Ability to use
+  your CPU was hidden but reading the warning explains how to do so.
+- Reduced required VapourSynth version to 48 or newer.
+
+### Removed
+
 - Remove the conversion to RGB prior to model execution. RGB is required for the Model, but let
-  the user decide how to convert to format, what algorithm, how to deal with matrix, and so on
-- Add a check to ensure input clip is RGB, since auto conversion was removed
-- Remove the ability to use your CPU as a device due to CPU lifetime and thermal concerns, ability
-  force the use of CPU is possible if you read it's warning
+  the user decide how to convert to format, what algorithm, how to deal with matrix, and so on.
+- Removed setuptools from dependencies.
 
-**Fixes**
+### Fixed
 
-- Updates the READMEs examples and documentation since v1.1.0s changes to scale and such
-
-**Documentation**
-
-- Add description to README, improve badges, general README improvements
-- Type-hinting has been added as well as some doc-strings
-
-**Dependencies**
-
-- Remove setuptools
-- Reduce VapourSynth required version to >=48
+- Add a check to ensure input clip is RGB, since auto conversion was removed.
+- Add missing documentation on [1.1.0]'s changes to scale and such.
 
 ## [1.1.0] - 2020-10-20
 
-- Add GitHub Actions for build tests and distributions
+### Added
 
-**Fixes**
+- Added two GitHub Action workflows for CI/CD.
 
-- Replace hardcoded `in_nc`, `out_nc`, `nf`, `nb`, and `scale` with values taken directly from the model state (@JoeyBallentine)
-- Ensure a model has been loaded before `execute` can be called
+### Changed
 
-**Documentation**
+- Moved the majority of documentation and info from the GitHub Wikis system to the README.
 
-- Replace all references of old username to new username, fixing links and badges
-- Update the year in the LICENSE
-- Remove pointless `Created by` block of comment at the top of the main python file
-- Move majority of documentation and info from the GitHub Wikis system to the README
+### Fixed
+
+- Replace hardcoded `in_nc`, `out_nc`, `nf`, `nb`, and `scale` with values taken directly from the model state.
+- Check that a model has been loaded before `execute` can be called.
 
 ## [1.0.8] - 2019-12-19
 
-- Change the RGB conversion check's kernel to Spline36
+### Changed
+
+- Change the RGB conversion check's kernel to `Spline36`.
 
 ## [1.0.7] - 2019-11-29
 
-**Fixes**
+### Removed
 
-- Get rid of the color space conversion implemented in v1.0.3 as it can be a lossy operation
-  The colorspace returned (RGB) may be wanted anyhow, or the user may want to convert a different
-  way, if at all (or yet)
-- Replace unsafe assert in RRDBNet with if+raise as asserts may be removed when optimised as python byte code files
+- Removed the color-space conversion implemented in [1.0.3] as it can be a lossy operation.
+  Let the user decide how/if to convert back to the original format. E.g., what algorithm,
+  what matrix, and so on.
 
-**Documentation**
+### Fixed
 
-- Fix Wiki link in README
-- Add some project badges to the README, starting to spice it up now
-- Add information on the project, and ESRGAN, with some of ESRGANs comparison images
+- Replaced unsafe assert in `RRDBNet` with an if and raise, as asserts may be removed when
+  optimised as python byte code files.
 
 ## [1.0.6] - 2019-10-20
 
-- Detect ESRGAN old/new arch models via archaic trial-and-error
+### Added
 
-**Mistakes**
-
-- (Kinda) Accidentally added JetBrains PyCharm `.idea` project folder to repo
-- A post1 re-version had to be made due to a mistake in the for loop range
+- Detect ESRGAN old/new arch models via archaic trial-and-error.
 
 ## [1.0.5] - 2019-10-20
 
-- Rework code from Functional to Object-oriented Programming
-- Improve code readability, project starting to get serious
+### Changed
+
+- Reworked code from Functional to Object-oriented Programming.
+- Improve code readability, project starting to get serious.
 
 ## [1.0.4] - 2019-10-20
 
-- Add initial method of chunk-mode (does not hide seams)
+### Added
+
+- Add ability to tile the input to reduce VRAM (does not hide seams).
 
 ## [1.0.3] - 2019-10-20
 
-- Convert back to original colorspace after execution
+### Added
 
-**Dependencies**
+- VapourSynth to requirements.
 
-- Add VapourSynth to requirements
+### Changed
+
+- Convert back to original color-space after applying the model.
 
 ## [1.0.2] - 2019-10-16
 
-- Add ability to select device via argument
+### Added
+
+- Ability to select device via argument.
 
 ## [1.0.1] - 2019-10-15
 
-- Improve RGB conversion using mvsfunc instead of `core.resize.Point`
+### Added
 
-**Documentation**
+- README file with some basic information.
 
-- Add a README file with some basic information
+### Changed
+
+- Improved RGB conversion by using `mvsfunc` instead of `core.resize.Point`.
 
 ## [1.0.0] - 2019-09-21
 
-Initial Release
+Initial Release.
 
 [Unreleased]: https://github.com/rlaphoenix/VSGAN/compare/v1.5.0...HEAD
 [1.5.0]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.5.0
