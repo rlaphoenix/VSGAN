@@ -3,7 +3,7 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan import IS_VS_API_4, MAX_DTYPE_VALUES
+from vsgan.constants import IS_VS_API_4, MAX_DTYPE_VALUES
 
 
 def frame_to_array(f: vs.VideoFrame) -> np.stack:
