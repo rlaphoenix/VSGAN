@@ -1,9 +1,30 @@
+from typing import Union
+
 import numpy as np
 import torch
 import vapoursynth as vs
 from vapoursynth import core
 
 from vsgan.constants import IS_VS_API_4, MAX_DTYPE_VALUES
+
+
+def get_frame_plane(f: vs.VideoFrame, n: int, as_np: bool = False) -> Union[memoryview, np.array]:
+    """
+    Get a VideoFrame's Plane data as a MemoryView or a numpy array.
+    Supports VS API 3 and 4.
+
+    Parameters:
+        f: VapourSynth VideoFrame from a clip.
+        n: Plane number.
+        as_np: Return as a Numpy Array.
+    """
+    if IS_VS_API_4:
+        plane = f[n]
+    else:
+        plane = f.get_read_array(n)  # type: ignore
+    if as_np:
+        plane = np.asarray(plane)
+    return plane
 
 
 def frame_to_array(f: vs.VideoFrame) -> np.stack:
@@ -14,7 +35,7 @@ def frame_to_array(f: vs.VideoFrame) -> np.stack:
         f: VapourSynth VideoFrame from a clip.
     """
     return np.stack([
-        np.asarray(f[plane])
+        get_frame_plane(f, plane, as_np=True)
         for plane in range(f.format.num_planes)
     ])
 
