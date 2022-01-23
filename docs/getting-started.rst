@@ -14,8 +14,8 @@ transform the result. A basic example:
 
 .. code:: shell
 
-    >>> import VapourSynth as vs
-    >>> from VapourSynth import core
+    >>> import vapoursynth as vs
+    >>> from vapoursynth import core
     >>> from vsgan import VSGAN
     >>> clip = core.std.BlankClip(width=720, height=480, format=vs.RGBS)
     'VideoNode
