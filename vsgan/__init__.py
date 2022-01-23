@@ -3,13 +3,12 @@ from __future__ import annotations
 import functools
 from typing import Union, Optional
 
-import numpy as np
 import torch
 import vapoursynth as vs
 from vapoursynth import core
 
 from vsgan.archs import ESRGAN, RealESRGANv2
-from vsgan.constants import MAX_DTYPE_VALUES
+from vsgan.utilities import get_frame_plane, frame_to_array, frame_to_tensor, tensor_to_frame, tensor_to_clip
 
 
 class VSGAN:
@@ -127,11 +126,11 @@ class VSGAN:
             if str(n) not in self.tensor_cache:
                 self.tensor_cache.clear()
 
-                lr_images = [self.frame_to_tensor(clip.get_frame(n))]
+                lr_images = [frame_to_tensor(clip.get_frame(n))]
                 for i in range(1, interval):
                     if (n + i) >= clip.num_frames:
                         break
-                    lr_images.append(self.frame_to_tensor(clip.get_frame(n + i)))
+                    lr_images.append(frame_to_tensor(clip.get_frame(n + i)))
                 lr_images = torch.stack(lr_images)
                 lr_images = lr_images.unsqueeze(0)
                 if half:
@@ -146,11 +145,11 @@ class VSGAN:
                 del lr_images
                 torch.cuda.empty_cache()
 
-            return self.tensor_to_clip(clip, self.tensor_cache[str(n)])
+            return tensor_to_clip(clip, self.tensor_cache[str(n)])
 
         # -- ESRGAN Models
 
-        lr_img = self.frame_to_tensor(clip.get_frame(n), half=half)
+        lr_img = frame_to_tensor(clip.get_frame(n), half=half)
         lr_img.unsqueeze_(0)
         try:
             if not overlap:
@@ -181,94 +180,4 @@ class VSGAN:
                 torch.cuda.empty_cache()
             raise
 
-        return self.tensor_to_clip(clip, output_img)
-
-    @staticmethod
-    def frame_to_np(frame: vs.VideoFrame) -> np.dstack:
-        """
-        Alternative to cv2.imread() that will directly read images to a numpy array.
-        :param frame: VapourSynth frame from a clip
-        """
-        return np.stack([
-            np.asarray(frame[plane])
-            for plane in range(frame.format.num_planes)
-        ])
-
-    @staticmethod
-    def frame_to_tensor(frame: vs.VideoFrame, order: tuple[int, ...] = (0, 1, 2), clamp_zero=True, bgr2rgb=False,
-                        normalize=False, half: bool = False) -> torch.Tensor:
-        """
-        Convert a VapourSynth VideoFrame to a PyTorch Tensor.
-
-        Args:
-            frame: VapourSynth frame from a clip.
-            order: Change shape order to specified order. Default: CHW.
-            clamp_zero: Clamp to 0,1 range.
-            bgr2rgb: Flip Plane order from BGR to RGB. May be needed if loaded via OpenCV.
-            normalize: Normalize (z-norm) from [0,1] range to [-1,1].
-            half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
-        """
-        array = VSGAN.frame_to_np(frame)
-
-        if clamp_zero:
-            max_val = MAX_DTYPE_VALUES.get(array.dtype, 1.0)
-            array = array.astype(np.dtype("float32")) / max_val
-
-        if order != (0, 1, 2) and len(order) == 3:
-            array = np.transpose(array, order)
-
-        array = torch.from_numpy(array).float()
-
-        if half:
-            array = array.half()
-
-        if bgr2rgb:
-            if array.shape[0] % 3 == 0:
-                # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
-                array = array.flip(-3)
-            elif array.shape[0] == 4:
-                # RGBA
-                array = array[[2, 1, 0, 3], :, :]
-
-        if normalize:
-            array = ((array - 0.5) * 2.0).clamp(-1, 1)
-
-        return array
-
-    @staticmethod
-    def tensor_to_frame(f: vs.VideoFrame, t: torch.Tensor) -> vs.VideoFrame:
-        """
-        Copies each channel from a Tensor into a vs.VideoFrame.
-        It expects the tensor array to have the dimension count (C) first in the shape, so CHW or CWH.
-        :param f: VapourSynth frame to store retrieved planes.
-        :param t: Tensor array to retrieve planes from.
-        :returns: New frame with planes from tensor array
-        """
-        array = t.squeeze(0).detach().clamp(0, 1).cpu().numpy()
-
-        d_type = np.asarray(f[0]).dtype
-        array = MAX_DTYPE_VALUES.get(d_type, 1.0) * array
-        array = array.astype(d_type)
-
-        for plane in range(f.format.num_planes):
-            d = np.asarray(f[plane])
-            np.copyto(d, array[plane, :, :])
-        return f
-
-    def tensor_to_clip(self, clip: vs.VideoNode, image: torch.Tensor) -> vs.VideoNode:
-        """
-        Convert a tensor into a VapourSynth clip.
-        :param clip: used to inherit expected return properties only
-        :param image: tensor (expecting CHW shape order)
-        :returns: VapourSynth clip with the frame applied
-        """
-        clip = core.std.BlankClip(
-            clip=clip,
-            width=image.shape[-1],
-            height=image.shape[-2]
-        )
-        return core.std.ModifyFrame(
-            clip=clip,
-            clips=clip,
-            selector=lambda n, f: self.tensor_to_frame(f.copy(), image)
-        )
+        return tensor_to_clip(clip, output_img)
