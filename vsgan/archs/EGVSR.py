@@ -11,11 +11,12 @@ from vsgan.constants import STATE_T
 
 
 class EGVSR(nn.Module):
+    """
+    EGVSR - Efficient & Generic Video Super-Resolution.
+    By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
+    """
+
     def __init__(self, model: str, scale=4, in_nc=3, out_nc=3, nf=64, nb=16, degradation="BI") -> None:
-        """
-        EGVSR - Efficient & Generic Video Super-Resolution.
-        By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
-        """
         super(EGVSR, self).__init__()
 
         self.model = model

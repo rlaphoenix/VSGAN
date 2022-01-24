@@ -14,13 +14,15 @@ from vsgan.constants import STATE_T
 
 
 class ESRGAN(nn.Module):
+    """
+    ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
+    By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
+    and Chen Change Loy.
+    """
+
     def __init__(self, state: STATE_T, norm=None, act: str = "leakyrelu", upsampler: str = "upconv",
                  mode: str = "CNA") -> None:
         """
-        ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
-        By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
-        and Chen Change Loy.
-
         This is old-arch Residual in Residual Dense Block Network and is not
         the newest revision that's available at github.com/xinntao/ESRGAN.
         This is on purpose, the newest Network has severely limited the
