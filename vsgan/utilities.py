@@ -217,7 +217,7 @@ def join_tiles(tiles: tuple[torch.Tensor, ...], overlap: int) -> torch.Tensor:
     h = (h - overlap) * 2
     w = (w - overlap) * 2
 
-    joined_tile = torch.empty((b, c, h, w), dtype=tiles[0].dtype)
+    joined_tile = torch.empty((b, c, h, w), dtype=tiles[0].dtype, device=tiles[0].device)
     joined_tile[..., : h // 2, : w // 2] = tiles[0][..., : h // 2, : w // 2]
     joined_tile[..., : h // 2, -w // 2:] = tiles[1][..., : h // 2, -w // 2:]
     joined_tile[..., -h // 2:, : w // 2] = tiles[2][..., -h // 2:, : w // 2]

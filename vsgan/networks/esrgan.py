@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from typing import Optional, Union
+from typing import Union
 
 import torch
 import vapoursynth as vs
