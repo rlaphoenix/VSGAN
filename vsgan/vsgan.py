@@ -8,7 +8,7 @@ import vapoursynth as vs
 from vapoursynth import core
 
 from vsgan.archs import RealESRGANv2, ESRGAN
-from vsgan.utilities import frame_to_tensor, tensor_to_clip, tile_tensor, join_tiles
+from vsgan.utilities import frame_to_tensor, tensor_to_clip, auto_tile_tensor
 
 
 class VSGAN:
@@ -151,19 +151,6 @@ class VSGAN:
 
         lr_img = frame_to_tensor(clip.get_frame(n), half=half)
         lr_img.unsqueeze_(0)
-        try:
-            if not overlap:
-                output_img = model(lr_img.to(self.device)).data
-            elif overlap > 0:
-                output_img = join_tiles(tuple(
-                    self.model(tile_lr.to(self.device)).detach().cpu()
-                    for tile_lr in tile_tensor(lr_img, overlap)
-                ))
-            else:
-                raise ValueError("Invalid overlap. Must be a value greater than 0, or a False-y value to disable.")
-        except RuntimeError as e:
-            if "allocate" in str(e) or "CUDA out of memory" in str(e):
-                torch.cuda.empty_cache()
-            raise
+        output_img, depth = auto_tile_tensor(lr_img.to(self.device), self.model, overlap)
 
         return tensor_to_clip(clip, output_img)
