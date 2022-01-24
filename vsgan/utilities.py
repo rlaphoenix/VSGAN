@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Union
 
 import numpy as np
@@ -129,3 +131,39 @@ def tensor_to_clip(clip: vs.VideoNode, image: torch.Tensor) -> vs.VideoNode:
         clips=clip,
         selector=lambda n, f: tensor_to_frame(f.copy(), image)
     )
+
+
+def tile_tensor(t: torch.Tensor, overlap: int = 16) -> tuple[torch.Tensor, ...]:
+    """
+    Tile PyTorch Tensor into 4 quadrants with an overlap between tiles.
+    Expects input PyTorch Tensor's shape to end in HW order.
+    """
+    b, c, h, w = t.shape
+
+    top_left_lr = t[..., : h // 2 + overlap, : w // 2 + overlap]
+    top_right_lr = t[..., : h // 2 + overlap, w // 2 - overlap:]
+    bottom_left_lr = t[..., h // 2 - overlap:, : w // 2 + overlap]
+    bottom_right_lr = t[..., h // 2 - overlap:, w // 2 - overlap:]
+
+    return top_left_lr, top_right_lr, bottom_left_lr, bottom_right_lr
+
+
+def join_tiles(tiles_sr: tuple[torch.Tensor, ...], overlap: int = 16) -> torch.Tensor:
+    """
+    Join Tiled PyTorch Tensor quadrants into one large PyTorch Tensor.
+    Expects input PyTorch Tensor's shapes to end in HW order.
+    """
+    b, c, h, w = tiles_sr[0].shape
+    quadrants = len(tiles_sr)
+    axis = quadrants // 2
+
+    h = (h - (overlap * quadrants)) * axis
+    w = (w - (overlap * quadrants)) * axis
+
+    joined_tile = torch.empty((b, c, h, w), dtype=tiles_sr[0].dtype)
+    joined_tile[..., : h // axis, : w // axis] = tiles_sr[0][..., : h // axis, : w // axis]
+    joined_tile[..., : h // axis, -w // axis:] = tiles_sr[1][..., : h // axis, -w // axis:]
+    joined_tile[..., -h // axis:, : w // axis] = tiles_sr[2][..., -h // axis:, : w // axis]
+    joined_tile[..., -h // axis:, -w // axis:] = tiles_sr[3][..., -h // axis:, -w // axis:]
+
+    return joined_tile
