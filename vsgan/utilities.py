@@ -192,7 +192,10 @@ def recursive_tile_tensor(
     tiles_lr_bottom_left, _ = recursive_tile_tensor(tiles_lr[2], model, overlap, depth, current_depth=current_depth + 1)
     tiles_lr_bottom_right, _ = recursive_tile_tensor(tiles_lr[3], model, overlap, depth, current_depth=current_depth + 1)
 
-    output_img = join_tiles((tiles_lr_top_left, tiles_lr_top_right, tiles_lr_bottom_left, tiles_lr_bottom_right))
+    output_img = join_tiles(
+        (tiles_lr_top_left, tiles_lr_top_right, tiles_lr_bottom_left, tiles_lr_bottom_right),
+        overlap
+    )
     return output_img, depth
 
 
