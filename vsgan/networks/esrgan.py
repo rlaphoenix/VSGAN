@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+from typing import Optional, Union
 
 import torch
 import vapoursynth as vs
@@ -17,6 +18,10 @@ class ESRGAN(BaseNetwork):
     By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
     and Chen Change Loy.
     """
+
+    def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
+        super().__init__(clip, device)
+        self.depth_cache: dict = {}
 
     def load(self, model: str, half: bool = False) -> ESRGAN:
         """
@@ -61,10 +66,15 @@ class ESRGAN(BaseNetwork):
         if not self.model:
             raise ValueError("A model must be loaded before running.")
 
-        def _apply(n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool, overlap_: int) -> vs.VideoNode:
+        def _apply(n: int, i: str, clip: vs.VideoNode, model: torch.nn.Module, half: bool, overlap_: int) -> vs.VideoNode:
             lr_img = frame_to_tensor(clip.get_frame(n), half=half)
             lr_img.unsqueeze_(0)
-            output_img, depth = recursive_tile_tensor(lr_img.to(self.device), model, overlap_)
+            if i in self.depth_cache:
+                depth = self.depth_cache[i]
+            else:
+                depth = None
+            output_img, depth = recursive_tile_tensor(lr_img.to(self.device), model, overlap_, depth)
+            self.depth_cache[i] = depth
             return tensor_to_clip(clip, output_img)
 
         self.clip = core.std.FrameEval(
@@ -75,6 +85,7 @@ class ESRGAN(BaseNetwork):
             ),
             functools.partial(
                 _apply,
+                i=str(len(self.depth_cache)),
                 clip=self.clip,
                 model=self.model,
                 half=self.half,
