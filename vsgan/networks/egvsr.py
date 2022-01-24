@@ -13,6 +13,11 @@ from vsgan.utilities import frame_to_tensor, tensor_to_clip
 
 
 class EGVSR(BaseNetwork):
+    """
+    EGVSR - Efficient & Generic Video Super-Resolution.
+    By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
+    """
+
     def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
         super().__init__(clip, device)
         self.tensor_cache: dict = {}

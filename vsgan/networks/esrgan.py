@@ -12,6 +12,12 @@ from vsgan.utilities import frame_to_tensor, tensor_to_clip, recursive_tile_tens
 
 
 class ESRGAN(BaseNetwork):
+    """
+    ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
+    By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
+    and Chen Change Loy.
+    """
+
     def load(self, model: str, half: bool = False) -> ESRGAN:
         """
         Load an ESRGAN model file and send to the PyTorch device.
