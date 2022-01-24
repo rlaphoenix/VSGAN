@@ -73,6 +73,9 @@ Supported Models
 `A-ESRGAN <https://arxiv.org/abs/2112.10046>`_
   Training Real-World Blind Super-Resolution with Attention U-Net Discriminators.
 
+`EGVSR <https://arxiv.org/abs/2107.05307>`_
+  Real-Time Super-Resolution System of 4K-Video Based on Deep Learning.
+
 Quick shoutout to pvsfunc.PD2V
 ------------------------------
 
