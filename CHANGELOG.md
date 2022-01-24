@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.3] - 2022-01-24
+
+### Added
+
+- Recursive tiling depth is now cached per-clip, rather than per-frame.
+
+### Changed
+
+- Updated numpy to version 1.21.1.
+
+### Removed
+
+- Dropped support for Python versions older than 3.7.
+
+### Fixed
+
+- Fix another regression with rejoined tensors defaulting creation on the default device.
+
 ## [1.6.2] - 2022-01-24
 
 ### Fixed
