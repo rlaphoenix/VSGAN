@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 from typing import Union
 
 import numpy as np
@@ -146,6 +147,53 @@ def tile_tensor(t: torch.Tensor, overlap: int = 16) -> tuple[torch.Tensor, ...]:
     bottom_right_lr = t[..., h // 2 - overlap:, w // 2 - overlap:]
 
     return top_left_lr, top_right_lr, bottom_left_lr, bottom_right_lr
+
+
+def auto_tile_tensor(
+    t: torch.Tensor,
+    model: torch.nn.Module,
+    overlap: int = 16,
+    max_depth: int = None,
+    current_depth: int = 1
+) -> tuple[torch.Tensor, int]:
+    """
+    Recursively Tile PyTorch Tensor until the device has enough VRAM.
+    It will try to tile as little as possible, and wont tile unless needed.
+    Expects input PyTorch Tensor's shape to end in HW order.
+    """
+    if current_depth > 10:
+        torch.cuda.empty_cache()
+        gc.collect()
+        raise RecursionError(f"Exceeded maximum tiling recursion of 10...")
+
+    if max_depth is None or max_depth == current_depth:
+        # attempt non-tiled super-resolution if no known depth, or at depth
+        try:
+            t_sr = model(t).data
+            # del t  # TODO: Truly beneficial?
+            return t_sr, current_depth
+        except RuntimeError as e:
+            if "allocate" in str(e) or "CUDA out of memory" in str(e):
+                torch.cuda.empty_cache()
+                gc.collect()  # TODO: Truly beneficial?
+            else:
+                raise
+
+    # Not at known depth, and non-tiled super-resolution failed, try tiled
+
+    # reduce overlap in half every recursion
+    overlap //= current_depth
+
+    tiles_lr = tile_tensor(t, overlap)
+    # take depth from top_left result as the size would be same for all quadrants
+    # by re-using the depth, we can know exactly how much tiling is needed immediately
+    tiles_lr_top_left, depth = auto_tile_tensor(tiles_lr[0], model, overlap, current_depth=current_depth + 1)
+    tiles_lr_top_right, _ = auto_tile_tensor(tiles_lr[1], model, overlap, depth, current_depth=current_depth + 1)
+    tiles_lr_bottom_left, _ = auto_tile_tensor(tiles_lr[2], model, overlap, depth, current_depth=current_depth + 1)
+    tiles_lr_bottom_right, _ = auto_tile_tensor(tiles_lr[3], model, overlap, depth, current_depth=current_depth + 1)
+
+    output_img = join_tiles((tiles_lr_top_left, tiles_lr_top_right, tiles_lr_bottom_left, tiles_lr_bottom_right))
+    return output_img, depth
 
 
 def join_tiles(tiles_sr: tuple[torch.Tensor, ...], overlap: int = 16) -> torch.Tensor:
