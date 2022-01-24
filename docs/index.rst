@@ -43,8 +43,8 @@ Features of VSGAN
   a Script-based NLE_.
 - :ref:`Easy Model Chaining <Chaining calls, or Models>` — You can chain models or re-run the model twice-over
   (or more).
-- :ref:`Seamless Chunking <Seamless Chunking>` — Have low VRAM? Don't worry! Use `overlap` argument to
-  chunk seamlessly to lower VRAM requirements.
+- :ref:`Seamless Tiling` — Have low VRAM? Don't worry! The Network will be applied in quadrants of the
+  image to reduce up-front VRAM usage.
 - Supports All RGB formats — You can use *any* RGB video input, including float32 (e.g., RGBS) inputs.
 - No Frame Extraction Necessary — Using VapourSynth you can pass a Video directly to VSGAN, without any frame
   extraction needed.

@@ -92,22 +92,20 @@ in one swift call:
         Num Frames: 240
         FPS: 24'
 
-Seamless Chunking
-=================
+Seamless Tiling
+===============
 
-*new in v1.4.0*
+*new in v1.4.0, reworked in v1.6.0*
 
-You may end up without enough VRAM for some larger resolution inputs. In these
-cases you may use chunk-mode to reduce the amount of data that gets processed
-at a time.
+Tiling is used to chunk the clip into 4 quadrants. The model is then operated on each
+quadrant separately. This effectively cuts VRAM requirements by up to 75%.
 
-Chunk-mode tiles the clip into 4 quadrants. The model is then operated on each
-quadrant separetely. This effectively cuts VRAM requirements by 75%. Use this
-if you do not have enough VRAM for your input image.
+Networks now support recursive tiling which is now automatically attempted if you have
+run out of VRAM. It will automatically attempt to apply the model using as little tiling
+as possible, perhaps even no tiling if it can.
 
-To use chunk-mode, just set the `overlap` parameter to a value greater than 0
-when using ``VSGAN.run()``. You can chunk (or not chunk) each run call as you see
-fit.
+The overlap value defines how much each tile will overlap with data from its neighbouring
+tiles. This is to remove seam artefacts common with most Networks.
 
 .. note::
     Unlike other chunking solutions, this one does not leave a seam or
