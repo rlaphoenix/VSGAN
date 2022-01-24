@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2022-01-24
+
+### Added
+
+- Add support for [EGVSR](https://arxiv.org/abs/2107.05307), Arch and Network.
+- Add support for [Real-ESRGAN-v2](https://github.com/xinntao/Real-ESRGAN/blob/master/docs/anime_video_model.md)
+  aka Anime Video Models (comp. vgg-style arch).
+- Ability to use half-precision (fp16, HalfTensor) via `half` parameter. This can help reduce VRAM.
+- Created tiling utilities to tile a tensor, merge tiled tensors, and automatically tile and execute
+  recursively.
+
+### Changed
+
+- Moved the frame/numpy/tensor utility functions out of the VSGAN class and into `utilities.py`.
+- Renamed HISTORY to CHANGELOG, and updated changelog to be in Keep a Changelog standard.
+- Moved VSGAN class from `__init__.py` to `vsgan.py`.
+- Tiling mode is now always enabled, but will only tile if you wouldn't have otherwise had enough VRAM.
+- Overlap now defaults to 16.
+- Separated VSGAN class into two separate Network classes, ESRGAN, and EGVSR. VSGAN is no longer used
+  and ESRGAN/EGVSR Network classes should now be imported and used instead.
+- The functions `load_model` and `run` have been renamed to `load` and `apply`.
+
+### Fixed
+
+- Don't require batch in tensor_to_clip.
+- Make change_order False by default in frame_to_tensor, improve rest of the param defaults.
+- Don't change order to (2,0,1) for ESRGAN models, was unnecessary and caused issues with Real-ESRGANv2.
+- Fixed support for Python versions older than 3.8.
+- Fixed example VapourSynth import paths casing.
+- Restore support for VapourSynth API 3.
+- Now detaches tiles from the GPU after super-resolution, to keep space for the next tile's super-resolution.
+
 ## [1.5.0] - 2021-12-24
 
 ### Added
