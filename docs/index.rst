@@ -21,15 +21,18 @@ image data.
 
 -------------------
 
-**Short example**::
+**Short example**:
 
-   clip = VSGAN(clip, device="cuda").\
-     load_model(r"C:\Users\PHOENiX\Documents\PSNR_x4_DB.pth").\
-     run().\
-     load_model(r"C:\Users\PHOENiX\Documents\4X_DoubleRunExample.pth").\
-     run(overlap=16).\
-     run(overlap=32).\
-     clip
+.. code:: shell
+
+    from vsgan import ESRGAN
+    clip = ESRGAN(clip, device="cuda").\
+        load(r"C:\Users\PHOENiX\Documents\PSNR_x4_DB.pth").\
+        apply().\
+        load(r"C:\Users\PHOENiX\Documents\4X_DoubleRunExample.pth").\
+        apply(overlap=16).\
+        apply(overlap=32).\
+        clip
 
 For more information see (:ref:`Getting Started <getting started>`).
 

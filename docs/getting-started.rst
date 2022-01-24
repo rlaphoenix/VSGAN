@@ -6,17 +6,19 @@ Welcome! This tutorial highlights VSGAN's core features; for further details,
 see the links within, or the documentation index which has links to conceptual
 and API doc sections.
 
-Apply models via VSGAN and ``run``
-==================================
+Importing Networks and Applying Models
+=====================================
 
-The most basic use of VSGAN is to execute a model like ESRGAN, then (optionally)
-transform the result. A basic example:
+As of v1.6.0, VSGAN supports more than just ESRGAN, and so to execute models you
+must now import the specific Network class for the model.
+
+For example, to apply a ESRGAN model:
 
 .. code:: shell
 
     >>> import vapoursynth as vs
     >>> from vapoursynth import core
-    >>> from vsgan import VSGAN
+    >>> from vsgan import ESRGAN
     >>> clip = core.std.BlankClip(width=720, height=480, format=vs.RGBS)
     'VideoNode
         Format: RGBS
@@ -24,13 +26,13 @@ transform the result. A basic example:
         Height: 480
         Num Frames: 240
         FPS: 24'
-    >>> vsgan = VSGAN(clip, device="cuda")
-    <vsgan.VSGAN object>
-    >>> vsgan.load_model(r'C:/Users/John/Documents/PSNR_x4_DB.pth')
-    <vsgan.VSGAN object>
-    >>> vsgan.run()
-    <vsgan.VSGAN object>
-    >>> clip = vsgan.clip
+    >>> esrgan = ESRGAN(clip, device="cuda")
+    <vsgan.networks.esrgan.ESRGAN object>
+    >>> esrgan.load(r'C:/Users/John/Documents/PSNR_x4_DB.pth')
+    <vsgan.networks.esrgan.ESRGAN object>
+    >>> esrgan.apply()
+    <vsgan.networks.esrgan.ESRGAN object>
+    >>> clip = esrgan.clip
     'VideoNode
         Format: RGBS
         Width: 2880
@@ -38,8 +40,14 @@ transform the result. A basic example:
         Num Frames: 240
         FPS: 24'
 
-The VSGAN class represents a Video Clip (:class:`vs.VideoNode`) that provides
-Model APIs, such as ``VSGAN.run()`` which executes the model on the clip.
+A list of :ref:`Supported Models` are listed on the homepage, and a list of Networks are
+listed in the :ref:`Interface` documentation.
+
+You have the choice to load any new model at any point. You can even apply the model
+as many times as you wish, with any settings you wish.
+
+The Network classes represent a Video Clip (:class:`vs.VideoNode`) that provides
+Model APIs, such as ``apply()`` which applies the model on the clip's frames.
 
 .. warning::
     The input clip must be an RGB clip. RGBS is recommended for F32 RGB input.
@@ -49,21 +57,22 @@ Model APIs, such as ``VSGAN.run()`` which executes the model on the clip.
     the resize algorithm will affect chroma conversion.
 
 .. note::
-    Don't forget to take the final clip from the VSGAN instance by taking its
+    Don't forget to take the final clip from the Network object by taking its
     `.clip` property.
 
 Chaining calls, or Models
 =========================
 
-Generally all functions return its instance. This is to allow chaining of
+All functions of the Network classes return itself, this allows chaining of
 commands, like chaining model runs by simply appending another function call.
 
 .. code:: shell
 
+    >>> from vsgan import ESRGAN
     >>> clip = core.std.BlankClip(width=720, height=480, format=vs.RGBS)
-    >>> vsgan = VSGAN(clip, device="cuda").\
-            load_model(r'C:/Users/John/Documents/PSNR_x4_DB.pth').\
-            run().\
+    >>> clip = ESRGAN(clip, device="cuda").\
+            load(r'C:/Users/John/Documents/PSNR_x4_DB.pth').\
+            apply().\
             clip  # get final clip
     'VideoNode
         Format: RGBS
@@ -77,13 +86,14 @@ in one swift call:
 
 .. code:: shell
 
+    >>> from vsgan import ESRGAN
     >>> clip = core.std.BlankClip(width=720, height=480, format=vs.RGBS)
-    >>> vsgan = VSGAN(clip, device="cuda").\
-            load_model(r'C:/Users/John/Documents/1x_Unresize.pth').\
-            run().\
-            run().\  # run twice
-            load_model(r'C:/Users/John/Documents/RealESRGAN_x4plus.pth').\
-            run().\  # change model and run once
+    >>> clip = ESRGAN(clip, device="cuda").\
+            load(r'C:/Users/John/Documents/1x_Unresize.pth').\
+            apply().\
+            apply().\  # run twice
+            load(r'C:/Users/John/Documents/RealESRGAN_x4plus.pth').\
+            apply().\  # change model and run once
             clip
     'VideoNode
         Format: RGBS
