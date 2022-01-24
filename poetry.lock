@@ -60,14 +60,6 @@ optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
-name = "dataclasses"
-version = "0.8"
-description = "A backport of the dataclasses module for Python 3.6"
-category = "main"
-optional = true
-python-versions = ">=3.6, <3.7"
-
-[[package]]
 name = "docutils"
 version = "0.17.1"
 description = "Docutils -- Python Documentation Utilities"
@@ -393,7 +385,6 @@ optional = true
 python-versions = ">=3.6.2"
 
 [package.dependencies]
-dataclasses = {version = "*", markers = "python_version < \"3.7\""}
 typing-extensions = "*"
 
 [[package]]
@@ -444,8 +435,8 @@ vs = ["VapourSynth"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.6.2,<4.0"
-content-hash = "6513d159775bda788c71e6d58404f1105fa60127c87c13c8b8398db539b379ea"
+python-versions = ">=3.7,<4.0"
+content-hash = "b088d843def2b13ad036957afa35d6b600d9f1d74034b04d36a9afcf4427fdde"
 
 [metadata.files]
 alabaster = [
@@ -471,10 +462,6 @@ charset-normalizer = [
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
-]
-dataclasses = [
-    {file = "dataclasses-0.8-py3-none-any.whl", hash = "sha256:0201d89fa866f68c8ebd9d08ee6ff50c0b255f8ec63a71c16fda7af82bb887bf"},
-    {file = "dataclasses-0.8.tar.gz", hash = "sha256:8479067f342acf957dc82ec415d355ab5edb7e7646b90dc6e2fd1d96ad084c97"},
 ]
 docutils = [
     {file = "docutils-0.17.1-py2.py3-none-any.whl", hash = "sha256:cf316c8370a737a022b72b56874f6602acf974a37a9fba42ec2876387549fc61"},
