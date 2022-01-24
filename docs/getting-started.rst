@@ -7,7 +7,7 @@ see the links within, or the documentation index which has links to conceptual
 and API doc sections.
 
 Importing Networks and Applying Models
-=====================================
+======================================
 
 As of v1.6.0, VSGAN supports more than just ESRGAN, and so to execute models you
 must now import the specific Network class for the model.
