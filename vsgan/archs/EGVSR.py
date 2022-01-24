@@ -11,7 +11,7 @@ from vsgan.constants import STATE_T
 
 
 class EGVSR(nn.Module):
-    def __init__(self, model: str, in_nc=3, out_nc=3, nf=64, nb=16, degradation="BI", scale=4) -> None:
+    def __init__(self, model: str, scale=4, in_nc=3, out_nc=3, nf=64, nb=16, degradation="BI") -> None:
         """
         EGVSR - Efficient & Generic Video Super-Resolution.
         By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
