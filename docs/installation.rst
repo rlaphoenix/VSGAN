@@ -37,8 +37,6 @@ may need to install an older version to continue.
    - If you want CUDA installed system-wide, choose `CPU` instead of `CUDA` and then
      install CUDA manually. 
 
-The simplest and most recommended method of installation would be :ref:`From PIP/PyPI`.
-
 Installing VSGAN
 ----------------
 
