@@ -8,7 +8,7 @@ import vapoursynth as vs
 from vapoursynth import core
 
 from vsgan.archs import RealESRGANv2, ESRGAN
-from vsgan.utilities import frame_to_tensor, tensor_to_clip
+from vsgan.utilities import frame_to_tensor, tensor_to_clip, tile_tensor, join_tiles
 
 
 class VSGAN:
@@ -155,24 +155,10 @@ class VSGAN:
             if not overlap:
                 output_img = model(lr_img.to(self.device)).data
             elif overlap > 0:
-                # seamless tiles
-                b, c, h, w = lr_img.shape
-
-                out_h = h * model.scale
-                out_w = w * model.scale
-                output_img = torch.empty(
-                    (b, c, out_h, out_w), dtype=lr_img.dtype, device=lr_img.device
-                )
-
-                top_left_sr = model(lr_img[..., : h // 2 + overlap, : w // 2 + overlap].to(self.device)).data
-                top_right_sr = model(lr_img[..., : h // 2 + overlap, w // 2 - overlap:].to(self.device)).data
-                bottom_left_sr = model(lr_img[..., h // 2 - overlap:, : w // 2 + overlap].to(self.device)).data
-                bottom_right_sr = model(lr_img[..., h // 2 - overlap:, w // 2 - overlap:].to(self.device)).data
-
-                output_img[..., : out_h // 2, : out_w // 2] = top_left_sr[..., : out_h // 2, : out_w // 2]
-                output_img[..., : out_h // 2, -out_w // 2:] = top_right_sr[..., : out_h // 2, -out_w // 2:]
-                output_img[..., -out_h // 2:, : out_w // 2] = bottom_left_sr[..., -out_h // 2:, : out_w // 2]
-                output_img[..., -out_h // 2:, -out_w // 2:] = bottom_right_sr[..., -out_h // 2:, -out_w // 2:]
+                output_img = join_tiles(tuple(
+                    self.model(tile_lr.to(self.device)).data
+                    for tile_lr in tile_tensor(lr_img, overlap)
+                ))
             else:
                 raise ValueError("Invalid overlap. Must be a value greater than 0, or a False-y value to disable.")
         except RuntimeError as e:
