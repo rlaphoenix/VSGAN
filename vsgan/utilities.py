@@ -194,27 +194,33 @@ def recursive_tile_tensor(
 
     output_img = join_tiles(
         (tiles_lr_top_left, tiles_lr_top_right, tiles_lr_bottom_left, tiles_lr_bottom_right),
-        overlap
+        overlap * model.scale
     )
+
     return output_img, depth
 
 
-def join_tiles(tiles_sr: tuple[torch.Tensor, ...], overlap: int = 16) -> torch.Tensor:
+def join_tiles(tiles: tuple[torch.Tensor, ...], overlap: int) -> torch.Tensor:
     """
     Join Tiled PyTorch Tensor quadrants into one large PyTorch Tensor.
     Expects input PyTorch Tensor's shapes to end in HW order.
+
+    Ensure the overlap value is what it currently is, possibly after
+    super-resolution, not before!
+
+    Parameters:
+        tiles: The PyTorch Tensor tiles you wish to rejoin.
+        overlap: The amount of overlap currently between tiles.
     """
-    b, c, h, w = tiles_sr[0].shape
-    quadrants = len(tiles_sr)
-    axis = quadrants // 2
+    b, c, h, w = tiles[0].shape
 
-    h = (h - (overlap * quadrants)) * axis
-    w = (w - (overlap * quadrants)) * axis
+    h = (h - overlap) * 2
+    w = (w - overlap) * 2
 
-    joined_tile = torch.empty((b, c, h, w), dtype=tiles_sr[0].dtype)
-    joined_tile[..., : h // axis, : w // axis] = tiles_sr[0][..., : h // axis, : w // axis]
-    joined_tile[..., : h // axis, -w // axis:] = tiles_sr[1][..., : h // axis, -w // axis:]
-    joined_tile[..., -h // axis:, : w // axis] = tiles_sr[2][..., -h // axis:, : w // axis]
-    joined_tile[..., -h // axis:, -w // axis:] = tiles_sr[3][..., -h // axis:, -w // axis:]
+    joined_tile = torch.empty((b, c, h, w), dtype=tiles[0].dtype)
+    joined_tile[..., : h // 2, : w // 2] = tiles[0][..., : h // 2, : w // 2]
+    joined_tile[..., : h // 2, -w // 2:] = tiles[1][..., : h // 2, -w // 2:]
+    joined_tile[..., -h // 2:, : w // 2] = tiles[2][..., -h // 2:, : w // 2]
+    joined_tile[..., -h // 2:, -w // 2:] = tiles[3][..., -h // 2:, -w // 2:]
 
     return joined_tile
