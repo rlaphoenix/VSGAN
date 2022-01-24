@@ -8,7 +8,7 @@ import vapoursynth as vs
 from vapoursynth import core
 
 from vsgan.archs import RealESRGANv2, ESRGAN
-from vsgan.utilities import frame_to_tensor, tensor_to_clip, auto_tile_tensor
+from vsgan.utilities import frame_to_tensor, tensor_to_clip, recursive_tile_tensor
 
 
 class VSGAN:
@@ -151,6 +151,6 @@ class VSGAN:
 
         lr_img = frame_to_tensor(clip.get_frame(n), half=half)
         lr_img.unsqueeze_(0)
-        output_img, depth = auto_tile_tensor(lr_img.to(self.device), self.model, overlap)
+        output_img, depth = recursive_tile_tensor(lr_img.to(self.device), self.model, overlap)
 
         return tensor_to_clip(clip, output_img)
