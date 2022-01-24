@@ -156,7 +156,7 @@ class VSGAN:
                 output_img = model(lr_img.to(self.device)).data
             elif overlap > 0:
                 output_img = join_tiles(tuple(
-                    self.model(tile_lr.to(self.device)).data
+                    self.model(tile_lr.to(self.device)).detach().cpu()
                     for tile_lr in tile_tensor(lr_img, overlap)
                 ))
             else:
