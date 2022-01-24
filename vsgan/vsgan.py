@@ -72,7 +72,7 @@ class VSGAN:
         self.half = half
         return self
 
-    def run(self, overlap: int = 0, interval: int = 0) -> VSGAN:
+    def run(self, overlap: int = 16, interval: int = 0) -> VSGAN:
         """
         Executes the model on each frame. It uses FrameEval as to not apply to
         every frame immediately, instead only upon request.
@@ -110,7 +110,7 @@ class VSGAN:
         return self
 
     @torch.inference_mode()
-    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool = False, overlap: int = 0,
+    def execute(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool = False, overlap: int = 16,
                 interval: int = 0) -> vs.VideoNode:
         """
         Run the ESRGAN repo's Modified ESRGAN RRDBNet super-resolution code on a clip's frame.
