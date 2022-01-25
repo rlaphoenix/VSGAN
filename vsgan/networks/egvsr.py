@@ -105,12 +105,10 @@ class EGVSR(BaseNetwork):
                 # model.half()
 
             sr_images, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
-            del lr_images
 
             sr_images = sr_images.squeeze(0)
             for i in range(sr_images.shape[0]):  # interval
                 self.tensor_cache[str(n + i)] = tensor_to_clip(clip, sr_images[i, :, :, :])
-            del sr_images
 
         return self.tensor_cache[str(n)]
 

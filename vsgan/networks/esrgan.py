@@ -93,14 +93,9 @@ class ESRGAN(BaseNetwork):
             overlap=overlap_,
             max_depth=self.depth_cache.get(i)
         )
-        del lr_img
-
         self.depth_cache[i] = depth
 
-        clip = tensor_to_clip(clip, sr_img)
-        del sr_img
-
-        return clip
+        return tensor_to_clip(clip, sr_img)
 
 
 __ALL__ = (ESRGAN,)
