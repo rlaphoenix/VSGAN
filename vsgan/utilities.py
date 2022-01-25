@@ -42,9 +42,14 @@ def frame_to_tensor(f: vs.VideoFrame, as_f32=True, half: bool = False) -> torch.
         for mv in [get_frame_plane(f, plane)]
     ))
 
-    if as_f32:
-        max_val = MAX_DTYPE_VALUES.get(tensor.dtype, 1.0)
-        tensor = tensor.to(torch.float32) / max_val
+    if as_f32 and not tensor.is_floating_point():
+        # convert to unsigned int -> float32 -> clamp to 0,1 range
+        # 0,1 range is required for most model networks
+        bps = f.format.bytes_per_sample * 8
+        size = (2 ** f.format.bits_per_sample) - 1
+        array = tensor.numpy().astype(np.dtype(f"uint{bps}"))
+        array = array.astype(np.dtype("float32")) / size
+        tensor = torch.from_numpy(array)
 
     if half:
         tensor = tensor.half()
