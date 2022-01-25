@@ -126,40 +126,6 @@ class EGVSR(nn.Module):
         """
         return hr_data, hr_flow, lr_prev, lr_curr, lr_flow
 
-    def infer_sequence(self, lr_data: torch.FloatTensor, device: torch.device) -> np.ndarray:
-        """
-        Args:
-            lr_data: torch.FloatTensor in shape tchw
-            device: torch.device
-
-        Returns:
-            hr_seq uint8 np.ndarray in shape tchw
-        """
-
-        # setup params
-        tot_frm, c, h, w = lr_data.size()
-        s = self.scale
-
-        # forward
-        hr_seq = []
-        lr_prev = torch.zeros(1, c, h, w, dtype=torch.float32).to(device)
-        hr_prev = torch.zeros(
-            1, c, s * h, s * w, dtype=torch.float32).to(device)
-
-        for i in range(tot_frm):
-            with torch.no_grad():
-                self.eval()
-
-                lr_curr = lr_data[i: i + 1, ...].to(device)
-                hr_curr = self.forward(lr_curr, lr_prev, hr_prev)
-                lr_prev, hr_prev = lr_curr, hr_curr
-
-                hr_frm = hr_curr.squeeze(0).cpu().numpy()  # chw|rgb|uint8
-
-            hr_seq.append(float32_to_uint8(hr_frm))
-
-        return np.stack(hr_seq).transpose(0, 2, 3, 1)  # thwc
-
 
 class FNet(nn.Module):
     """Optical flow estimation network."""
