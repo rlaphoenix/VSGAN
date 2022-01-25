@@ -43,17 +43,13 @@ def frame_to_array(f: vs.VideoFrame) -> np.stack:
     ])
 
 
-def frame_to_tensor(f: vs.VideoFrame, order: tuple[int, ...] = (0, 1, 2), clamp_zero=True, bgr2rgb=False,
-                    normalize=False, half: bool = False) -> torch.Tensor:
+def frame_to_tensor(f: vs.VideoFrame, clamp_zero=True, half: bool = False) -> torch.Tensor:
     """
     Convert a VapourSynth VideoFrame into a PyTorch Tensor.
 
     Parameters:
         f: VapourSynth VideoFrame from a clip.
-        order: Change shape order to specified order. Default: CHW.
         clamp_zero: Clamp to 0,1 range.
-        bgr2rgb: Flip Plane order from BGR to RGB. May be needed if loaded via OpenCV.
-        normalize: Normalize (z-norm) from [0,1] range to [-1,1].
         half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
     """
     array = frame_to_array(f)
@@ -62,24 +58,10 @@ def frame_to_tensor(f: vs.VideoFrame, order: tuple[int, ...] = (0, 1, 2), clamp_
         max_val = MAX_DTYPE_VALUES.get(array.dtype, 1.0)
         array = array.astype(np.dtype("float32")) / max_val
 
-    if order != (0, 1, 2) and len(order) == 3:
-        array = np.transpose(array, order)
-
-    array = torch.from_numpy(array).float()
+    array = torch.from_numpy(array)
 
     if half:
         array = array.half()
-
-    if bgr2rgb:
-        if array.shape[0] % 3 == 0:
-            # RGB or MultixRGB (3xRGB, 5xRGB, etc. For video tensors.)
-            array = array.flip(-3)
-        elif array.shape[0] == 4:
-            # RGBA
-            array = array[[2, 1, 0, 3], :, :]
-
-    if normalize:
-        array = ((array - 0.5) * 2.0).clamp(-1, 1)
 
     return array
 
