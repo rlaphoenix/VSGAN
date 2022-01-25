@@ -75,7 +75,7 @@ class EGVSR(BaseNetwork):
 
         def _apply(n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool, interval_: int) -> vs.VideoNode:
             if str(n) not in self.tensor_cache:
-                self.tensor_cache.clear()
+                self.tensor_cache.clear()  # don't keep unused frames in RAM
 
                 lr_images = [frame_to_tensor(clip.get_frame(n), half=half)]
                 for i in range(1, interval_):
@@ -85,17 +85,15 @@ class EGVSR(BaseNetwork):
                 lr_images = torch.stack(lr_images)
                 lr_images = lr_images.unsqueeze(0)
 
-                output, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
+                sr_images, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
                 del lr_images
 
-                output = output.squeeze(0).detach().cpu()
+                sr_images = sr_images.squeeze(0)
+                for i in range(sr_images.shape[0]):  # interval
+                    self.tensor_cache[str(n + i)] = tensor_to_clip(clip, sr_images[i, :, :, :])
+                del sr_images
 
-                for i in range(output.shape[0]):  # interval
-                    self.tensor_cache[str(n + i)] = output[i, :, :, :]
-
-                torch.cuda.empty_cache()
-
-            return tensor_to_clip(clip, self.tensor_cache[str(n)])
+            return self.tensor_cache[str(n)]
 
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
