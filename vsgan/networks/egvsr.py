@@ -74,15 +74,13 @@ class EGVSR(BaseNetwork):
             if str(n) not in self.tensor_cache:
                 self.tensor_cache.clear()
 
-                lr_images = [frame_to_tensor(clip.get_frame(n))]
+                lr_images = [frame_to_tensor(clip.get_frame(n), half=half)]
                 for i in range(1, interval_):
                     if (n + i) >= clip.num_frames:
                         break
-                    lr_images.append(frame_to_tensor(clip.get_frame(n + i)))
+                    lr_images.append(frame_to_tensor(clip.get_frame(n + i), half=half))
                 lr_images = torch.stack(lr_images)
                 lr_images = lr_images.unsqueeze(0)
-                if half:
-                    lr_images = lr_images.half()
 
                 output, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
                 del lr_images

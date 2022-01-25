@@ -88,8 +88,12 @@ class EGVSR(nn.Module):
         hr_data = []
         hr_prev = self.srnet(
             lr_data[:, 0, ...],
-            torch.zeros(n, (self.scale ** 2) * c, lr_h, lr_w, dtype=torch.float32,
-                        device=lr_data.device))
+            torch.zeros(
+                n, (self.scale ** 2) * c, lr_h, lr_w,
+                dtype=lr_data.dtype,
+                device=lr_data.device
+            )
+        )
         hr_data.append(hr_prev)
 
         # compute the remaining hr data
@@ -100,7 +104,8 @@ class EGVSR(nn.Module):
             # compute hr_curr
             hr_curr = self.srnet(
                 lr_data[:, i, ...],
-                space_to_depth(hr_prev_warp, self.scale))
+                space_to_depth(hr_prev_warp, self.scale)
+            )
 
             # save and update
             hr_data.append(hr_curr)
@@ -346,8 +351,8 @@ def backward_warp(x: Tensor, flow: Tensor, mode: str = "bilinear", padding_mode:
     n, c, h, w = x.size()
 
     # create mesh grid
-    iu = torch.linspace(-1.0, 1.0, w).view(1, 1, 1, w).expand(n, -1, h, -1)
-    iv = torch.linspace(-1.0, 1.0, h).view(1, 1, h, 1).expand(n, -1, -1, w)
+    iu = torch.linspace(-1.0, 1.0, w).view(1, 1, 1, w).expand(n, -1, h, -1).type_as(flow)
+    iv = torch.linspace(-1.0, 1.0, h).view(1, 1, h, 1).expand(n, -1, -1, w).type_as(flow)
     grid = torch.cat([iu, iv], 1).to(flow.device)
 
     # normalize flow to [-1, 1]
