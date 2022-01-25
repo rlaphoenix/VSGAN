@@ -52,18 +52,16 @@ def frame_to_tensor(f: vs.VideoFrame, clamp_zero=True, half: bool = False) -> to
         clamp_zero: Clamp to 0,1 range.
         half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
     """
-    array = frame_to_array(f)
+    tensor = torch.from_numpy(frame_to_array(f))
 
     if clamp_zero:
-        max_val = MAX_DTYPE_VALUES.get(array.dtype, 1.0)
-        array = array.astype(np.dtype("float32")) / max_val
-
-    array = torch.from_numpy(array)
+        max_val = MAX_DTYPE_VALUES.get(tensor.dtype, 1.0)
+        tensor = tensor.to(torch.float32) / max_val
 
     if half:
-        array = array.half()
+        tensor = tensor.half()
 
-    return array
+    return tensor
 
 
 def tensor_to_frame(f: vs.VideoFrame, t: torch.Tensor) -> vs.VideoFrame:
