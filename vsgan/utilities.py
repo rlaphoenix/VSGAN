@@ -142,8 +142,7 @@ def recursive_tile_tensor(
     if max_depth is None or max_depth == current_depth:
         # attempt non-tiled super-resolution if no known depth, or at depth
         try:
-            t_sr = model(t).data
-            # del t  # TODO: Truly beneficial?
+            t_sr = model(t)
             return t_sr, current_depth
         except RuntimeError as e:
             if "allocate" in str(e) or "CUDA out of memory" in str(e):
