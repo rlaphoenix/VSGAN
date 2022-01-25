@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.4] - 2022-01-25
+
+### Changed
+
+- Renamed GitHub Workflows from Distribution to CD and Version test to CI.
+- Now caching the VapourSynth installation in GitHub CI workflow.
+- Now directly loads a tensor from the VideoFrame data directly, without numpy as a middleman.
+- Reduced overall numpy use for Tensor<->VideoFrame operations.
+- The half parameter/options have been removed entirely and replaced with automatic infer based on
+  input bit-depth. You must explicitly use RGBS if you want FullTensor (float32). Integer and RGBH
+  inputs will be converted (if needed) to float16 (HalfTensor) automatically.
+
+### Removed
+
+- Removed EOL Python 3.6 from CI Workflow.
+- Removed unused infer_sequence method from EGVSR arch.
+- Removed unused options and code from frame_to_tensor.
+- All manual tensor deletion statements have been removed, they do not seem to help with VRAM.
+- The overlap reduction code per-recursion has been removed. The overlap will now always stay
+  at the value first provided.
+
+### Fixed
+
+- Fixed a big Memory leak, that I still don't know exactly why it happened.
+- Fixed minimum Python version listed under Installation docs.
+- Enforced a VapourSynth thread count of 1 when using EGVSR. More than one should not be used
+  during Video Models, or you will be clog VRAM.
+- Improved the accuracy of clamping max size value to an equation on the exact bit depth.
+  This fixes the accuracy of RGB 27, 30, 36, and 42.
+
 ## [1.6.3] - 2022-01-24
 
 ### Added
