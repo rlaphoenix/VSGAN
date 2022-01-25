@@ -21,9 +21,6 @@ class EGVSR(BaseNetwork):
     def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
         super().__init__(clip, device)
         self.tensor_cache: dict = {}
-        # only render one frame at a time, as n other frames will also run through
-        # super-resolution and be cached, would take too much VRAM otherwise
-        core.num_threads = 1
 
     def load(
         self,
