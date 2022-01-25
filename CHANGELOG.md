@@ -30,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed a big Memory leak, that I still don't know exactly why it happened.
 - Fixed minimum Python version listed under Installation docs.
-- Enforced a VapourSynth thread count of 1 when using EGVSR. More than one should not be used
-  during Video Models, or you will be clog VRAM.
 - Improved the accuracy of clamping max size value to an equation on the exact bit depth.
   This fixes the accuracy of RGB 27, 30, 36, and 42.
 
