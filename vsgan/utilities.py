@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gc
-from typing import Union
 
 import numpy as np
 import torch
@@ -11,7 +10,7 @@ from vapoursynth import core
 from vsgan.constants import IS_VS_API_4, MAX_DTYPE_VALUES
 
 
-def get_frame_plane(f: vs.VideoFrame, n: int, as_np: bool = False) -> Union[memoryview, np.array]:
+def get_frame_plane(f: vs.VideoFrame, n: int) -> memoryview:
     """
     Get a VideoFrame's Plane data as a MemoryView or a numpy array.
     Supports VS API 3 and 4.
@@ -19,28 +18,10 @@ def get_frame_plane(f: vs.VideoFrame, n: int, as_np: bool = False) -> Union[memo
     Parameters:
         f: VapourSynth VideoFrame from a clip.
         n: Plane number.
-        as_np: Return as a Numpy Array.
     """
     if IS_VS_API_4:
-        plane = f[n]
-    else:
-        plane = f.get_read_array(n)  # type: ignore
-    if as_np:
-        plane = np.asarray(plane)
-    return plane
-
-
-def frame_to_array(f: vs.VideoFrame) -> np.stack:
-    """
-    Convert a VapourSynth VideoFrame into a Numpy Array.
-
-    Parameters:
-        f: VapourSynth VideoFrame from a clip.
-    """
-    return np.stack([
-        get_frame_plane(f, plane, as_np=True)
-        for plane in range(f.format.num_planes)
-    ])
+        return f[n]
+    return f.get_read_array(n)  # type: ignore
 
 
 def frame_to_tensor(f: vs.VideoFrame, clamp_zero=True, half: bool = False) -> torch.Tensor:
@@ -52,7 +33,14 @@ def frame_to_tensor(f: vs.VideoFrame, clamp_zero=True, half: bool = False) -> to
         clamp_zero: Clamp to 0,1 range.
         half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
     """
-    tensor = torch.from_numpy(frame_to_array(f))
+    tensor = torch.stack(tuple(
+        torch.frombuffer(
+            buffer=mv,
+            dtype=torch.float32
+        ).reshape(mv.shape)
+        for plane in range(f.format.num_planes)
+        for mv in [get_frame_plane(f, plane)]
+    ))
 
     if clamp_zero:
         max_val = MAX_DTYPE_VALUES.get(tensor.dtype, 1.0)
