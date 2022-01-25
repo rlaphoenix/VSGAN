@@ -87,7 +87,7 @@ class EGVSR(BaseNetwork):
                 output, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
                 del lr_images
 
-                output = output.squeeze(0)
+                output = output.squeeze(0).detach().cpu()
 
                 for i in range(output.shape[0]):  # interval
                     self.tensor_cache[str(n + i)] = output[i, :, :, :]
