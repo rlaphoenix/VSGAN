@@ -152,9 +152,8 @@ def recursive_tile_tensor(
                 raise
 
     # Not at known depth, and non-tiled super-resolution failed, try tiled
-    overlap //= current_depth
-
     tiles_lr = tile_tensor(t, overlap)
+
     # take depth from top_left result as the size would be same for all quadrants
     # by re-using the depth, we can know exactly how much tiling is needed immediately
     tiles_lr_top_left, depth = recursive_tile_tensor(tiles_lr[0], model, overlap, current_depth=current_depth + 1)
