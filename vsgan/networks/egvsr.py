@@ -85,12 +85,13 @@ class EGVSR(BaseNetwork):
                     lr_images = lr_images.half()
 
                 output, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
+                del lr_images
+
                 output = output.squeeze(0)
 
                 for i in range(output.shape[0]):  # interval
                     self.tensor_cache[str(n + i)] = output[i, :, :, :]
 
-                del lr_images
                 torch.cuda.empty_cache()
 
             return tensor_to_clip(clip, self.tensor_cache[str(n)])
