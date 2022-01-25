@@ -74,9 +74,12 @@ def tensor_to_frame(f: vs.VideoFrame, t: torch.Tensor) -> vs.VideoFrame:
 
     array = t.squeeze(0).detach().clamp(0, 1).cpu().numpy()
 
-    d_type = np.asarray(f[0]).dtype
-    array = MAX_DTYPE_VALUES.get(d_type, 1.0) * array
-    array = array.astype(d_type)
+    if f.format.sample_type != vs.FLOAT:
+        # un-clamp back to full range for the format
+        size = (2 ** f.format.bits_per_sample) - 1
+        array = size * array
+
+    array = array.astype(np.asarray(f[0]).dtype)
 
     for plane in range(f.format.num_planes):
         d = np.asarray(f[plane])
