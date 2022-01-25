@@ -24,13 +24,13 @@ def get_frame_plane(f: vs.VideoFrame, n: int) -> memoryview:
     return f.get_read_array(n)  # type: ignore
 
 
-def frame_to_tensor(f: vs.VideoFrame, clamp_zero=True, half: bool = False) -> torch.Tensor:
+def frame_to_tensor(f: vs.VideoFrame, as_f32=True, half: bool = False) -> torch.Tensor:
     """
     Convert a VapourSynth VideoFrame into a PyTorch Tensor.
 
     Parameters:
         f: VapourSynth VideoFrame from a clip.
-        clamp_zero: Clamp to 0,1 range.
+        as_f32: Convert to float32 in 0,1 range.
         half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
     """
     tensor = torch.stack(tuple(
@@ -42,7 +42,7 @@ def frame_to_tensor(f: vs.VideoFrame, clamp_zero=True, half: bool = False) -> to
         for mv in [get_frame_plane(f, plane)]
     ))
 
-    if clamp_zero:
+    if as_f32:
         max_val = MAX_DTYPE_VALUES.get(tensor.dtype, 1.0)
         tensor = tensor.to(torch.float32) / max_val
 
