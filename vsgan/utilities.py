@@ -7,7 +7,7 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan.constants import IS_VS_API_4, MAX_DTYPE_VALUES
+from vsgan.constants import IS_VS_API_4, VS_DTYPE_MAP
 
 
 def get_frame_plane(f: vs.VideoFrame, n: int) -> memoryview:
@@ -36,7 +36,7 @@ def frame_to_tensor(f: vs.VideoFrame, as_f32=True, half: bool = False) -> torch.
     tensor = torch.stack(tuple(
         torch.frombuffer(
             buffer=memoryview(mv.tobytes()).cast("b"),  # plane as contiguous signed data
-            dtype=torch.float32
+            dtype=VS_DTYPE_MAP[f.format.name]
         ).reshape(mv.shape)
         for plane in range(f.format.num_planes)
         for mv in [get_frame_plane(f, plane)]
