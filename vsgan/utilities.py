@@ -139,6 +139,8 @@ def recursive_tile_tensor(
         gc.collect()
         raise RecursionError(f"Exceeded maximum tiling recursion of 10...")
 
+    input("Waiting")
+
     if max_depth is None or max_depth == current_depth:
         # attempt non-tiled super-resolution if no known depth, or at depth
         try:
@@ -153,8 +155,6 @@ def recursive_tile_tensor(
                 raise
 
     # Not at known depth, and non-tiled super-resolution failed, try tiled
-
-    # reduce overlap in half every recursion
     overlap //= current_depth
 
     tiles_lr = tile_tensor(t, overlap)

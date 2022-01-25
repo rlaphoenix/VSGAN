@@ -48,7 +48,6 @@ class ESRGAN(BaseNetwork):
         self.model = model.to(self.device)
         return self
 
-    @torch.inference_mode()
     def apply(self, overlap: int = 16) -> ESRGAN:
         """
         Apply the model on each frame of the clip.
@@ -62,29 +61,6 @@ class ESRGAN(BaseNetwork):
         if not self.model:
             raise ValueError("A model must be loaded before running.")
 
-        def _apply(n: int, i: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
-            lr_img = frame_to_tensor(clip.get_frame(n))
-            lr_img.unsqueeze_(0)
-            lr_img = lr_img.to(self.device)
-
-            if lr_img.dtype == torch.half:
-                model.half()
-
-            sr_img, depth = recursive_tile_tensor(
-                t=lr_img,
-                model=model,
-                overlap=overlap_,
-                max_depth=self.depth_cache.get(i)
-            )
-            del lr_img
-
-            self.depth_cache[i] = depth
-
-            clip = tensor_to_clip(clip, sr_img)
-            del sr_img
-
-            return clip
-
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
                 clip=self.clip,
@@ -92,7 +68,7 @@ class ESRGAN(BaseNetwork):
                 height=self.clip.height * self.model.scale
             ),
             functools.partial(
-                _apply,
+                self._apply,
                 i=str(len(self.depth_cache)),
                 clip=self.clip,
                 model=self.model,
@@ -101,6 +77,30 @@ class ESRGAN(BaseNetwork):
         )
 
         return self
+
+    @torch.inference_mode()
+    def _apply(self, n: int, i: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
+        lr_img = frame_to_tensor(clip.get_frame(n))
+        lr_img.unsqueeze_(0)
+        lr_img = lr_img.to(self.device)
+
+        if lr_img.dtype == torch.half:
+            model.half()
+
+        sr_img, depth = recursive_tile_tensor(
+            t=lr_img,
+            model=model,
+            overlap=overlap_,
+            max_depth=self.depth_cache.get(i)
+        )
+        del lr_img
+
+        self.depth_cache[i] = depth
+
+        clip = tensor_to_clip(clip, sr_img)
+        del sr_img
+
+        return clip
 
 
 __ALL__ = (ESRGAN,)
