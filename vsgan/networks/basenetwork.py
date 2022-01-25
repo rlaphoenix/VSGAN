@@ -16,7 +16,7 @@ class BaseNetwork:
 
         Parameters:
             clip: VapourSynth Video Node (aka clip). It must be RGB
-                color-space. RGB27 and RGB30 may not work.
+                color-space.
             device: PyTorch device identifier to use for the model. E.g.,
                 "cuda", "cpu", 0, 1, and so on.
         """
