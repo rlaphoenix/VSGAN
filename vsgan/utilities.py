@@ -24,14 +24,13 @@ def get_frame_plane(f: vs.VideoFrame, n: int) -> memoryview:
     return f.get_read_array(n)  # type: ignore
 
 
-def frame_to_tensor(f: vs.VideoFrame, as_f32=True, half: bool = False) -> torch.Tensor:
+def frame_to_tensor(f: vs.VideoFrame, as_f16=True) -> torch.Tensor:
     """
     Convert a VapourSynth VideoFrame into a PyTorch Tensor.
 
     Parameters:
         f: VapourSynth VideoFrame from a clip.
-        as_f32: Convert to float32 in 0,1 range.
-        half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
+        as_f16: Convert to float16 in 0,1 range.
     """
     tensor = torch.stack(tuple(
         torch.frombuffer(
@@ -42,17 +41,15 @@ def frame_to_tensor(f: vs.VideoFrame, as_f32=True, half: bool = False) -> torch.
         for mv in [get_frame_plane(f, plane)]
     ))
 
-    if as_f32 and not tensor.is_floating_point():
-        # convert to unsigned int -> float32 -> clamp to 0,1 range
+    if as_f16 and not tensor.is_floating_point():
+        # convert to unsigned int -> float16 -> clamp to 0,1 range
         # 0,1 range is required for most model networks
         bps = f.format.bytes_per_sample * 8
         size = (2 ** f.format.bits_per_sample) - 1
         array = tensor.numpy().astype(np.dtype(f"uint{bps}"))
-        array = array.astype(np.dtype("float32")) / size
+        # float16 is just enough for up to RGB48
+        array = array.astype(np.dtype("float16")) / size
         tensor = torch.from_numpy(array)
-
-    if half:
-        tensor = tensor.half()
 
     return tensor
 

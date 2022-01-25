@@ -43,17 +43,15 @@ class BaseNetwork:
         self.clip: vs.VideoNode = clip
         self.device: torch.device = torch.device(device)
         self.model: Optional[torch.nn.Module] = None
-        self.half: bool = False
 
     @abstractmethod
-    def load(self, model: str, half: bool = False) -> BaseNetwork:
+    def load(self, model: str) -> BaseNetwork:
         """
         Load a PyTorch model file and send to the PyTorch device.
         The model can be changed at any point.
 
         Parameters:
             model: Path to a supported PyTorch Model file.
-            half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
 
     @abstractmethod

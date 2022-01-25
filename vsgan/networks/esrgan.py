@@ -23,7 +23,7 @@ class ESRGAN(BaseNetwork):
         super().__init__(clip, device)
         self.depth_cache: dict = {}
 
-    def load(self, model: str, half: bool = False) -> ESRGAN:
+    def load(self, model: str) -> ESRGAN:
         """
         Load an ESRGAN model file and send to the PyTorch device.
         The model can be changed at any point.
@@ -37,7 +37,6 @@ class ESRGAN(BaseNetwork):
 
         Parameters:
             model: Path to a supported PyTorch Model file.
-            half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
         state = torch.load(model)
         if "params" in state and "body.0.weight" in state["params"]:
@@ -47,9 +46,6 @@ class ESRGAN(BaseNetwork):
         model = arch(state)
         model.eval()
         self.model = model.to(self.device)
-        if half:
-            self.model.half()
-        self.half = half
         return self
 
     @torch.inference_mode()
@@ -66,12 +62,15 @@ class ESRGAN(BaseNetwork):
         if not self.model:
             raise ValueError("A model must be loaded before running.")
 
-        def _apply(n: int, i: str, clip: vs.VideoNode, model: torch.nn.Module, half: bool, overlap_: int) -> vs.VideoNode:
-            lr_img = frame_to_tensor(clip.get_frame(n), half=half)
+        def _apply(n: int, i: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
+            lr_img = frame_to_tensor(clip.get_frame(n))
             lr_img.unsqueeze_(0)
             lr_img = lr_img.to(self.device)
 
-            output_img, depth = recursive_tile_tensor(
+            if lr_img.dtype == torch.half:
+                model.half()
+
+            sr_img, depth = recursive_tile_tensor(
                 t=lr_img,
                 model=model,
                 overlap=overlap_,
@@ -81,8 +80,8 @@ class ESRGAN(BaseNetwork):
 
             self.depth_cache[i] = depth
 
-            clip = tensor_to_clip(clip, output_img)
-            del output_img
+            clip = tensor_to_clip(clip, sr_img)
+            del sr_img
 
             return clip
 
@@ -97,7 +96,6 @@ class ESRGAN(BaseNetwork):
                 i=str(len(self.depth_cache)),
                 clip=self.clip,
                 model=self.model,
-                half=self.half,
                 overlap_=overlap
             )
         )

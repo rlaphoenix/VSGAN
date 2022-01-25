@@ -33,8 +33,7 @@ class EGVSR(BaseNetwork):
         out_nc: int = 3,
         nf: int = 64,
         nb: int = 16,
-        degradation: str = "BI",
-        half: bool = False
+        degradation: str = "BI"
     ) -> EGVSR:
         """
         Load an EGVSR model file and send to the PyTorch device.
@@ -52,14 +51,10 @@ class EGVSR(BaseNetwork):
             nf: Number of filters.
             nb: Number of blocks.
             degradation: Upsample Function.
-            half: Reduce tensor accuracy from fp32 to fp16. Reduces VRAM, may improve speed.
         """
         model = archs.EGVSR(model, scale, in_nc, out_nc, nf, nb, degradation)
         model.eval()
         self.model = model.to(self.device)
-        if half:
-            self.model.half()
-        self.half = half
         return self
 
     @torch.inference_mode()
@@ -73,17 +68,25 @@ class EGVSR(BaseNetwork):
         if not self.model:
             raise ValueError("A model must be loaded before running.")
 
-        def _apply(n: int, clip: vs.VideoNode, model: torch.nn.Module, half: bool, interval_: int) -> vs.VideoNode:
+        def _apply(n: int, clip: vs.VideoNode, model: torch.nn.Module, interval_: int) -> vs.VideoNode:
             if str(n) not in self.tensor_cache:
                 self.tensor_cache.clear()  # don't keep unused frames in RAM
 
-                lr_images = [frame_to_tensor(clip.get_frame(n), half=half)]
+                lr_images = [frame_to_tensor(clip.get_frame(n))]
                 for i in range(1, interval_):
                     if (n + i) >= clip.num_frames:
                         break
-                    lr_images.append(frame_to_tensor(clip.get_frame(n + i), half=half))
+                    lr_images.append(frame_to_tensor(clip.get_frame(n + i)))
                 lr_images = torch.stack(lr_images)
                 lr_images = lr_images.unsqueeze(0)
+
+                if lr_images.dtype == torch.half:
+                    # TODO: Fix EGVSR arch Half-precision support
+                    #       Currently has a weird form of grid effect, most likely a
+                    #       data type conversion mistake in relation to half-tensors
+                    # forcing back as full tensor for now
+                    lr_images = lr_images.to(torch.float32)
+                    # model.half()
 
                 sr_images, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
                 del lr_images
@@ -105,7 +108,6 @@ class EGVSR(BaseNetwork):
                 _apply,
                 clip=self.clip,
                 model=self.model,
-                half=self.half,
                 interval_=interval
             )
         )
