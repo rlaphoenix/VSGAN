@@ -69,11 +69,14 @@ class ESRGAN(BaseNetwork):
         def _apply(n: int, i: str, clip: vs.VideoNode, model: torch.nn.Module, half: bool, overlap_: int) -> vs.VideoNode:
             lr_img = frame_to_tensor(clip.get_frame(n), half=half)
             lr_img.unsqueeze_(0)
-            if i in self.depth_cache:
-                depth = self.depth_cache[i]
-            else:
-                depth = None
-            output_img, depth = recursive_tile_tensor(lr_img.to(self.device), model, overlap_, depth)
+            lr_img = lr_img.to(self.device)
+
+            output_img, depth = recursive_tile_tensor(
+                t=lr_img,
+                model=model,
+                overlap=overlap_,
+                max_depth=self.depth_cache.get(i)
+            )
             self.depth_cache[i] = depth
             return tensor_to_clip(clip, output_img)
 
