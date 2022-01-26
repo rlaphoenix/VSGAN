@@ -113,18 +113,13 @@ class EGVSR(nn.Module):
 
         hr_data = torch.stack(hr_data, dim=1)  # n,t,c,hr_h,hr_w
 
-        # construct output dict
-        """
-        ret_dict = {
-            'hr_data': hr_data,  # n,t,c,hr_h,hr_w
-            'hr_flow': hr_flow,  # n,t,2,hr_h,hr_w
-            'lr_prev': lr_prev,  # n(t-1),c,lr_h,lr_w
-            'lr_curr': lr_curr,  # n(t-1),c,lr_h,lr_w
-            'lr_flow': lr_flow,  # n(t-1),2,lr_h,lr_w
-        }
-        return ret_dict
-        """
-        return hr_data, hr_flow, lr_prev, lr_curr, lr_flow
+        return (
+            hr_data,  # n,t,c,hr_h,hr_w
+            hr_flow,  # n,t,2,hr_h,hr_w
+            lr_prev,  # n(t-1),c,lr_h,lr_w
+            lr_curr,  # n(t-1),c,lr_h,lr_w
+            lr_flow   # n(t-1),2,lr_h,lr_w
+        )
 
 
 class FNet(nn.Module):
@@ -221,16 +216,16 @@ class SRNet(nn.Module):
         self.upsample_func = upsample_func
 
     def forward(self, lr_curr, hr_prev_tran):
-        """ lr_curr: the current lr data in shape nchw
-            hr_prev_tran: the previous transformed hr_data in shape n(4*4*c)hw
         """
-
+        lr_curr: the current lr data in shape nchw
+        hr_prev_tran: the previous transformed hr_data in shape n(4*4*c)hw
+        """
         out = self.conv_in(torch.cat([lr_curr, hr_prev_tran], dim=1))
         out = self.resblocks(out)
         out = self.conv_up_cheap(out)
         out = self.conv_out(out)
-        # out += self.upsample_func(lr_curr)
-
+        if self.upsample_func is not None:
+            out += self.upsample_func(lr_curr)
         return out
 
 
@@ -284,16 +279,16 @@ class BicubicUpsample(nn.Module):
         self.scale_factor = scale_factor
         self.register_buffer('kernels', torch.stack(kernels))
 
-    def forward(self, input):
-        n, c, h, w = input.size()
+    def forward(self, x):
+        n, c, h, w = x.size()
         s = self.scale_factor
 
         # pad input (left, right, top, bottom)
-        input = F.pad(input, (1, 2, 1, 2), mode='replicate')
+        x = F.pad(x, (1, 2, 1, 2), mode='replicate')
 
         # calculate output (height)
         kernel_h = self.kernels.repeat(c, 1).view(-1, 1, s, 1)
-        output = F.conv2d(input, kernel_h, stride=1, padding=0, groups=c)
+        output = F.conv2d(x, kernel_h, stride=1, padding=0, groups=c)
         output = output.reshape(
             n, c, s, -1, w + 3).permute(0, 1, 3, 2, 4).reshape(n, c, -1, w + 3)
 
@@ -314,7 +309,7 @@ def backward_warp(x: Tensor, flow: Tensor, mode: str = "bilinear", padding_mode:
         https://github.com/sniklaus/pytorch-spynet/blob/master/run.py#L41
     """
 
-    n, c, h, w = x.size()
+    n, _, h, w = x.size()
 
     # create mesh grid
     iu = torch.linspace(-1.0, 1.0, w).view(1, 1, 1, w).expand(n, -1, h, -1).type_as(flow)

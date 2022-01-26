@@ -112,7 +112,7 @@ def tile_tensor(t: torch.Tensor, overlap: int = 16) -> tuple[torch.Tensor, ...]:
     Tile PyTorch Tensor into 4 quadrants with an overlap between tiles.
     Expects input PyTorch Tensor's shape to end in HW order.
     """
-    b, c, h, w = t.shape
+    h, w = t.shape[-2:]
 
     top_left_lr = t[..., : h // 2 + overlap, : w // 2 + overlap]
     top_right_lr = t[..., : h // 2 + overlap, w // 2 - overlap:]
@@ -137,7 +137,7 @@ def recursive_tile_tensor(
     if current_depth > 10:
         torch.cuda.empty_cache()
         gc.collect()
-        raise RecursionError(f"Exceeded maximum tiling recursion of 10...")
+        raise RecursionError("Exceeded maximum tiling recursion of 10...")
 
     if max_depth is None or max_depth == current_depth:
         # attempt non-tiled super-resolution if no known depth, or at depth
