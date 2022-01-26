@@ -34,7 +34,7 @@ def frame_to_tensor(f: vs.VideoFrame, as_f16=True) -> torch.Tensor:
     """
     tensor = torch.stack(tuple(
         torch.frombuffer(
-            buffer=memoryview(mv.tobytes()).cast("b"),  # plane as contiguous signed data
+            buffer=mv.tobytes(),  # plane as contiguous data
             dtype=VS_DTYPE_MAP[f.format.name]
         ).reshape(mv.shape)
         for plane in range(f.format.num_planes)
