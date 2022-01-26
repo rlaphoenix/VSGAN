@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Union, Optional
+from typing import Optional, Union
 
 import torch
 import vapoursynth as vs

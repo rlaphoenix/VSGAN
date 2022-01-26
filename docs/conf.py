@@ -1,7 +1,7 @@
 # Configuration file for the Sphinx documentation builder.
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-from dunamai import Version, Style
+from dunamai import Style, Version
 
 # -- Project information -----------------------------------------------------
 
