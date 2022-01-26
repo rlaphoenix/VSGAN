@@ -5,6 +5,13 @@ repos:
     hooks:
       - id: isort
 
+  # flake8
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        args: ["--ignore=W503"]
+
   # pre-commit-hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0
