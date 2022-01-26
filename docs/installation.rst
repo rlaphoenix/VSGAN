@@ -31,7 +31,7 @@ may need to install an older version to continue.
 2. VapourSynth_ r48 or newer.
 
    - ⚠️ The Pip/PyPI package `VapourSynth` is *not* what you want to install.
-3. PyTorch_ 1.6.0 or newer.
+3. PyTorch_ 1.10.0 or newer.
 
    - If you want to use your GPU, choose the latest CUDA version when installing.
    - If you want CUDA installed system-wide, choose `CPU` instead of `CUDA` and then
