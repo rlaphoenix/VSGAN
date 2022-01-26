@@ -1,0 +1,14 @@
+repos:
+  # pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: trailing-whitespace              # Trim trailing whitespace
+        args: [--markdown-linebreak-ext=md]  # - except hard linebreaks in markdown files
+      - id: check-yaml                       # Verify syntax of all YAML files
+      - id: check-merge-conflict             # Check for files that contain merge conflict strings
+      - id: end-of-file-fixer                # Make sure files end in a newline and only a newline
+      - id: fix-encoding-pragma              # Remove the coding pragma: # -*- coding: utf-8 -*-
+        args: ["--remove"]
+      - id: mixed-line-ending                # Replace or check mixed line ending
+        args: ["--fix=lf"]
