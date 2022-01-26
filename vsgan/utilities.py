@@ -122,7 +122,7 @@ def tile_tensor(t: torch.Tensor, overlap: int = 16) -> tuple[torch.Tensor, ...]:
     return top_left_lr, top_right_lr, bottom_left_lr, bottom_right_lr
 
 
-def recursive_tile_tensor(
+def tile_tensor_r(
     t: torch.Tensor,
     model: torch.nn.Module,
     overlap: int = 16,
@@ -156,10 +156,10 @@ def recursive_tile_tensor(
 
     # take depth from top_left result as the size would be same for all quadrants
     # by re-using the depth, we can know exactly how much tiling is needed immediately
-    tiles_lr_top_left, depth = recursive_tile_tensor(tiles_lr[0], model, overlap, current_depth=current_depth + 1)
-    tiles_lr_top_right, _ = recursive_tile_tensor(tiles_lr[1], model, overlap, depth, current_depth=current_depth + 1)
-    tiles_lr_bottom_left, _ = recursive_tile_tensor(tiles_lr[2], model, overlap, depth, current_depth=current_depth + 1)
-    tiles_lr_bottom_right, _ = recursive_tile_tensor(tiles_lr[3], model, overlap, depth, current_depth=current_depth + 1)
+    tiles_lr_top_left, depth = tile_tensor_r(tiles_lr[0], model, overlap, current_depth=current_depth + 1)
+    tiles_lr_top_right, _ = tile_tensor_r(tiles_lr[1], model, overlap, depth, current_depth=current_depth + 1)
+    tiles_lr_bottom_left, _ = tile_tensor_r(tiles_lr[2], model, overlap, depth, current_depth=current_depth + 1)
+    tiles_lr_bottom_right, _ = tile_tensor_r(tiles_lr[3], model, overlap, depth, current_depth=current_depth + 1)
 
     output_img = join_tiles(
         (tiles_lr_top_left, tiles_lr_top_right, tiles_lr_bottom_left, tiles_lr_bottom_right),

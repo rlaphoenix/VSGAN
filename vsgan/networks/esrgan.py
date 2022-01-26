@@ -9,7 +9,7 @@ from vapoursynth import core
 
 from vsgan import archs
 from vsgan.networks.basenetwork import BaseNetwork
-from vsgan.utilities import frame_to_tensor, tensor_to_clip, recursive_tile_tensor
+from vsgan.utilities import frame_to_tensor, tensor_to_clip, tile_tensor_r
 
 
 class ESRGAN(BaseNetwork):
@@ -87,12 +87,7 @@ class ESRGAN(BaseNetwork):
         if lr_img.dtype == torch.half:
             model.half()
 
-        sr_img, depth = recursive_tile_tensor(
-            t=lr_img,
-            model=model,
-            overlap=overlap_,
-            max_depth=self.depth_cache.get(i)
-        )
+        sr_img, depth = tile_tensor_r(lr_img, model, overlap_, self.depth_cache.get(i))
         self.depth_cache[i] = depth
 
         return tensor_to_clip(clip, sr_img)
