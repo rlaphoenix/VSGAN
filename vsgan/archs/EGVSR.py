@@ -224,8 +224,8 @@ class SRNet(nn.Module):
         out = self.resblocks(out)
         out = self.conv_up_cheap(out)
         out = self.conv_out(out)
-        #if self.upsample_func is not None:
-        #    out += self.upsample_func(lr_curr)
+        # if self.upsample_func is not None:
+        #     out += self.upsample_func(lr_curr)
         return out
 
 
