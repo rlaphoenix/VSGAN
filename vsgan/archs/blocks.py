@@ -65,7 +65,7 @@ def get_valid_padding(kernel_size, dilation):
 class ConcatBlock(nn.Module):
     # Concat the output of a submodule to its input
     def __init__(self, submodule):
-        super(ConcatBlock, self).__init__()
+        super().__init__()
         self.sub = submodule
 
     def forward(self, x):
@@ -82,7 +82,7 @@ class ConcatBlock(nn.Module):
 class ShortcutBlock(nn.Module):
     # Elementwise sum the output of a submodule to its input
     def __init__(self, submodule):
-        super(ShortcutBlock, self).__init__()
+        super().__init__()
         self.sub = submodule
 
     def forward(self, x):

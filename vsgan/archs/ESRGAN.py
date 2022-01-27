@@ -37,7 +37,7 @@ class ESRGAN(nn.Module):
             upsampler: Upsample layer. upconv, pixel_shuffle
             mode: Convolution mode
         """
-        super(ESRGAN, self).__init__()
+        super().__init__()
 
         self.state = state
         self.norm = norm
@@ -251,7 +251,7 @@ class RealESRGANv2(nn.Module):
             state: PyTorch Model State dictionary.
             act_type: Activation type: 'relu', 'prelu', 'leakyrelu'.
         """
-        super(RealESRGANv2, self).__init__()
+        super().__init__()
 
         self.state = state
         self.act_type = act_type
@@ -340,7 +340,7 @@ class ResidualDenseBlock5C(nn.Module):
 
     def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
                  act_type="leakyrelu", mode="CNA", plus=False):
-        super(ResidualDenseBlock5C, self).__init__()
+        super().__init__()
         last_act = None if mode == "CNA" else act_type
 
         self.conv1x1 = conv1x1(nc, gc) if plus else None
@@ -373,7 +373,7 @@ class RRDB(nn.Module):
 
     def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
                  act_type="leakyrelu", mode="CNA", plus=False):
-        super(RRDB, self).__init__()
+        super().__init__()
         self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
         self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
         self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)

@@ -17,7 +17,7 @@ class EGVSR(nn.Module):
     """
 
     def __init__(self, model: str, scale=4, in_nc=3, out_nc=3, nf=64, nb=16, degradation="BI") -> None:
-        super(EGVSR, self).__init__()
+        super().__init__()
 
         self.model = model
         self.state: STATE_T = torch.load(self.model)
@@ -126,7 +126,7 @@ class FNet(nn.Module):
     """Optical flow estimation network."""
 
     def __init__(self, in_nc: int):
-        super(FNet, self).__init__()
+        super().__init__()
 
         self.encoder1 = nn.Sequential(
             nn.Conv2d(2 * in_nc, 32, 3, 1, 1, bias=True),
@@ -188,7 +188,7 @@ class SRNet(nn.Module):
     """Reconstruction and Upsampling network."""
 
     def __init__(self, in_nc: int = 3, out_nc: int = 3, nf: int = 64, nb: int = 16, upsample_func=None, scale: int = 4):
-        super(SRNet, self).__init__()
+        super().__init__()
 
         # input conv.
         self.conv_in = nn.Sequential(
@@ -233,7 +233,7 @@ class ResidualBlock(nn.Module):
     """Residual block without batch normalization."""
 
     def __init__(self, nf: int = 64):
-        super(ResidualBlock, self).__init__()
+        super().__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(nf, nf, 3, 1, 1, bias=True),
             nn.ReLU(inplace=True),
@@ -260,7 +260,7 @@ class BicubicUpsample(nn.Module):
     """
 
     def __init__(self, scale_factor, a=-0.75):
-        super(BicubicUpsample, self).__init__()
+        super().__init__()
 
         # calculate weights
         cubic = torch.FloatTensor([
