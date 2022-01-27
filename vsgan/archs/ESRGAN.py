@@ -1,7 +1,7 @@
 import math
 import re
 from collections import OrderedDict
-from typing import Optional
+from typing import Literal, Optional
 
 import torch
 import torch.nn as nn
@@ -20,8 +20,14 @@ class ESRGAN(nn.Module):
     and Chen Change Loy.
     """
 
-    def __init__(self, state: STATE_T, norm=None, act: str = "leakyrelu", upsampler: str = "upconv",
-                 mode: str = "CNA") -> None:
+    def __init__(
+        self,
+        state: STATE_T,
+        norm: Optional[block.NORM_TYPES_T] = None,
+        act: Optional[block.ACT_TYPES_T] = "leakyrelu",
+        upsampler: Literal["upconv", "pixel_shuffle"] = "upconv",
+        mode: block.CONV_MODE_T = "CNA"
+    ) -> None:
         """
         This is old-arch Residual in Residual Dense Block Network and is not
         the newest revision that's available at github.com/xinntao/ESRGAN.
@@ -234,7 +240,7 @@ class ESRGAN(nn.Module):
 
 
 class RealESRGANv2(nn.Module):
-    def __init__(self, state: STATE_T, act_type: str = "prelu") -> None:
+    def __init__(self, state: STATE_T, act_type: Optional[block.ACT_TYPES_T] = "prelu") -> None:
         """
         Real-ESRGAN - Training Real-World Blind Super-Resolution with Pure Synthetic Data.
         By Xintao Wang, Liangbin Xie, Chao Dong, and Ying Shan.
@@ -338,8 +344,19 @@ class ResidualDenseBlock5C(nn.Module):
     gc: growth channel, i.e. intermediate channels
     """
 
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
-                 act_type="leakyrelu", mode="CNA", plus=False):
+    def __init__(
+        self,
+        nc: int,
+        kernel_size: int = 3,
+        gc: int = 32,
+        stride: int = 1,
+        bias: bool = True,
+        pad_type: Optional[block.PAD_TYPES_T] = "zero",
+        norm_type: Optional[block.NORM_TYPES_T] = None,
+        act_type: Optional[block.ACT_TYPES_T] = "leakyrelu",
+        mode: block.CONV_MODE_T = "CNA",
+        plus: bool = False
+    ):
         super().__init__()
         last_act = None if mode == "CNA" else act_type
 
@@ -371,8 +388,19 @@ class ResidualDenseBlock5C(nn.Module):
 class RRDB(nn.Module):
     """Residual in Residual Dense Block."""
 
-    def __init__(self, nc, kernel_size=3, gc=32, stride=1, bias=True, pad_type="zero", norm_type=None,
-                 act_type="leakyrelu", mode="CNA", plus=False):
+    def __init__(
+        self,
+        nc: int,
+        kernel_size: int = 3,
+        gc: int = 32,
+        stride: int = 1,
+        bias: bool = True,
+        pad_type: Optional[block.PAD_TYPES_T] = "zero",
+        norm_type: Optional[block.NORM_TYPES_T] = None,
+        act_type: Optional[block.ACT_TYPES_T] = "leakyrelu",
+        mode: block.CONV_MODE_T = "CNA",
+        plus: bool = False
+    ):
         super().__init__()
         self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
         self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
@@ -386,5 +414,5 @@ class RRDB(nn.Module):
         return out.mul(0.2) + x
 
 
-def conv1x1(in_planes: int, out_planes: int, stride=1) -> nn.Conv2d:
+def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
