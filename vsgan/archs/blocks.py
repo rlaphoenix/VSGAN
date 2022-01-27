@@ -7,9 +7,35 @@ from typing import Optional
 
 import torch.nn as nn
 
-####################
-# Basic blocks
-####################
+
+def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=True,
+               pad_type='zero', norm_type=None, act_type: Optional[str] = 'relu', mode='CNA'):
+    """
+    Conv layer with padding, normalization, activation
+    mode: CNA --> Conv -> Norm -> Act
+        NAC --> Norm -> Act --> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
+    """
+    if mode not in ['CNA', 'NAC', 'CNAC']:
+        raise AssertionError('Wong conv mode [%s]' % mode)
+    padding = get_valid_padding(kernel_size, dilation)
+    p = pad(pad_type, padding) if pad_type and pad_type != 'zero' else None
+    padding = padding if pad_type == 'zero' else 0
+
+    c = nn.Conv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias,
+                  groups=groups)
+    a = act(act_type) if act_type else None
+    if 'CNA' in mode:
+        n = norm(norm_type, out_nc) if norm_type else None
+        return sequential(p, c, n, a)
+    if mode == 'NAC':
+        if norm_type is None and act_type is not None:
+            a = act(act_type, inplace=False)
+            # Important!
+            # input----ReLU(inplace)----Conv--+----output
+            #        |________________________|
+            # inplace ReLU will modify the input, therefore wrong output
+        n = norm(norm_type, in_nc) if norm_type else None
+        return sequential(n, a, p, c)
 
 
 def act(act_type, inplace=True, neg_slope=0.2, n_prelu=1):
@@ -61,19 +87,6 @@ def get_valid_padding(kernel_size, dilation):
     return padding
 
 
-class ShortcutBlock(nn.Module):
-    """Element-wise sum the output of a submodule to its input."""
-    def __init__(self, submodule):
-        super().__init__()
-        self.sub = submodule
-
-    def forward(self, x):
-        return x + self.sub(x)
-
-    def __repr__(self):
-        return "Identity + \n|" + self.sub.__repr__().replace("\n", "\n|")
-
-
 def sequential(*args):
     """Flatten Sequential. It unwraps nn.Sequential."""
     if len(args) == 1:
@@ -90,39 +103,17 @@ def sequential(*args):
     return nn.Sequential(*modules)
 
 
-def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=True,
-               pad_type='zero', norm_type=None, act_type: Optional[str] = 'relu', mode='CNA'):
-    """
-    Conv layer with padding, normalization, activation
-    mode: CNA --> Conv -> Norm -> Act
-        NAC --> Norm -> Act --> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
-    """
-    if mode not in ['CNA', 'NAC', 'CNAC']:
-        raise AssertionError('Wong conv mode [%s]' % mode)
-    padding = get_valid_padding(kernel_size, dilation)
-    p = pad(pad_type, padding) if pad_type and pad_type != 'zero' else None
-    padding = padding if pad_type == 'zero' else 0
+class ShortcutBlock(nn.Module):
+    """Element-wise sum the output of a submodule to its input."""
+    def __init__(self, submodule):
+        super().__init__()
+        self.sub = submodule
 
-    c = nn.Conv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias,
-                  groups=groups)
-    a = act(act_type) if act_type else None
-    if 'CNA' in mode:
-        n = norm(norm_type, out_nc) if norm_type else None
-        return sequential(p, c, n, a)
-    if mode == 'NAC':
-        if norm_type is None and act_type is not None:
-            a = act(act_type, inplace=False)
-            # Important!
-            # input----ReLU(inplace)----Conv--+----output
-            #        |________________________|
-            # inplace ReLU will modify the input, therefore wrong output
-        n = norm(norm_type, in_nc) if norm_type else None
-        return sequential(n, a, p, c)
+    def forward(self, x):
+        return x + self.sub(x)
 
-
-####################
-# Upsampler
-####################
+    def __repr__(self):
+        return "Identity + \n|" + self.sub.__repr__().replace("\n", "\n|")
 
 
 def pixelshuffle_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
