@@ -164,7 +164,7 @@ class ShortcutBlock(nn.Module):
         return "Identity + \n|" + self.sub.__repr__().replace("\n", "\n|")
 
 
-def pixelshuffle_block(
+def pixel_shuffle_block(
     in_nc: int,
     out_nc: int,
     upscale_factor: int = 2,

@@ -86,7 +86,7 @@ class ESRGAN(nn.Module):
 
         upsample_block = {
             "upconv": block.upconv_block,
-            "pixel_shuffle": block.pixelshuffle_block
+            "pixel_shuffle": block.pixel_shuffle_block
         }.get(self.upsampler)
         if upsample_block is None:
             raise NotImplementedError("Upsample mode [%s] is not found" % self.upsampler)
