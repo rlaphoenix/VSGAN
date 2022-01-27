@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import uuid
 from typing import Union
 
 import torch
@@ -69,7 +70,7 @@ class ESRGAN(BaseNetwork):
             ),
             functools.partial(
                 self._apply,
-                i=str(len(self.depth_cache)),
+                id_=str(uuid.uuid4()),
                 clip=self.clip,
                 model=self.model,
                 overlap_=overlap
@@ -79,7 +80,7 @@ class ESRGAN(BaseNetwork):
         return self
 
     @torch.inference_mode()
-    def _apply(self, n: int, i: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
+    def _apply(self, n: int, id_: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
         lr_img = frame_to_tensor(clip.get_frame(n))
         lr_img.unsqueeze_(0)
         lr_img = lr_img.to(self.device)
@@ -87,8 +88,8 @@ class ESRGAN(BaseNetwork):
         if lr_img.dtype == torch.half:
             model.half()
 
-        sr_img, depth = tile_tensor_r(lr_img, model, overlap_, self.depth_cache.get(i))
-        self.depth_cache[i] = depth
+        sr_img, depth = tile_tensor_r(lr_img, model, overlap_, self.depth_cache.get(id_))
+        self.depth_cache[id_] = depth
 
         return tensor_to_clip(clip, sr_img)
 
