@@ -1,7 +1,6 @@
 import functools
 from typing import Literal, Optional
 
-import numpy as np
 import torch
 import torch.nn as nn
 # noinspection PyPep8Naming
@@ -363,16 +362,3 @@ def space_to_depth(x: Tensor, scale: int = 4) -> Tensor:
     output = x_reshaped.reshape(n, scale * scale * c, out_h, out_w)
 
     return output
-
-
-def float32_to_uint8(array: np.ndarray) -> np.ndarray:
-    """
-    Convert np.float32 array to np.uint8.
-
-    Args:
-        array: np.float32, (NT)CHW, [0, 1]
-
-    Returns:
-        np.uint8, (NT)CHW, [0, 255]
-    """
-    return np.uint8(np.clip(np.round(array * 255), 0, 255))
