@@ -176,7 +176,7 @@ def pixel_shuffle_block(
     act_type: Optional[ACT_TYPES_T] = "relu"
 ) -> nn.Sequential:
     """
-    Pixel shuffle layer
+    Pixel shuffle layer.
     (Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional
     Neural Network, CVPR17)
 
@@ -199,11 +199,32 @@ def pixel_shuffle_block(
     )
 
 
-def upconv_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
-                 pad_type='zero', norm_type=None, act_type='relu', mode='nearest'):
-    # Up conv
-    # described in https://distill.pub/2016/deconv-checkerboard/
-    upsample = nn.Upsample(scale_factor=upscale_factor, mode=mode)
-    conv = conv_block(in_nc, out_nc, kernel_size, stride, bias=bias,
-                      pad_type=pad_type, norm_type=norm_type, act_type=act_type)
-    return sequential(upsample, conv)
+def upconv_block(
+    in_nc: int,
+    out_nc: int,
+    upscale_factor: int = 2,
+    kernel_size: int = 3,
+    stride: int = 1,
+    bias: bool = True,
+    pad_type: Optional[PAD_TYPES_T] = "zero",
+    norm_type: Optional[NORM_TYPES_T] = None,
+    act_type: Optional[ACT_TYPES_T] = "relu",
+    mode: Literal["nearest", "linear", "bilinear", "bicubic", "trilinear"] = "nearest"
+) -> nn.Sequential:
+    """
+    Upsample Convolution layer.
+    As described in https://distill.pub/2016/deconv-checkerboard/
+    """
+    return sequential(
+        nn.Upsample(scale_factor=upscale_factor, mode=mode),
+        conv_block(
+            in_nc,
+            out_nc,
+            kernel_size,
+            stride,
+            bias=bias,
+            pad_type=pad_type,
+            norm_type=norm_type,
+            act_type=act_type
+        )
+    )
