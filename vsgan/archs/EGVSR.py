@@ -1,4 +1,5 @@
 import functools
+from typing import Literal, Optional
 
 import numpy as np
 import torch
@@ -16,7 +17,16 @@ class EGVSR(nn.Module):
     By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
     """
 
-    def __init__(self, model: str, scale=4, in_nc=3, out_nc=3, nf=64, nb=16, degradation="BI") -> None:
+    def __init__(
+        self,
+        model: str,
+        scale: int = 4,
+        in_nc: int = 3,
+        out_nc: int = 3,
+        nf: int = 64,
+        nb: int = 16,
+        degradation: Literal["BI", "BD"] = "BI"
+    ) -> None:
         super().__init__()
 
         self.model = model
@@ -39,7 +49,7 @@ class EGVSR(nn.Module):
 
         self.load_state_dict(self.state, strict=False)
 
-    def forward(self, lr_curr, lr_prev, hr_prev):
+    def forward(self, lr_curr: Tensor, lr_prev: Tensor, hr_prev: Tensor) -> Tensor:
         """
         Args:
             lr_curr: the current lr data in shape NCHW
@@ -66,7 +76,7 @@ class EGVSR(nn.Module):
 
         return hr_curr
 
-    def forward_sequence(self, lr_data: Tensor):
+    def forward_sequence(self, lr_data: Tensor) -> tuple[Tensor, ...]:
         """
         Args:
             lr_data: lr data in shape NTCHW
@@ -172,7 +182,7 @@ class FNet(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(32, 2, 3, 1, 1, bias=True))
 
-    def forward(self, x1, x2):
+    def forward(self, x1: Tensor, x2: Tensor) -> Tensor:
         """Compute optical flow from x1 to x2."""
         out = self.encoder1(torch.cat([x1, x2], dim=1))
         out = self.encoder2(out)
@@ -187,7 +197,15 @@ class FNet(nn.Module):
 class SRNet(nn.Module):
     """Reconstruction and Upsampling network."""
 
-    def __init__(self, in_nc: int = 3, out_nc: int = 3, nf: int = 64, nb: int = 16, upsample_func=None, scale: int = 4):
+    def __init__(
+        self,
+        in_nc: int = 3,
+        out_nc: int = 3,
+        nf: int = 64,
+        nb: int = 16,
+        upsample_func: Optional[nn.Module] = None,
+        scale: int = 4
+    ):
         super().__init__()
 
         # input conv.
@@ -215,7 +233,7 @@ class SRNet(nn.Module):
         # upsampling function
         self.upsample_func = upsample_func
 
-    def forward(self, lr_curr, hr_prev_tran):
+    def forward(self, lr_curr: Tensor, hr_prev_tran: Tensor) -> Tensor:
         """
         lr_curr: the current lr data in shape nchw
         hr_prev_tran: the previous transformed hr_data in shape n(4*4*c)hw
@@ -240,7 +258,7 @@ class ResidualBlock(nn.Module):
             nn.Conv2d(nf, nf, 3, 1, 1, bias=True)
         )
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         return self.conv(x) + x
 
 
@@ -259,7 +277,7 @@ class BicubicUpsample(nn.Module):
         https://stackoverflow.com/q/26823140/13183782
     """
 
-    def __init__(self, scale_factor, a=-0.75):
+    def __init__(self, scale_factor: int, a: float = -0.75):
         super().__init__()
 
         # calculate weights
@@ -279,7 +297,7 @@ class BicubicUpsample(nn.Module):
         self.scale_factor = scale_factor
         self.register_buffer('kernels', torch.stack(kernels))
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         n, c, h, w = x.size()
         s = self.scale_factor
 
@@ -301,7 +319,12 @@ class BicubicUpsample(nn.Module):
         return output
 
 
-def backward_warp(x: Tensor, flow: Tensor, mode: str = "bilinear", padding_mode: str = "border") -> Tensor:
+def backward_warp(
+    x: Tensor,
+    flow: Tensor,
+    mode: Literal["bilinear", "nearest", "bicubic"] = "bilinear",
+    padding_mode: Literal["zeros", "border", "reflection"] = "border"
+) -> Tensor:
     """
     Backward warp `x` according to `flow`.
     Both x and flow are pytorch tensor in shape `nchw` and `n2hw`.
