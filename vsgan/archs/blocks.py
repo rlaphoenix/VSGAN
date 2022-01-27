@@ -3,17 +3,28 @@ Common Blocks between Architectures.
 """
 
 from collections import OrderedDict
-from typing import Optional
+from typing import Literal, Optional, Union
 
 import torch.nn as nn
 
 
-def conv_block(in_nc, out_nc, kernel_size, stride=1, dilation=1, groups=1, bias=True,
-               pad_type='zero', norm_type=None, act_type: Optional[str] = 'relu', mode='CNA'):
+def conv_block(
+    in_nc: int,
+    out_nc: int,
+    kernel_size: Union[int, tuple[int, ...]],
+    stride: Union[int, tuple[int, ...]] = 1,
+    dilation: Union[int, tuple[int, ...]] = 1,
+    groups: int = 1,
+    bias: bool = True,
+    pad_type: Optional[str] = "zero",
+    norm_type: Optional[str] = None,
+    act_type: Optional[str] = "relu",
+    mode: Literal["CNA", "NAC", "CNAC"] = "CNA"
+):
     """
-    Conv layer with padding, normalization, activation
-    mode: CNA --> Conv -> Norm -> Act
-        NAC --> Norm -> Act --> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
+    Convolution layer with Padding, Normalization, and Activation layers.
+    mode: CNA: Conv -> Norm -> Act
+          NAC: Norm -> Act  -> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
     """
     if mode not in ['CNA', 'NAC', 'CNAC']:
         raise AssertionError('Wong conv mode [%s]' % mode)
