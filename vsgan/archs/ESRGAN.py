@@ -276,15 +276,6 @@ class RealESRGANv2(nn.Module):
         self.pixel_shuffle_shape = self.get_pixel_shuffle_shape()
         self.scale = self.get_scale()
 
-        # activation
-        activation = {
-            "relu": nn.ReLU(inplace=True),
-            "prelu": nn.PReLU(num_parameters=self.num_feat),
-            "leakyrelu": nn.LeakyReLU(negative_slope=0.1, inplace=True)
-        }.get(self.act_type)
-        if activation is None:
-            raise ValueError("Activation type [%s] was unrecognized" % self.act_type)
-
         # body structure
         self.body = nn.ModuleList()
         for n in range(self.num_conv + 1):
