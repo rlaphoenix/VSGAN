@@ -23,7 +23,7 @@ class BaseNetwork:
         if not isinstance(clip, vs.VideoNode):
             raise ValueError(f"This is not a clip, {clip!r}")
 
-        if clip.format.color_family.name != "RGB":
+        if clip.format.color_family != vs.RGB:
             raise ValueError("Only RGB clips are supported. RGB24 or RGBS recommended.")
 
         device = device.strip().lower() if isinstance(device, str) else device
