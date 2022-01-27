@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import functools
 import uuid
-from typing import Union
+from typing import Literal, Union
 
 import torch
 import vapoursynth as vs
@@ -31,7 +31,7 @@ class EGVSR(BaseNetwork):
         out_nc: int = 3,
         nf: int = 64,
         nb: int = 16,
-        degradation: str = "BI"
+        degradation: Literal["BI", "BD"] = "BI"
     ) -> EGVSR:
         """
         Load an EGVSR model file and send to the PyTorch device.
