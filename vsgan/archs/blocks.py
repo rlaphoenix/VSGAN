@@ -2,7 +2,6 @@
 Common Blocks between Architectures.
 """
 
-from collections import OrderedDict
 from typing import Literal, Optional, Union
 
 import torch.nn as nn
@@ -135,19 +134,19 @@ def get_valid_padding(kernel_size, dilation):
     return padding
 
 
-def sequential(*args):
-    """Flatten Sequential. It unwraps nn.Sequential."""
-    if len(args) == 1:
-        if isinstance(args[0], OrderedDict):
-            raise NotImplementedError('sequential does not support OrderedDict input.')
-        return args[0]  # No sequential is needed.
+def sequential(*args: Union[nn.Sequential, nn.Module]) -> nn.Sequential:
+    """
+    Flatten inputs into a single Sequential in the order provided.
+    Any input that is not a Sequential or Module will be discarded.
+    """
     modules = []
-    for module in args:
-        if isinstance(module, nn.Sequential):
-            for submodule in module.children():
+    for arg in args:
+        if isinstance(arg, nn.Sequential):
+            for submodule in arg.children():
                 modules.append(submodule)
-        elif isinstance(module, nn.Module):
-            modules.append(module)
+        elif isinstance(arg, nn.Module):
+            modules.append(arg)
+
     return nn.Sequential(*modules)
 
 
