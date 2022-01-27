@@ -128,7 +128,8 @@ def pad(pad_type: PAD_TYPES_T, padding: int) -> Union[nn.ReflectionPad2d, nn.Rep
     raise NotImplementedError(f"Padding layer [{pad_type}] is not supported.")
 
 
-def get_valid_padding(kernel_size, dilation):
+def get_valid_padding(kernel_size: int, dilation: int) -> int:
+    """Calculate a padding amount based on kernel size and dilation."""
     kernel_size = kernel_size + (kernel_size - 1) * (dilation - 1)
     padding = (kernel_size - 1) // 2
     return padding
