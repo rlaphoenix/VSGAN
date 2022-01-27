@@ -20,32 +20,48 @@ def conv_block(
     norm_type: Optional[str] = None,
     act_type: Optional[str] = "relu",
     mode: Literal["CNA", "NAC", "CNAC"] = "CNA"
-):
+) -> nn.Sequential:
     """
     Convolution layer with Padding, Normalization, and Activation layers.
     mode: CNA: Conv -> Norm -> Act
           NAC: Norm -> Act  -> Conv (Identity Mappings in Deep Residual Networks, ECCV16)
     """
-    if mode not in ['CNA', 'NAC', 'CNAC']:
-        raise AssertionError('Wong conv mode [%s]' % mode)
-    padding = get_valid_padding(kernel_size, dilation)
-    p = pad(pad_type, padding) if pad_type and pad_type != 'zero' else None
-    padding = padding if pad_type == 'zero' else 0
+    if mode not in ("CNA", "NAC", "CNAC"):
+        raise ValueError(f"Unsupported Convolution mode: {mode}")
 
-    c = nn.Conv2d(in_nc, out_nc, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias,
-                  groups=groups)
-    a = act(act_type) if act_type else None
-    if 'CNA' in mode:
-        n = norm(norm_type, out_nc) if norm_type else None
+    # Padding layer
+    padding = get_valid_padding(kernel_size, dilation)
+    p = pad(pad_type, padding) if pad_type and pad_type != "zero" else None
+    padding = padding if pad_type == "zero" else 0
+
+    # Convolution layer
+    c = nn.Conv2d(
+        in_nc,
+        out_nc,
+        kernel_size=kernel_size,
+        stride=stride,
+        padding=padding,
+        dilation=dilation,
+        groups=groups,
+        bias=bias
+    )
+
+    # Normalization layer
+    n = norm(norm_type, in_nc if mode == "NAC" else out_nc) if norm_type else None
+
+    # Activation layer
+    a = act(
+        act_type,
+        # Important! inplace ReLU will modify the input, therefore wrong output
+        # input----ReLU(inplace)----Conv--+----output
+        #        |________________________|
+        inplace=mode != "NAC" and norm_type is None
+    ) if act_type else None
+
+    if mode in ("CNA", "CNAC"):
         return sequential(p, c, n, a)
-    if mode == 'NAC':
-        if norm_type is None and act_type is not None:
-            a = act(act_type, inplace=False)
-            # Important!
-            # input----ReLU(inplace)----Conv--+----output
-            #        |________________________|
-            # inplace ReLU will modify the input, therefore wrong output
-        n = norm(norm_type, in_nc) if norm_type else None
+
+    if mode == "NAC":
         return sequential(n, a, p, c)
 
 
