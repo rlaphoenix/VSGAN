@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import uuid
 from typing import Union
 
 import torch
@@ -72,6 +73,7 @@ class EGVSR(BaseNetwork):
             ),
             functools.partial(
                 self._apply,
+                id_=str(uuid.uuid4()),
                 clip=self.clip,
                 model=self.model,
                 interval_=interval
@@ -81,8 +83,9 @@ class EGVSR(BaseNetwork):
         return self
 
     @torch.inference_mode()
-    def _apply(self, n: int, clip: vs.VideoNode, model: torch.nn.Module, interval_: int) -> vs.VideoNode:
-        if str(n) not in self.tensor_cache:
+    def _apply(self, n: int, id_: str, clip: vs.VideoNode, model: torch.nn.Module, interval_: int) -> vs.VideoNode:
+        frame_id = f"{id_}-{n}"
+        if frame_id not in self.tensor_cache:
             self.tensor_cache.clear()  # don't keep unused frames in RAM
 
             lr_images = [frame_to_tensor(clip.get_frame(n))]
@@ -105,9 +108,9 @@ class EGVSR(BaseNetwork):
 
             sr_images = sr_images.squeeze(0)
             for i in range(sr_images.shape[0]):  # interval
-                self.tensor_cache[str(n + i)] = tensor_to_clip(clip, sr_images[i, :, :, :])
+                self.tensor_cache[f"{id_}-{n + i}"] = tensor_to_clip(clip, sr_images[i, :, :, :])
 
-        return self.tensor_cache[str(n)]
+        return self.tensor_cache[frame_id]
 
 
 __ALL__ = (EGVSR,)
