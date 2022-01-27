@@ -16,9 +16,9 @@ def conv_block(
     dilation: Union[int, tuple[int, ...]] = 1,
     groups: int = 1,
     bias: bool = True,
-    pad_type: Optional[str] = "zero",
-    norm_type: Optional[str] = None,
-    act_type: Optional[str] = "relu",
+    pad_type: Optional[Literal["reflect", "replicate", "zero"]] = "zero",
+    norm_type: Optional[Literal["batch", "instance"]] = None,
+    act_type: Optional[Literal["relu", "leakyrelu", "prelu"]] = "relu",
     mode: Literal["CNA", "NAC", "CNAC"] = "CNA"
 ) -> nn.Sequential:
     """
@@ -65,47 +65,65 @@ def conv_block(
         return sequential(n, a, p, c)
 
 
-def act(act_type, inplace=True, neg_slope=0.2, n_prelu=1):
-    # helper selecting activation
-    # neg_slope: for leakyrelu and init of prelu
-    # n_prelu: for p_relu num_parameters
+def act(
+    act_type: Literal["relu", "leakyrelu", "prelu"], inplace: bool = True, neg_slope: float = 0.2, n_prelu: int = 1
+) -> Union[nn.ReLU, nn.LeakyReLU, nn.PReLU]:
+    """
+    Helper for creating an Activation layer.
+
+    Parameters:
+        act_type: The Activation layer function to use.
+        inplace: Do the operation in-place, used for 'relu' and 'leakyrelu'.
+        neg_slope: Controls the angle of the negative slope, used for 'leakyrelu'.
+            Also used as the initial value in 'prelu'.
+        n_prelu: Number of parameters to learn, used for 'prelu'.
+    """
     act_type = act_type.lower()
-    if act_type == 'relu':
-        layer = nn.ReLU(inplace)
-    elif act_type == 'leakyrelu':
-        layer = nn.LeakyReLU(neg_slope, inplace)
-    elif act_type == 'prelu':
-        layer = nn.PReLU(num_parameters=n_prelu, init=neg_slope)
-    else:
-        raise NotImplementedError('activation layer [%s] is not found' % act_type)
-    return layer
+    if act_type == "relu":
+        return nn.ReLU(inplace)
+    elif act_type == "leakyrelu":
+        return nn.LeakyReLU(neg_slope, inplace)
+    elif act_type == "prelu":
+        return nn.PReLU(num_parameters=n_prelu, init=neg_slope)
+    raise NotImplementedError(f"Activation layer [{act_type}] is not supported.")
 
 
-def norm(norm_type, nc):
-    # helper selecting normalization layer
+def norm(norm_type: Literal["batch", "instance"], nc: int) -> Union[nn.BatchNorm2d, nn.InstanceNorm2d]:
+    """
+    Helper for creating a Normalization layer.
+
+    Parameters:
+        norm_type: The Normalization layer function to use.
+        nc: The number of channels.
+    """
     norm_type = norm_type.lower()
-    if norm_type == 'batch':
-        layer = nn.BatchNorm2d(nc, affine=True)
-    elif norm_type == 'instance':
-        layer = nn.InstanceNorm2d(nc, affine=False)
-    else:
-        raise NotImplementedError('normalization layer [%s] is not found' % norm_type)
-    return layer
+    if norm_type == "batch":
+        return nn.BatchNorm2d(nc, affine=True)
+    elif norm_type == "instance":
+        return nn.InstanceNorm2d(nc, affine=False)
+    raise NotImplementedError(f"Normalization layer [{norm_type}] is not supported.")
 
 
-def pad(pad_type, padding):
-    # helper selecting padding layer
-    # if padding is 'zero', do by conv layers
+def pad(
+    pad_type: Literal["reflect", "replicate", "zero"], padding: int
+) -> Union[nn.ReflectionPad2d, nn.ReplicationPad2d, None]:
+    """
+    Helper for creating a Padding layer.
+
+    Parameters:
+        pad_type: The Padding layer function to use.
+        padding: The padding amount.
+
+    Returns no layer if padding amount is 0.
+    """
     pad_type = pad_type.lower()
     if padding == 0:
         return None
-    if pad_type == 'reflect':
-        layer = nn.ReflectionPad2d(padding)
-    elif pad_type == 'replicate':
-        layer = nn.ReplicationPad2d(padding)
-    else:
-        raise NotImplementedError('padding layer [%s] is not implemented' % pad_type)
-    return layer
+    if pad_type == "reflect":
+        return nn.ReflectionPad2d(padding)
+    elif pad_type == "replicate":
+        return nn.ReplicationPad2d(padding)
+    raise NotImplementedError(f"Padding layer [{pad_type}] is not supported.")
 
 
 def get_valid_padding(kernel_size, dilation):
