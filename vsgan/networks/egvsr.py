@@ -17,6 +17,7 @@ class EGVSR(BaseNetwork):
     """
     EGVSR - Efficient & Generic Video Super-Resolution.
     By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
+    https://arxiv.org/abs/2107.05307
     """
 
     def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):

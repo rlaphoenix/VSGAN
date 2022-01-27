@@ -18,6 +18,12 @@ class ESRGAN(BaseNetwork):
     ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
     By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
     and Chen Change Loy.
+
+    Supported Models:
+    - ESRGAN (old/new): https://arxiv.org/abs/1809.00219
+    - ESRGAN+: https://arxiv.org/abs/2001.08073
+    - Real-ESRGAN (v1/v2): https://arxiv.org/abs/2107.10833
+    - A-ESRGAN: https://arxiv.org/abs/2112.10046
     """
 
     def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
