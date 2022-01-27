@@ -68,14 +68,10 @@ class ShortcutBlock(nn.Module):
         self.sub = submodule
 
     def forward(self, x):
-        output = x + self.sub(x)
-        return output
+        return x + self.sub(x)
 
     def __repr__(self):
-        tmpstr = 'Identity + \n|'
-        modstr = self.sub.__repr__().replace('\n', '\n|')
-        tmpstr = tmpstr + modstr
-        return tmpstr
+        return "Identity + \n|" + self.sub.__repr__().replace("\n", "\n|")
 
 
 def sequential(*args):
