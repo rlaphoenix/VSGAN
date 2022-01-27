@@ -163,28 +163,39 @@ class ShortcutBlock(nn.Module):
         return "Identity + \n|" + self.sub.__repr__().replace("\n", "\n|")
 
 
-def pixelshuffle_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
-                       pad_type='zero', norm_type=None, act_type='relu'):
+def pixelshuffle_block(
+    in_nc: int,
+    out_nc: int,
+    upscale_factor: int = 2,
+    kernel_size: int = 3,
+    stride: int = 1,
+    bias: bool = True,
+    pad_type: Optional[PAD_TYPES_T] = "zero",
+    norm_type: Optional[NORM_TYPES_T] = None,
+    act_type: Optional[ACT_TYPES_T] = "relu"
+) -> nn.Sequential:
     """
     Pixel shuffle layer
     (Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional
     Neural Network, CVPR17)
-    """
-    conv = conv_block(
-        in_nc,
-        out_nc * (upscale_factor ** 2),
-        kernel_size,
-        stride,
-        bias=bias,
-        pad_type=pad_type,
-        norm_type=None,
-        act_type=None
-    )
-    pixel_shuffle = nn.PixelShuffle(upscale_factor)
 
-    n = norm(norm_type, out_nc) if norm_type else None
-    a = act(act_type) if act_type else None
-    return sequential(conv, pixel_shuffle, n, a)
+    Order: C,P,Ps,N,A
+    """
+    return sequential(
+        conv_block(
+            in_nc,
+            out_nc * (upscale_factor ** 2),
+            kernel_size,
+            stride,
+            bias=bias,
+            pad_type=pad_type,
+            norm_type=None,
+            act_type=None
+        ),
+        nn.PixelShuffle(upscale_factor),
+        norm(norm_type, out_nc) if norm_type else None,
+        act(act_type) if act_type else None
+    )
 
 
 def upconv_block(in_nc, out_nc, upscale_factor=2, kernel_size=3, stride=1, bias=True,
