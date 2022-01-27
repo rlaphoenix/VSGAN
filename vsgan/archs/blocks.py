@@ -5,7 +5,6 @@ Common Blocks between Architectures.
 from collections import OrderedDict
 from typing import Optional
 
-import torch
 import torch.nn as nn
 
 ####################
@@ -60,23 +59,6 @@ def get_valid_padding(kernel_size, dilation):
     kernel_size = kernel_size + (kernel_size - 1) * (dilation - 1)
     padding = (kernel_size - 1) // 2
     return padding
-
-
-class ConcatBlock(nn.Module):
-    # Concat the output of a submodule to its input
-    def __init__(self, submodule):
-        super().__init__()
-        self.sub = submodule
-
-    def forward(self, x):
-        output = torch.cat((x, self.sub(x)), dim=1)
-        return output
-
-    def __repr__(self):
-        tmpstr = 'Identity .. \n|'
-        modstr = self.sub.__repr__().replace('\n', '\n|')
-        tmpstr = tmpstr + modstr
-        return tmpstr
 
 
 class ShortcutBlock(nn.Module):
