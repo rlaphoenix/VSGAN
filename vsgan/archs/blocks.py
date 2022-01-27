@@ -7,6 +7,11 @@ from typing import Literal, Optional, Union
 
 import torch.nn as nn
 
+CONV_MODE_T = Literal["CNA", "NAC", "CNAC"]
+PAD_TYPES_T = Literal["reflect", "replicate", "zero"]
+NORM_TYPES_T = Literal["batch", "instance"]
+ACT_TYPES_T = Literal["relu", "leakyrelu", "prelu"]
+
 
 def conv_block(
     in_nc: int,
@@ -16,10 +21,10 @@ def conv_block(
     dilation: Union[int, tuple[int, ...]] = 1,
     groups: int = 1,
     bias: bool = True,
-    pad_type: Optional[Literal["reflect", "replicate", "zero"]] = "zero",
-    norm_type: Optional[Literal["batch", "instance"]] = None,
-    act_type: Optional[Literal["relu", "leakyrelu", "prelu"]] = "relu",
-    mode: Literal["CNA", "NAC", "CNAC"] = "CNA"
+    pad_type: Optional[PAD_TYPES_T] = "zero",
+    norm_type: Optional[NORM_TYPES_T] = None,
+    act_type: Optional[ACT_TYPES_T] = "relu",
+    mode: CONV_MODE_T = "CNA"
 ) -> nn.Sequential:
     """
     Convolution layer with Padding, Normalization, and Activation layers.
@@ -66,7 +71,7 @@ def conv_block(
 
 
 def act(
-    act_type: Literal["relu", "leakyrelu", "prelu"], inplace: bool = True, neg_slope: float = 0.2, n_prelu: int = 1
+    act_type: ACT_TYPES_T, inplace: bool = True, neg_slope: float = 0.2, n_prelu: int = 1
 ) -> Union[nn.ReLU, nn.LeakyReLU, nn.PReLU]:
     """
     Helper for creating an Activation layer.
@@ -88,7 +93,7 @@ def act(
     raise NotImplementedError(f"Activation layer [{act_type}] is not supported.")
 
 
-def norm(norm_type: Literal["batch", "instance"], nc: int) -> Union[nn.BatchNorm2d, nn.InstanceNorm2d]:
+def norm(norm_type: NORM_TYPES_T, nc: int) -> Union[nn.BatchNorm2d, nn.InstanceNorm2d]:
     """
     Helper for creating a Normalization layer.
 
@@ -104,9 +109,7 @@ def norm(norm_type: Literal["batch", "instance"], nc: int) -> Union[nn.BatchNorm
     raise NotImplementedError(f"Normalization layer [{norm_type}] is not supported.")
 
 
-def pad(
-    pad_type: Literal["reflect", "replicate", "zero"], padding: int
-) -> Union[nn.ReflectionPad2d, nn.ReplicationPad2d, None]:
+def pad(pad_type: PAD_TYPES_T, padding: int) -> Union[nn.ReflectionPad2d, nn.ReplicationPad2d, None]:
     """
     Helper for creating a Padding layer.
 
