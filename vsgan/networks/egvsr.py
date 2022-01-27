@@ -8,7 +8,7 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan import archs
+from vsgan.archs import EGVSR as EGVSR_arch
 from vsgan.networks.basenetwork import BaseNetwork
 from vsgan.utilities import frame_to_tensor, tensor_to_clip
 
@@ -50,7 +50,7 @@ class EGVSR(BaseNetwork):
             nb: Number of blocks.
             degradation: Upsample Function.
         """
-        model = archs.EGVSR(model, scale, in_nc, out_nc, nf, nb, degradation)
+        model = EGVSR_arch(model, scale, in_nc, out_nc, nf, nb, degradation)
         model.eval()
         self.model = model.to(self.device)
         return self
