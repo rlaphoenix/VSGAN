@@ -62,7 +62,7 @@ def get_valid_padding(kernel_size, dilation):
 
 
 class ShortcutBlock(nn.Module):
-    # Elementwise sum the output of a submodule to its input
+    """Element-wise sum the output of a submodule to its input."""
     def __init__(self, submodule):
         super().__init__()
         self.sub = submodule
@@ -79,7 +79,7 @@ class ShortcutBlock(nn.Module):
 
 
 def sequential(*args):
-    # Flatten Sequential. It unwraps nn.Sequential.
+    """Flatten Sequential. It unwraps nn.Sequential."""
     if len(args) == 1:
         if isinstance(args[0], OrderedDict):
             raise NotImplementedError('sequential does not support OrderedDict input.')
