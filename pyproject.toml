@@ -6,9 +6,7 @@ build-backend = 'poetry.core.masonry.api'
 name = 'vsgan'
 version = '1.6.4'
 description = 'VapourSynth Single Image Super-Resolution Generative Adversarial Network (GAN)'
-authors = [
-    'PHOENiX <rlaphoenix@pm.me>',
-]
+authors = ['rlaphoenix <rlaphoenix@pm.me>']
 license = 'MIT'
 readme = 'README.md'
 homepage = 'https://github.com/rlaphoenix/vsgan'
@@ -23,15 +21,23 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4.0"
-numpy = "^1.21.1"
-VapourSynth = {version = "^57", optional = true}
+python = ">=3.7,<3.11"
+numpy = [
+    {version = "^1.21.6", python = "^3.7"},
+    {version = "^1.23.1", python = ">=3.8"}
+]
+VapourSynth = [
+    # https://github.com/vapoursynth/vapoursynth/issues/858
+    {version = "^48", optional = true, python = "^3.7"},
+    {version = "^57", optional = true, python = "^3.9"},
+    {version = "^59", optional = true, python = ">=3.10 || ^3.8"},
+]
 torch = {version = "^1.10.0", optional = true}
 Sphinx = {version = "^4.3.2", optional = true}
-furo = {version = "^2021.11.23", optional = true}
-dunamai = {version = "^1.7.0", optional = true}
+furo = {version = "^2022.06.21", optional = true}
+dunamai = {version = "^1.12.0", optional = true}
 m2r2 = {version = "^0.3.2", optional = true}
-sphinxcontrib-youtube = {version = "^1.0.1", optional = true}
+sphinxcontrib-youtube = {version = "^1.2.0", optional = true}
 sphinxcontrib-images = {version = "^0.9.4", optional = true}
 
 [tool.poetry.extras]
