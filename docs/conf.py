@@ -1,12 +1,13 @@
 # Configuration file for the Sphinx documentation builder.
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+from datetime import datetime
 
 from dunamai import Style, Version
 
 # -- Project information -----------------------------------------------------
 
 project = 'VSGAN'
-copyright = '2019-2021, rlaphoenix'
+copyright = f'2019-{datetime.now().year}, rlaphoenix'
 author = 'rlaphoenix'
 
 version = Version.from_git().serialize(style=Style.SemVer)
