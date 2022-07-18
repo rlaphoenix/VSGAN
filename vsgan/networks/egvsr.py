@@ -26,7 +26,7 @@ class EGVSR(BaseNetwork):
 
     def load(
         self,
-        model: str,
+        state: str,
         scale: int = 4,
         in_nc: int = 3,
         out_nc: int = 3,
@@ -35,15 +35,11 @@ class EGVSR(BaseNetwork):
         degradation: Literal["BI", "BD"] = "BI"
     ) -> EGVSR:
         """
-        Load an EGVSR model file and send to the PyTorch device.
-        The model can be changed at any point.
-
-        Supported Model Files:
-        - Must be a Generator model.
-        - EGVSR only.
+        Load an EGVSR model state file and send to the PyTorch device.
+        The model state can be changed at any point.
 
         Parameters:
-            model: Path to a supported PyTorch Model file.
+            state: Path to a supported PyTorch Model file.
             scale: Model Scale, the resulting scale relative to the input.
             in_nc: Input number of channels.
             out_nc: Output number of channels.
@@ -51,7 +47,7 @@ class EGVSR(BaseNetwork):
             nb: Number of blocks.
             degradation: Upsample Function.
         """
-        model = EGVSR_arch(model, scale, in_nc, out_nc, nf, nb, degradation)
+        model = EGVSR_arch(state, scale, in_nc, out_nc, nf, nb, degradation)
         model.eval()
         self.model = model.to(self.device)
         return self

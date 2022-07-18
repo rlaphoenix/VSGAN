@@ -45,13 +45,13 @@ class BaseNetwork:
         self.model: Optional[torch.nn.Module] = None
 
     @abstractmethod
-    def load(self, model: str) -> BaseNetwork:
+    def load(self, state: str) -> BaseNetwork:
         """
-        Load a PyTorch model file and send to the PyTorch device.
-        The model can be changed at any point.
+        Load a PyTorch model state file and send to the PyTorch device.
+        The model state can be changed at any point.
 
         Parameters:
-            model: Path to a supported PyTorch Model file.
+            state: Path to a supported PyTorch .pth Model state file.
         """
 
     @abstractmethod

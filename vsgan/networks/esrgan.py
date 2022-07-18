@@ -30,10 +30,10 @@ class ESRGAN(BaseNetwork):
         super().__init__(clip, device)
         self.depth_cache: dict = {}
 
-    def load(self, model: str) -> ESRGAN:
+    def load(self, state: str) -> ESRGAN:
         """
-        Load an ESRGAN model file and send to the PyTorch device.
-        The model can be changed at any point.
+        Load an ESRGAN model state file and send to the PyTorch device.
+        The model state can be changed at any point.
 
         Supported Model Files:
         - Must be a Generator model.
@@ -43,9 +43,9 @@ class ESRGAN(BaseNetwork):
         - A-ESRGAN
 
         Parameters:
-            model: Path to a supported PyTorch Model file.
+            state: Path to a supported PyTorch .pth Model state file.
         """
-        state = torch.load(model)
+        state = torch.load(state)
         if "params" in state and "body.0.weight" in state["params"]:
             arch = archs.RealESRGANv2
         else:
