@@ -52,7 +52,7 @@ class ESRGAN(BaseNetwork):
             arch = archs.ESRGAN
         model = arch(state)
         model.eval()
-        self.model = model.to(self.device)
+        self._model = model.to(self._device)
         return self
 
     def apply(self, overlap: int = 16) -> ESRGAN:
@@ -65,20 +65,20 @@ class ESRGAN(BaseNetwork):
         Parameters:
             overlap: Amount to overlap each tile as to hide artefact seams.
         """
-        if not self.model:
+        if not self._model:
             raise ValueError("A model must be loaded before running.")
 
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
                 clip=self.clip,
-                width=self.clip.width * self.model.scale,
-                height=self.clip.height * self.model.scale
+                width=self.clip.width * self._model.scale,
+                height=self.clip.height * self._model.scale
             ),
             functools.partial(
                 self._apply,
                 id_=str(uuid.uuid4()),
                 clip=self.clip,
-                model=self.model,
+                model=self._model,
                 overlap_=overlap
             )
         )
@@ -89,7 +89,7 @@ class ESRGAN(BaseNetwork):
     def _apply(self, n: int, id_: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
         lr_img = frame_to_tensor(clip.get_frame(n))
         lr_img.unsqueeze_(0)
-        lr_img = lr_img.to(self.device)
+        lr_img = lr_img.to(self._device)
 
         if lr_img.dtype == torch.half:
             model.half()

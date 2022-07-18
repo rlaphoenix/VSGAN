@@ -41,8 +41,8 @@ class BaseNetwork:
             raise EnvironmentError("Either NVIDIA CUDA or the device (%s) isn't available." % device)
 
         self.clip: vs.VideoNode = clip
-        self.device: torch.device = torch.device(device)
-        self.model: Optional[torch.nn.Module] = None
+        self._device: torch.device = torch.device(device)
+        self._model: Optional[torch.nn.Module] = None
 
     @abstractmethod
     def load(self, state: str) -> BaseNetwork:

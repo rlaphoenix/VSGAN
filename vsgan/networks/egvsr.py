@@ -49,7 +49,7 @@ class EGVSR(BaseNetwork):
         """
         model = EGVSR_arch(state, scale, in_nc, out_nc, nf, nb, degradation)
         model.eval()
-        self.model = model.to(self.device)
+        self._model = model.to(self._device)
         return self
 
     def apply(self, interval: int = 5) -> EGVSR:
@@ -59,20 +59,20 @@ class EGVSR(BaseNetwork):
         Parameters:
             interval: Amount of frames ahead to inference. Must be greater than 0.
         """
-        if not self.model:
+        if not self._model:
             raise ValueError("A model must be loaded before running.")
 
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
                 clip=self.clip,
-                width=self.clip.width * self.model.scale,
-                height=self.clip.height * self.model.scale
+                width=self.clip.width * self._model.scale,
+                height=self.clip.height * self._model.scale
             ),
             functools.partial(
                 self._apply,
                 id_=str(uuid.uuid4()),
                 clip=self.clip,
-                model=self.model,
+                model=self._model,
                 interval_=interval
             )
         )
@@ -101,7 +101,7 @@ class EGVSR(BaseNetwork):
                 lr_images = lr_images.to(torch.float32)
                 # model.half()
 
-            sr_images, _, _, _, _ = model.forward_sequence(lr_images.to(self.device))
+            sr_images, _, _, _, _ = model.forward_sequence(lr_images.to(self._device))
 
             sr_images = sr_images.squeeze(0)
             for i in range(sr_images.shape[0]):  # interval
