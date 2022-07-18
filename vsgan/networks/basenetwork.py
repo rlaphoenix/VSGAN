@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Optional, Union
+from typing import Union
 
 import torch
 import vapoursynth as vs
 
 
 class BaseNetwork:
-    def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
+    def __init__(self, clip: vs.VideoNode, *devices: Union[str, int]):
         """
         Create a PyTorch Device instance to use VSGAN with.
         It validates the supplied pytorch device identifier, and makes
@@ -17,32 +17,39 @@ class BaseNetwork:
         Parameters:
             clip: VapourSynth Video Node (aka clip). It must be RGB
                 color-space.
-            device: PyTorch device identifier to use for the model. E.g.,
-                "cuda", "cpu", 0, 1, and so on.
+            devices: One or more PyTorch device identifiers to use for the model.
+                E.g., "cuda", "cuda:0", "cpu", 0, 1, and so on.
         """
         if not isinstance(clip, vs.VideoNode):
             raise ValueError(f"This is not a clip, {clip!r}")
 
+        if not devices:
+            raise ValueError("A Torch Device must be specified.")
+
         if clip.format.color_family != vs.RGB:
             raise ValueError("Only RGB clips are supported. RGB24 or RGBS recommended.")
 
-        device = device.strip().lower() if isinstance(device, str) else device
-        if device == "":
-            raise ValueError("Device must be provided.")
-        if device == "cpu":
+        if any(str(x).lower() == "cpu" for x in devices):
             raise UserWarning(
                 "VSGAN blocked an attempt to use your CPU as the torch device. "
                 "Using your CPU will run it at very high utilisation and may lower its lifespan. "
                 "If you are sure you would like to use your CPU, then use `cpu!`."
             )
-        if device == "cpu!":
-            device = "cpu"
-        if device != "cpu" and not torch.cuda.is_available():
-            raise EnvironmentError("Either NVIDIA CUDA or the device (%s) isn't available." % device)
+
+        if any("cuda" in str(x) for x in devices) and not torch.cuda.is_available():
+            raise EnvironmentError("CUDA Torch Device Specified but either NVIDIA CUDA or the device isn't available.")
+
+        devices = [
+            [x, "cpu"][str(x).lower() == "cpu!"]
+            for x in devices
+        ]
 
         self.clip: vs.VideoNode = clip
-        self._device: torch.device = torch.device(device)
-        self._model: Optional[torch.nn.Module] = None
+        self._devices: list[torch.device] = [
+            torch.device(x)
+            for x in devices
+        ]
+        self._models: list[torch.nn.Module] = []
 
     @abstractmethod
     def load(self, state: str) -> BaseNetwork:

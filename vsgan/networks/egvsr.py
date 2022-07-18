@@ -20,8 +20,8 @@ class EGVSR(BaseNetwork):
     https://arxiv.org/abs/2107.05307
     """
 
-    def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
-        super().__init__(clip, device)
+    def __init__(self, clip: vs.VideoNode, *devices: Union[str, int]):
+        super().__init__(clip, *devices)
         self.tensor_cache: dict = {}
 
     def load(
@@ -47,9 +47,13 @@ class EGVSR(BaseNetwork):
             nb: Number of blocks.
             degradation: Upsample Function.
         """
-        model = EGVSR_arch(state, scale, in_nc, out_nc, nf, nb, degradation)
-        model.eval()
-        self._model = model.to(self._device)
+        self._models.clear()
+
+        for device in self._devices:
+            model = EGVSR_arch(state, scale, in_nc, out_nc, nf, nb, degradation)
+            model.eval()
+            self._models.append(model.to(device))
+
         return self
 
     def apply(self, interval: int = 5) -> EGVSR:
@@ -59,20 +63,22 @@ class EGVSR(BaseNetwork):
         Parameters:
             interval: Amount of frames ahead to inference. Must be greater than 0.
         """
-        if not self._model:
+        if not self._models:
             raise ValueError("A model must be loaded before running.")
 
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
                 clip=self.clip,
-                width=self.clip.width * self._model.scale,
-                height=self.clip.height * self._model.scale
+                width=self.clip.width * self._models[0].scale,
+                height=self.clip.height * self._models[0].scale
             ),
             functools.partial(
                 self._apply,
+                # must pass any argument that may change here, otherwise it will only use
+                # the last change, even if you executed apply() before the change!
                 id_=str(uuid.uuid4()),
                 clip=self.clip,
-                model=self._model,
+                models=self._models,
                 interval_=interval
             )
         )
@@ -80,10 +86,24 @@ class EGVSR(BaseNetwork):
         return self
 
     @torch.inference_mode()
-    def _apply(self, n: int, id_: str, clip: vs.VideoNode, model: torch.nn.Module, interval_: int) -> vs.VideoNode:
+    def _apply(
+        self,
+        n: int,
+        id_: str,
+        clip: vs.VideoNode,
+        models: list[torch.nn.Module],
+        interval_: int
+    ) -> vs.VideoNode:
         frame_id = f"{id_}-{n}"
         if frame_id not in self.tensor_cache:
             self.tensor_cache.clear()  # don't keep unused frames in RAM
+
+            # split the workload evenly between n devices loaded at construction
+            device_index = n % len(self._devices)
+
+            # model's storage device should match chosen device, unless modified externally
+            device = self._devices[device_index]
+            model = models[device_index]
 
             lr_images = [frame_to_tensor(clip.get_frame(n))]
             for i in range(1, interval_):
@@ -94,7 +114,7 @@ class EGVSR(BaseNetwork):
             lr_images = torch\
                 .stack(lr_images)\
                 .unsqueeze(0)\
-                .to(self._device)\
+                .to(device)\
                 .clamp(0, 1)
 
             if lr_images.dtype == torch.half:
@@ -106,7 +126,6 @@ class EGVSR(BaseNetwork):
                 # model.half()
 
             sr_images, _, _, _, _ = model.forward_sequence(lr_images)
-
             sr_images = sr_images.squeeze(0)
             for i in range(sr_images.shape[0]):  # interval
                 self.tensor_cache[f"{id_}-{n + i}"] = tensor_to_clip(clip, sr_images[i, :, :, :])

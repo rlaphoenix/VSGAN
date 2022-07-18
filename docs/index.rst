@@ -26,7 +26,7 @@ image data.
 .. code:: shell
 
     from vsgan import ESRGAN
-    clip = ESRGAN(clip, device="cuda").\
+    clip = ESRGAN(clip, "cuda:0").\
         load(r"C:\Users\PHOENiX\Documents\PSNR_x4_DB.pth").\
         apply().\
         load(r"C:\Users\PHOENiX\Documents\4X_DoubleRunExample.pth").\

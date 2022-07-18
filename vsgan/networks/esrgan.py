@@ -26,8 +26,8 @@ class ESRGAN(BaseNetwork):
     - A-ESRGAN: https://arxiv.org/abs/2112.10046
     """
 
-    def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
-        super().__init__(clip, device)
+    def __init__(self, clip: vs.VideoNode, *devices: Union[str, int]):
+        super().__init__(clip, *devices)
         self.depth_cache: dict = {}
 
     def load(self, state: str) -> ESRGAN:
@@ -50,9 +50,14 @@ class ESRGAN(BaseNetwork):
             arch = archs.RealESRGANv2
         else:
             arch = archs.ESRGAN
-        model = arch(state)
-        model.eval()
-        self._model = model.to(self._device)
+
+        self._models.clear()
+
+        for device in self._devices:
+            model = arch(state)
+            model.eval()
+            self._models.append(model.to(device))
+
         return self
 
     def apply(self, overlap: int = 16) -> ESRGAN:
@@ -65,20 +70,22 @@ class ESRGAN(BaseNetwork):
         Parameters:
             overlap: Amount to overlap each tile as to hide artefact seams.
         """
-        if not self._model:
+        if not self._models:
             raise ValueError("A model must be loaded before running.")
 
         self.clip = core.std.FrameEval(
             core.std.BlankClip(
                 clip=self.clip,
-                width=self.clip.width * self._model.scale,
-                height=self.clip.height * self._model.scale
+                width=self.clip.width * self._models[0].scale,
+                height=self.clip.height * self._models[0].scale
             ),
             functools.partial(
                 self._apply,
+                # must pass any argument that may change here, otherwise it will only use
+                # the last change, even if you executed apply() before the change!
                 id_=str(uuid.uuid4()),
                 clip=self.clip,
-                model=self._model,
+                models=self._models,
                 overlap_=overlap
             )
         )
@@ -86,9 +93,23 @@ class ESRGAN(BaseNetwork):
         return self
 
     @torch.inference_mode()
-    def _apply(self, n: int, id_: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
+    def _apply(
+        self,
+        n: int,
+        id_: str,
+        clip: vs.VideoNode,
+        models: list[torch.nn.Module],
+        overlap_: int
+    ) -> vs.VideoNode:
+        # split the workload evenly between n devices loaded at construction
+        device_index = n % len(self._devices)
+
+        # model's storage device should match chosen device, unless modified externally
+        device = self._devices[device_index]
+        model = models[device_index]
+
         lr_img = frame_to_tensor(clip.get_frame(n))\
-            .to(self._device)\
+            .to(device)\
             .clamp(0, 1)\
             .unsqueeze(0)
 
