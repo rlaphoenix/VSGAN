@@ -32,24 +32,24 @@ def frame_to_tensor(f: vs.VideoFrame, as_f16=True) -> torch.Tensor:
         f: VapourSynth VideoFrame from a clip.
         as_f16: Convert to float16 in 0,1 range.
     """
-    tensor = torch.stack(tuple(
-        torch.frombuffer(
-            buffer=mv.tobytes(),  # plane as contiguous data
+    array = np.stack([
+        np.asarray(
+            get_frame_plane(f, plane),
             dtype=VS_DTYPE_MAP[f.format.name]
-        ).reshape(mv.shape)
+        )
         for plane in range(f.format.num_planes)
-        for mv in [get_frame_plane(f, plane)]
-    ))
+    ])
 
-    if as_f16 and not tensor.is_floating_point():
+    if as_f16 and f.format.sample_type != vs.FLOAT:
         # convert to unsigned int -> float16 -> clamp to 0,1 range
         # 0,1 range is required for most model networks
         bps = f.format.bytes_per_sample * 8
         size = (2 ** f.format.bits_per_sample) - 1
-        array = tensor.numpy().astype(np.dtype(f"uint{bps}"))
+        array = array.astype(np.dtype(f"uint{bps}"))
         # float16 is just enough for up to RGB48
         array = array.astype(np.dtype("float16")) / size
-        tensor = torch.from_numpy(array)
+
+    tensor = torch.from_numpy(array)
 
     return tensor
 
