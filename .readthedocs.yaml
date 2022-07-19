@@ -1,10 +1,13 @@
 version: 2
 
-python:
-  version: 3.8
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs
-        - pytorch
+build:
+  os: ubuntu-20.04
+  tools: {python: "3.8"}
+  jobs:
+    pre_create_environment:
+      - asdf plugin add poetry
+      - asdf install poetry latest
+      - asdf global poetry latest
+      - poetry config virtualenvs.create false
+    post_install:
+      - poetry install --no-dev -E "pytorch docs"
