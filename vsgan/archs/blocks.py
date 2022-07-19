@@ -2,6 +2,8 @@
 Common Blocks between Architectures.
 """
 
+from __future__ import annotations
+
 from typing import Literal, Optional, Union
 
 import torch.nn as nn
