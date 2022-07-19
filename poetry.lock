@@ -475,14 +475,21 @@ test = ["pytest", "html5lib"]
 [[package]]
 name = "sphinxcontrib-images"
 version = "0.9.4"
-description = "Sphinx extension for thumbnails"
+description = ""
 category = "main"
 optional = true
 python-versions = "*"
+develop = false
 
 [package.dependencies]
 requests = ">2.2,<3"
 sphinx = {version = ">=2.0", markers = "python_version >= \"3.0\""}
+
+[package.source]
+type = "git"
+url = "https://github.com/rlaphoenix/sphinxcontrib-images.git"
+reference = "master"
+resolved_reference = "41ed3ebf3ddceee785128814182e3c2d6fd50e62"
 
 [[package]]
 name = "sphinxcontrib-jsmath"
@@ -637,7 +644,7 @@ vs = ["VapourSynth"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.11"
-content-hash = "9f0ddd39ad11be676d07ad5a36b2784389b69863f4f0b3c9d8132116f6dd06f9"
+content-hash = "579b508801ac983c0ccd782753dbd5a7740d45a7910bccc694915f1ef06d2c1b"
 
 [metadata.files]
 alabaster = []
