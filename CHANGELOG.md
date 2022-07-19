@@ -305,7 +305,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial Release.
 
-[Unreleased]: https://github.com/rlaphoenix/VSGAN/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/rlaphoenix/VSGAN/compare/v1.7.0...HEAD
+[1.6.4]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.4
+[1.6.3]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.3
+[1.6.2]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.2
+[1.6.1]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.1
+[1.6.0]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.0
 [1.5.0]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.5.0
 [1.4.1]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.4.1
 [1.4.0]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.4.0
