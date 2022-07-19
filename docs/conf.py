@@ -33,6 +33,8 @@ exclude_patterns = [
 
 templates_path = ['_templates']
 
+autodoc_mock_imports = ['vapoursynth']
+
 # -- Options for internationalization ----------------------------------------
 
 language = 'en'
