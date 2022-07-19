@@ -73,22 +73,38 @@ class ESRGAN(BaseNetwork):
         if not self._models:
             raise ValueError("A model must be loaded before running.")
 
-        self.clip = core.std.FrameEval(
-            core.std.BlankClip(
-                clip=self.clip,
-                width=self.clip.width * self._models[0].scale,
-                height=self.clip.height * self._models[0].scale
-            ),
-            functools.partial(
-                self._apply,
-                # must pass any argument that may change here, otherwise it will only use
-                # the last change, even if you executed apply() before the change!
-                id_=str(uuid.uuid4()),
-                clip=self.clip,
-                models=self._models,
-                overlap_=overlap
+        cycle = len(self._devices)
+
+        if cycle > 1:
+            clips = [
+                core.std.SelectEvery(clip=self.clip, cycle=cycle, offsets=n)
+                for n in range(cycle)
+            ]
+        else:
+            clips = [self.clip]
+
+        clips = [
+            core.std.FrameEval(
+                core.std.BlankClip(
+                    clip=clip,
+                    width=clip.width * self._models[0].scale,
+                    height=clip.height * self._models[0].scale
+                ),
+                functools.partial(
+                    self._apply,
+                    # must pass any argument that may change here, otherwise it will only use
+                    # the last change, even if you executed apply() before the change!
+                    id_=str(uuid.uuid4()),
+                    clip=clip,
+                    device=self._devices[i],
+                    model=self._models[i],
+                    overlap_=overlap
+                )
             )
-        )
+            for i, clip in enumerate(clips)
+        ]
+
+        self.clip = core.std.Interleave(clips)
 
         return self
 
@@ -98,16 +114,10 @@ class ESRGAN(BaseNetwork):
         n: int,
         id_: str,
         clip: vs.VideoNode,
-        models: list[torch.nn.Module],
+        device: torch.device,
+        model: torch.nn.Module,
         overlap_: int
     ) -> vs.VideoNode:
-        # split the workload evenly between n devices loaded at construction
-        device_index = n % len(self._devices)
-
-        # model's storage device should match chosen device, unless modified externally
-        device = self._devices[device_index]
-        model = models[device_index]
-
         lr_img = frame_to_tensor(clip.get_frame(n))\
             .to(device)\
             .clamp(0, 1)\
