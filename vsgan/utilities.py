@@ -51,7 +51,7 @@ def frame_to_tensor(f: vs.VideoFrame, as_f16=True) -> torch.Tensor:
         array = array.astype(np.dtype("float16")) / size
         tensor = torch.from_numpy(array)
 
-    return tensor.clamp(0, 1)
+    return tensor
 
 
 def tensor_to_frame(f: vs.VideoFrame, t: torch.Tensor) -> vs.VideoFrame:

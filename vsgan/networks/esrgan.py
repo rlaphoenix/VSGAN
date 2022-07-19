@@ -87,9 +87,10 @@ class ESRGAN(BaseNetwork):
 
     @torch.inference_mode()
     def _apply(self, n: int, id_: str, clip: vs.VideoNode, model: torch.nn.Module, overlap_: int) -> vs.VideoNode:
-        lr_img = frame_to_tensor(clip.get_frame(n))
-        lr_img.unsqueeze_(0)
-        lr_img = lr_img.to(self._device)
+        lr_img = frame_to_tensor(clip.get_frame(n))\
+            .to(self._device)\
+            .clamp(0, 1)\
+            .unsqueeze(0)
 
         if lr_img.dtype == torch.half:
             model.half()

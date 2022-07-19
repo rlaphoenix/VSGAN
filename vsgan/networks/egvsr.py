@@ -90,8 +90,12 @@ class EGVSR(BaseNetwork):
                 if (n + i) >= clip.num_frames:
                     break
                 lr_images.append(frame_to_tensor(clip.get_frame(n + i)))
-            lr_images = torch.stack(lr_images)
-            lr_images = lr_images.unsqueeze(0)
+
+            lr_images = torch\
+                .stack(lr_images)\
+                .unsqueeze(0)\
+                .to(self._device)\
+                .clamp(0, 1)
 
             if lr_images.dtype == torch.half:
                 # TODO: Fix EGVSR arch Half-precision support
@@ -101,7 +105,7 @@ class EGVSR(BaseNetwork):
                 lr_images = lr_images.to(torch.float32)
                 # model.half()
 
-            sr_images, _, _, _, _ = model.forward_sequence(lr_images.to(self._device))
+            sr_images, _, _, _, _ = model.forward_sequence(lr_images)
 
             sr_images = sr_images.squeeze(0)
             for i in range(sr_images.shape[0]):  # interval

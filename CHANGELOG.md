@@ -31,6 +31,8 @@ support Python 3.7. Version 1.7.0 will only be released when the `multi-gpu` bra
   dependency issues.
 - Docs copyright year is now up-to-date and automated for the future.
 - Add missing future annotations import on architectures, fixing Python 3.7
+- Some VapourSynth frames when converted to a tensor would be slightly out of the 0,1 range bounds.
+  Tensors are now clamped 0,1 after being passed to a device, not within frame_to_tensor.
 
 ## [1.6.4] - 2022-01-25
 
