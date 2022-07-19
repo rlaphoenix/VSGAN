@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+All changes listed will likely be released as v1.7.0 which will likely be the last major release to
+support Python 3.7. Version 1.7.0 will only be released when the `multi-gpu` branch is merged or removed.
+
+### Added
+
+- Full Support for Python 3.10.
+
+### Changed
+
+- Updated Versioning support matrix for VapourSynth versions respective to Python 3.7-3.10.
+  Python 3.7, 3.9, and 3.8 + 3.10 now use correct latest versions instead of r57 on all.
+- Updated numpy to v1.23.1, or v1.21.6 for Python 3.7.
+- The `load` method of Network's have has the `model` parameter renamed to `state`.
+  The doc-strings have also been reflected. This is to reflect more closely to what the "model"
+  parameter actually is, a state file (.pth), not a "model" per-say.
+- The `device` and `model` class instance variables have been privatized to `_device` and `_model`.
+  This is to discourage access to them externally, especially manually altering their value.
+
+### Fixed
+
+- Docs Interface/API page now shows the interfaces/classes/utilities. This was a build bug due to VapourSynth
+  dependency issues.
+- Docs copyright year is now up-to-date and automated for the future.
+- Add missing future annotations import on architectures, fixing Python 3.7
+
 ## [1.6.4] - 2022-01-25
 
 ### Changed
