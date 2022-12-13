@@ -1,7 +1,8 @@
 [flake8]
 ignore =
-    W503,  # line break before binary operator (W503)
+    # line break before binary operator (W503)
+    W503,
 exclude =
-    .venv,  # poetry virtual-env
-    build,  # poetry builds
+    .venv,
+    build,
 max-line-length=120
