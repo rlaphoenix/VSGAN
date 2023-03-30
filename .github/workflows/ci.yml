@@ -14,13 +14,7 @@ jobs:
     strategy:
       matrix:
         include:
-          # this is a matrix of all 3.7-3.10 VapourSynth versions
-          - python-version: '3.7'
-            vapoursynth-version: '45.1'
-          - python-version: '3.7'
-            vapoursynth-version: '46'
-          - python-version: '3.7'
-            vapoursynth-version: '47.2'
+          # this is a matrix of all 3.8-3.11 VapourSynth versions
           - python-version: '3.8'
             vapoursynth-version: '49'
           - python-version: '3.8'
@@ -55,6 +49,10 @@ jobs:
             vapoursynth-version: '61'
           - python-version: '3.10'
             vapoursynth-version: '61'
+          - python-version: '3.8'
+            vapoursynth-version: '62'
+          - python-version: '3.11'
+            vapoursynth-version: '62'
 
     steps:
     - uses: actions/checkout@v3

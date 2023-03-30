@@ -21,16 +21,13 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.11"
-numpy = [
-    {version = "^1.21.6", python = "^3.7"},
-    {version = "^1.23.1", python = ">=3.8"}
-]
+python = ">=3.8,<3.12"
+numpy = "^1.24.2"
 VapourSynth = [
     # https://github.com/vapoursynth/vapoursynth/issues/858
-    {version = "^48", optional = true, python = "^3.7"},
     {version = "^57", optional = true, python = "^3.9"},
-    {version = "^59", optional = true, python = ">=3.10 || ^3.8"},
+    {version = "^61", optional = true, python = "^3.10"},
+    {version = "^62", optional = true, python = ">=3.11 || ^3.8"},
 ]
 torch = {version = "^1.13.1", optional = true}
 Sphinx = {version = "^4.3.2", optional = true}
