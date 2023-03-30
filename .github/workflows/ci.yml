@@ -9,34 +9,77 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-18.04
+    # compilation of zimg v2.8 and v2.9 fails on ubuntu-22.04 for some reason
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        # must be supported by install-vapoursynth-action (linux)
-        python-version: ['3.7', '3.8', '3.9']
+        include:
+          # this is a matrix of all 3.7-3.10 VapourSynth versions
+          - python-version: '3.7'
+            vapoursynth-version: '45.1'
+          - python-version: '3.7'
+            vapoursynth-version: '46'
+          - python-version: '3.7'
+            vapoursynth-version: '47.2'
+          - python-version: '3.8'
+            vapoursynth-version: '49'
+          - python-version: '3.8'
+            vapoursynth-version: '50'
+          - python-version: '3.8'
+            vapoursynth-version: '51'
+          - python-version: '3.8'
+            vapoursynth-version: '52'
+          - python-version: '3.9'
+            vapoursynth-version: '53'
+          - python-version: '3.9'
+            vapoursynth-version: '54'
+          - python-version: '3.9'
+            vapoursynth-version: '55'
+          - python-version: '3.9'
+            vapoursynth-version: '56'
+          - python-version: '3.9'
+            vapoursynth-version: '57'
+          - python-version: '3.8'
+            vapoursynth-version: '58'
+          - python-version: '3.10'
+            vapoursynth-version: '58'
+          - python-version: '3.8'
+            vapoursynth-version: '59'
+          - python-version: '3.10'
+            vapoursynth-version: '59'
+          - python-version: '3.8'
+            vapoursynth-version: '60'
+          - python-version: '3.10'
+            vapoursynth-version: '60'
+          - python-version: '3.8'
+            vapoursynth-version: '61'
+          - python-version: '3.10'
+            vapoursynth-version: '61'
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install VapourSynth
-      uses: Irrational-Encoding-Wizardry/install-vapoursynth-action@0.1.1
+    - name: Install VapourSynth R${{ matrix.vapoursynth-version }}
+      uses: rlaphoenix/install-vapoursynth-action@a3efdd83bdeda6df58ed8d6a725faaa12a34052f
       with:
-        version: 50
+        version: ${{ matrix.vapoursynth-version }}
         cache: true
-    - name: Install dependencies
+    - name: Install Poetry
+      uses: abatilo/actions-poetry@v2.3.0
+    - name: Install project
+      run: poetry install --no-dev
+    - name: Install flake8 and isort
+      run: python -m pip install flake8 isort
+    - name: Lint with flake8
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install build isort flake8
-    - name: Check import order with isort
-      run: |
-        isort --check-only --diff .
-    - name: Lint errors and bad practices with flake8
-      run: |
+        # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --statistics
-    - name: Build wheel and sdist
-      run: |
-        python -m build
+    - name: Check import order with isort
+      run: isort --check-only --diff .
+    - name: Build project
+      run: poetry build
