@@ -27,8 +27,8 @@ may need to install an older version to continue.
 .. _VapourSynth: https://vapoursynth.com/doc/installation.html
 .. _PyTorch: https://pytorch.org/get-started/locally
 
-1. Python_ 3.7 or newer. Must be a version supported by both VapourSynth_ and PyTorch_.
-2. VapourSynth_ r48 or newer.
+1. Python_ 3.8 or newer. Must be a version supported by both VapourSynth_ and PyTorch_.
+2. VapourSynth_ r49 or newer.
 
    - ⚠️ The Pip/PyPI package `VapourSynth` is *not* what you want to install.
 3. PyTorch_ 1.10.0 or newer.
