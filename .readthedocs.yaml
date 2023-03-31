@@ -10,4 +10,4 @@ build:
       - asdf global poetry latest
       - poetry config virtualenvs.create false
     post_install:
-      - poetry install --no-dev -E "pytorch docs"
+      - poetry install --only main -E "pytorch docs"
