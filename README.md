@@ -1,6 +1,7 @@
 ![banner](https://rawcdn.githack.com/rlaphoenix/VSGAN/d7ad537bffb52bdbd1ad07c825cf016964ac57a2/banner.png)
 
 [![Build status](https://github.com/rlaphoenix/VSGAN/actions/workflows/ci.yml/badge.svg)](https://github.com/rlaphoenix/VSGAN/actions/workflows/ci.yml)
+[![Docs Status](https://readthedocs.org/projects/vsgan/badge/?version=stable)](https://vsgan.phoeniix.dev/en/stable/?badge=stable)
 [![Python versions](https://img.shields.io/pypi/pyversions/VSGAN)](https://python.org)
 [![VapourSynth versions](https://img.shields.io/badge/vapoursynth-R49%2B-informational)](https://vapoursynth.com)
 [![DeepSource](https://deepsource.io/gh/rlaphoenix/VSGAN.svg/?label=active+issues&token=VWrr63j6jeWmT-QkIDpS0R9W)](https://deepsource.io/gh/rlaphoenix/VSGAN/?ref=repository-badge)
