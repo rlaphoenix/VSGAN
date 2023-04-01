@@ -42,6 +42,9 @@ language = 'en'
 # -- Options for HTML output -------------------------------------------------
 
 html_theme = 'furo'
+html_theme_options = {
+    "sidebar_hide_name": True
+}
 html_logo = '_static/images/icon.png'
 html_static_path = ['_static']
 
