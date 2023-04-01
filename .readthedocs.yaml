@@ -10,4 +10,9 @@ build:
       - asdf global poetry latest
       - poetry config virtualenvs.create false
     post_install:
-      - poetry install --only main -E "pytorch docs"
+      # Ideally we could run `poetry install --only main -E "pytorch docs"`, However,
+      # for some reason the sphinx build call is unable to find anything it installed.
+      # So for now just export as requirements.txt and install them that way.
+      - poetry self add poetry-plugin-export
+      - poetry export -f requirements.txt --output requirements.txt --without-hashes --without dev -E "pytorch docs"
+      - pip install -r requirements.txt
