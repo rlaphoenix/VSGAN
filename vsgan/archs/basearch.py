@@ -6,6 +6,8 @@ from typing import Optional, Union
 import torch
 import vapoursynth as vs
 
+from vsgan.constants import STATE_T
+
 
 class BaseArch:
     def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
@@ -45,7 +47,7 @@ class BaseArch:
         self._model: Optional[torch.nn.Module] = None
 
     @abstractmethod
-    def load(self, state: str) -> BaseArch:
+    def load(self, state: str) -> STATE_T:
         """
         Load a PyTorch model state file and send to the PyTorch device.
         The model state can be changed at any point.
@@ -53,6 +55,16 @@ class BaseArch:
         Parameters:
             state: Path to a supported PyTorch .pth Model state file.
         """
+        state_dict = torch.load(state)
+
+        if "params_ema" in state_dict:
+            state_dict = state_dict["params_ema"]
+        elif "params-ema" in state_dict:
+            state_dict = state_dict["params-ema"]
+        elif "params" in state_dict:
+            state_dict = state_dict["params"]
+
+        return state_dict
 
     @abstractmethod
     def apply(self, overlap: int = 16) -> BaseArch:

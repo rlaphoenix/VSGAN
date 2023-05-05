@@ -69,9 +69,6 @@ class RRDBNet(nn.Module):
             )
         }
 
-        if "params_ema" in self.state:
-            self.state = self.state["params_ema"]
-
         self.num_blocks = self.get_num_blocks()
         self.plus = any("conv1x1" in k for k in self.state.keys())
 

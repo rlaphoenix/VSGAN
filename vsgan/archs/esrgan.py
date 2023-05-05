@@ -46,12 +46,12 @@ class ESRGAN(BaseArch):
         Parameters:
             state: Path to a supported PyTorch .pth Model state file.
         """
-        state = torch.load(state)
-        if "params" in state and "body.0.weight" in state["params"]:
+        state_dict = super().load(state)
+        if "body.0.weight" in state_dict:
             arch = SRVGGNetCompact
         else:
             arch = RRDBNet
-        model = arch(state)
+        model = arch(state_dict)
         model.eval()
         self._model = model.to(self._device)
         return self

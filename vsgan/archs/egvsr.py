@@ -47,8 +47,8 @@ class EGVSR(BaseArch):
             nb: Number of blocks.
             degradation: Upsample Function.
         """
-        state = torch.load(state)
-        model = FRNet(state, scale, in_nc, out_nc, nf, nb, degradation)
+        state_dict = super().load(state)
+        model = FRNet(state_dict, scale, in_nc, out_nc, nf, nb, degradation)
         model.eval()
         self._model = model.to(self._device)
         return self

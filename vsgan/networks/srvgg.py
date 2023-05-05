@@ -32,9 +32,6 @@ class SRVGGNetCompact(nn.Module):
         self.state = state
         self.act_type = act_type
 
-        if "params" in self.state:
-            self.state = self.state["params"]
-
         self.state_keys = list(self.state.keys())
 
         self.num_in_ch = self.get_in_nc()
