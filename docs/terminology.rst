@@ -14,6 +14,10 @@ Architecture
 Network
     A collection of interconnected components or nodes that work together to learn patterns in data.
 
+Block
+    A function or set of mathematical operations that processes input data in a specific way, such as convolution,
+    normalization, or padding.
+
 Generator (G) Network
     Transformed input data to new output data based on the Networks layers.
 
