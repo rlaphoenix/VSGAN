@@ -5,14 +5,14 @@ Single Image
     Using the data from one image for one output image.
 
 Model
-    The Generator Network of an Architecture.
-
-Network
-    Module itself that comprises of other modules (layers) that perform operations on data.
+    A file containing the learned parameters of a Network that can be used for inference or further training.
 
 Architecture
-    A combination of Networks with specific purposes. E.g., a GAN network would consist of a Generator (G)
-    Network as well as a Discriminator (D) Network.
+    One or more interconnected Networks. For example, a GAN architecture would consist of both a Generator (G)
+    Network and a Discriminator (D) Network.
+
+Network
+    A collection of interconnected components or nodes that work together to learn patterns in data.
 
 Generator (G) Network
     Transformed input data to new output data based on the Networks layers.
