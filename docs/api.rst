@@ -12,11 +12,11 @@ property of the Network object.
 Networks
 --------
 
-.. autoclass:: vsgan.networks.esrgan.ESRGAN
+.. autoclass:: vsgan.archs.ESRGAN
    :member-order: bysource
    :members:
 
-.. autoclass:: vsgan.networks.egvsr.EGVSR
+.. autoclass:: vsgan.archs.EGVSR
    :member-order: bysource
    :members:
 

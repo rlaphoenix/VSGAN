@@ -8,12 +8,12 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan.archs import EGVSR as EGVSR_arch
-from vsgan.networks.basenetwork import BaseNetwork
+from vsgan.archs.basearch import BaseArch
+from vsgan.networks.frnet import FRNet
 from vsgan.utilities import frame_to_tensor, tensor_to_clip
 
 
-class EGVSR(BaseNetwork):
+class EGVSR(BaseArch):
     """
     EGVSR - Efficient & Generic Video Super-Resolution.
     By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
@@ -47,7 +47,8 @@ class EGVSR(BaseNetwork):
             nb: Number of blocks.
             degradation: Upsample Function.
         """
-        model = EGVSR_arch(state, scale, in_nc, out_nc, nf, nb, degradation)
+        state = torch.load(state)
+        model = FRNet(state, scale, in_nc, out_nc, nf, nb, degradation)
         model.eval()
         self._model = model.to(self._device)
         return self

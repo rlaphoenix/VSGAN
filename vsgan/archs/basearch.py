@@ -7,7 +7,7 @@ import torch
 import vapoursynth as vs
 
 
-class BaseNetwork:
+class BaseArch:
     def __init__(self, clip: vs.VideoNode, device: Union[str, int] = "cuda"):
         """
         Create a PyTorch Device instance to use VSGAN with.
@@ -45,7 +45,7 @@ class BaseNetwork:
         self._model: Optional[torch.nn.Module] = None
 
     @abstractmethod
-    def load(self, state: str) -> BaseNetwork:
+    def load(self, state: str) -> BaseArch:
         """
         Load a PyTorch model state file and send to the PyTorch device.
         The model state can be changed at any point.
@@ -55,7 +55,7 @@ class BaseNetwork:
         """
 
     @abstractmethod
-    def apply(self, overlap: int = 16) -> BaseNetwork:
+    def apply(self, overlap: int = 16) -> BaseArch:
         """
         Apply the model on each frame of the clip.
 
@@ -65,3 +65,6 @@ class BaseNetwork:
         Parameters:
             overlap: Amount to overlap each tile as to hide artefact seams.
         """
+
+
+__ALL__ = (BaseArch,)

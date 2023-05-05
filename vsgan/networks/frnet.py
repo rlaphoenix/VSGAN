@@ -4,23 +4,18 @@ import functools
 from typing import Literal, Optional
 
 import torch
-import torch.nn as nn
-# noinspection PyPep8Naming
-import torch.nn.functional as F
-from torch import Tensor
+from torch import Tensor, nn
+from torch.nn.functional import conv2d, grid_sample, interpolate, pad
 
 from vsgan.constants import STATE_T
 
 
-class EGVSR(nn.Module):
-    """
-    EGVSR - Efficient & Generic Video Super-Resolution.
-    By Yanpeng Cao, Chengcheng Wang, Changjun Song, Yongming Tang, and He Li.
-    """
+class FRNet(nn.Module):
+    """Frame-recurrent network proposed in https://arxiv.org/abs/1801.04590."""
 
     def __init__(
         self,
-        model: str,
+        state: STATE_T,
         scale: int = 4,
         in_nc: int = 3,
         out_nc: int = 3,
@@ -30,8 +25,7 @@ class EGVSR(nn.Module):
     ) -> None:
         super().__init__()
 
-        self.model = model
-        self.state: STATE_T = torch.load(self.model)
+        self.state = state
         self.in_nc = in_nc
         self.out_nc = out_nc
         self.scale = scale
@@ -39,7 +33,7 @@ class EGVSR(nn.Module):
         self.num_blocks = nb
 
         self.upsample_func = {
-            "BI": functools.partial(F.interpolate, scale_factor=scale, mode="bilinear", align_corners=False),
+            "BI": functools.partial(interpolate, scale_factor=scale, mode="bilinear", align_corners=False),
             "BD": BicubicUpsample(scale_factor=scale)
         }.get(degradation)
         if self.upsample_func is None:
@@ -52,19 +46,18 @@ class EGVSR(nn.Module):
 
     def forward(self, lr_curr: Tensor, lr_prev: Tensor, hr_prev: Tensor) -> Tensor:
         """
-        Args:
+        Parameters:
             lr_curr: the current lr data in shape NCHW
             lr_prev: the previous lr data in shape NCHW
             hr_prev: the previous hr data in shape NC(4H)(4W)
         """
-
         # estimate lr flow (lr_curr -> lr_prev)
         lr_flow = self.fnet(lr_curr, lr_prev)
 
         # pad if size is not a multiple of 8
         pad_h = lr_curr.size(2) - lr_curr.size(2) // 8 * 8
         pad_w = lr_curr.size(3) - lr_curr.size(3) // 8 * 8
-        lr_flow_pad = F.pad(lr_flow, (0, pad_w, 0, pad_h), 'reflect')
+        lr_flow_pad = pad(lr_flow, (0, pad_w, 0, pad_h), "reflect")
 
         # upsample lr flow
         hr_flow = self.scale * self.upsample_func(lr_flow_pad)
@@ -79,10 +72,9 @@ class EGVSR(nn.Module):
 
     def forward_sequence(self, lr_data: Tensor) -> tuple[Tensor, ...]:
         """
-        Args:
+        Parameters:
             lr_data: lr data in shape NTCHW
         """
-
         n, t, c, lr_h, lr_w = lr_data.size()
         hr_h, hr_w = lr_h * self.scale, lr_w * self.scale
 
@@ -132,6 +124,8 @@ class EGVSR(nn.Module):
             lr_flow   # n(t-1),2,lr_h,lr_w
         )
 
+
+# Networks only used by FRNet
 
 class FNet(nn.Module):
     """Optical flow estimation network."""
@@ -188,9 +182,9 @@ class FNet(nn.Module):
         out = self.encoder1(torch.cat([x1, x2], dim=1))
         out = self.encoder2(out)
         out = self.encoder3(out)
-        out = F.interpolate(self.decoder1(out), scale_factor=2, mode='bilinear', align_corners=False)
-        out = F.interpolate(self.decoder2(out), scale_factor=2, mode='bilinear', align_corners=False)
-        out = F.interpolate(self.decoder3(out), scale_factor=2, mode='bilinear', align_corners=False)
+        out = interpolate(self.decoder1(out), scale_factor=2, mode="bilinear", align_corners=False)
+        out = interpolate(self.decoder2(out), scale_factor=2, mode="bilinear", align_corners=False)
+        out = interpolate(self.decoder3(out), scale_factor=2, mode="bilinear", align_corners=False)
         out = torch.tanh(self.flow(out)) * 24  # 24 is the max velocity
         return out
 
@@ -248,6 +242,8 @@ class SRNet(nn.Module):
         return out
 
 
+# Blocks only used by FRNet
+
 class ResidualBlock(nn.Module):
     """Residual block without batch normalization."""
 
@@ -296,29 +292,31 @@ class BicubicUpsample(nn.Module):
 
         # register parameters
         self.scale_factor = scale_factor
-        self.register_buffer('kernels', torch.stack(kernels))
+        self.register_buffer("kernels", torch.stack(kernels))
 
     def forward(self, x: Tensor) -> Tensor:
         n, c, h, w = x.size()
         s = self.scale_factor
 
         # pad input (left, right, top, bottom)
-        x = F.pad(x, (1, 2, 1, 2), mode='replicate')
+        x = pad(x, (1, 2, 1, 2), mode="replicate")
 
         # calculate output (height)
         kernel_h = self.kernels.repeat(c, 1).view(-1, 1, s, 1)
-        output = F.conv2d(x, kernel_h, stride=1, padding=0, groups=c)
+        output = conv2d(x, kernel_h, stride=1, padding=0, groups=c)
         output = output.reshape(
             n, c, s, -1, w + 3).permute(0, 1, 3, 2, 4).reshape(n, c, -1, w + 3)
 
         # calculate output (width)
         kernel_w = self.kernels.repeat(c, 1).view(-1, 1, 1, s)
-        output = F.conv2d(output, kernel_w, stride=1, padding=0, groups=c)
+        output = conv2d(output, kernel_w, stride=1, padding=0, groups=c)
         output = output.reshape(
             n, c, s, h * s, -1).permute(0, 1, 3, 4, 2).reshape(n, c, h * s, -1)
 
         return output
 
+
+# Utilities only used by FRNet
 
 def backward_warp(
     x: Tensor,
@@ -349,7 +347,7 @@ def backward_warp(
     grid = (grid + flow).permute(0, 2, 3, 1)
 
     # bilinear sampling
-    output = F.grid_sample(x, grid, mode=mode, padding_mode=padding_mode, align_corners=True)
+    output = grid_sample(x, grid, mode=mode, padding_mode=padding_mode, align_corners=True)
 
     return output
 
@@ -364,3 +362,6 @@ def space_to_depth(x: Tensor, scale: int = 4) -> Tensor:
     output = x_reshaped.reshape(n, scale * scale * c, out_h, out_w)
 
     return output
+
+
+__ALL__ = (FRNet, FNet, SRNet, ResidualBlock, BicubicUpsample, backward_warp, space_to_depth)

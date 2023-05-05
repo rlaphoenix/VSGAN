@@ -8,21 +8,22 @@ import torch
 import vapoursynth as vs
 from vapoursynth import core
 
-from vsgan import archs
-from vsgan.networks.basenetwork import BaseNetwork
+from vsgan.archs.basearch import BaseArch
+from vsgan.networks.rrdb import RRDBNet
+from vsgan.networks.srvgg import SRVGGNetCompact
 from vsgan.utilities import frame_to_tensor, tensor_to_clip, tile_tensor_r
 
 
-class ESRGAN(BaseNetwork):
+class ESRGAN(BaseArch):
     """
     ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
     By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
     and Chen Change Loy.
 
-    Supported Models:
+    Supported Model architectures:
     - ESRGAN (old/new): https://arxiv.org/abs/1809.00219
     - ESRGAN+: https://arxiv.org/abs/2001.08073
-    - Real-ESRGAN (v1/v2): https://arxiv.org/abs/2107.10833
+    - Real-ESRGAN (v1 only): https://arxiv.org/abs/2107.10833
     - A-ESRGAN: https://arxiv.org/abs/2112.10046
     """
 
@@ -47,9 +48,9 @@ class ESRGAN(BaseNetwork):
         """
         state = torch.load(state)
         if "params" in state and "body.0.weight" in state["params"]:
-            arch = archs.RealESRGANv2
+            arch = SRVGGNetCompact
         else:
-            arch = archs.ESRGAN
+            arch = RRDBNet
         model = arch(state)
         model.eval()
         self._model = model.to(self._device)

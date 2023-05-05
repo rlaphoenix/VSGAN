@@ -7,43 +7,38 @@ from typing import Literal, Optional
 
 import torch
 import torch.nn as nn
-# noinspection PyPep8Naming
-import torch.nn.functional as F
-from torch import pixel_unshuffle
+from torch.nn.functional import pixel_unshuffle
 
-from vsgan.archs import blocks as block
+from vsgan import blocks
 from vsgan.constants import STATE_T
 
 
-class ESRGAN(nn.Module):
-    """
-    ESRGAN - Enhanced Super-Resolution Generative Adversarial Networks.
-    By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
-    and Chen Change Loy.
-    """
-
+class RRDBNet(nn.Module):
     def __init__(
         self,
         state: STATE_T,
-        norm: Optional[block.NORM_TYPES_T] = None,
-        act: Optional[block.ACT_TYPES_T] = "leakyrelu",
+        norm: Optional[blocks.NORM_TYPES_T] = None,
+        act: Optional[blocks.ACT_TYPES_T] = "leakyrelu",
         upsampler: Literal["upconv", "pixel_shuffle"] = "upconv",
-        mode: block.CONV_MODE_T = "CNA"
+        mode: blocks.CONV_MODE_T = "CNA"
     ) -> None:
         """
-        This is old-arch Residual in Residual Dense Block Network and is not
-        the newest revision that's available at github.com/xinntao/ESRGAN.
-        This is on purpose, the newest Network has severely limited the
-        potential use of the Network with no benefits.
+        Residual in Residual Dense Block Network.
 
-        This network supports model files from both new and old-arch.
+        This is based on the old original ESRGAN code tagged `old-arch` as
+        the latest code in the ESRGAN and BasicSR repositories have severely
+        shot itself in the foot and removed some features like 1x scale support.
 
-        Args:
+        Regardless, the code was updated to support PyTorch models trained on
+        both the old and new network. Internally it will translate new model
+        states to the old model state.
+
+        Parameters:
             state: PyTorch Model State dictionary.
-            norm: Normalization layer
-            act: Activation layer
-            upsampler: Upsample layer. upconv, pixel_shuffle
-            mode: Convolution mode
+            norm: Normalization layer.
+            act: Activation layer.
+            upsampler: Upsample layer. I.e., "upconv", "pixel_shuffle".
+            mode: Convolution mode.
         """
         super().__init__()
 
@@ -86,15 +81,15 @@ class ESRGAN(nn.Module):
         self.scale = self.get_scale()
         self.num_filters = self.state["model.0.weight"].shape[0]
 
-        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and \
-                self.out_nc in (self.in_nc / 4, self.in_nc / 16):
+        # detect if pixel-unshuffle was used (Real-ESRGAN)
+        if self.in_nc in (self.out_nc * 4, self.out_nc * 16) and self.out_nc in (self.in_nc / 4, self.in_nc / 16):
             self.shuffle_factor = int(math.sqrt(self.in_nc / self.out_nc))
         else:
             self.shuffle_factor = None
 
         upsample_block = {
-            "upconv": block.upconv_block,
-            "pixel_shuffle": block.pixel_shuffle_block
+            "upconv": blocks.upconv_block,
+            "pixel_shuffle": blocks.pixel_shuffle_block
         }.get(self.upsampler)
         if upsample_block is None:
             raise NotImplementedError("Upsample mode [%s] is not found" % self.upsampler)
@@ -107,22 +102,25 @@ class ESRGAN(nn.Module):
                 act_type=self.act
             )
         else:
-            upsample_blocks = [upsample_block(
-                in_nc=self.num_filters,
-                out_nc=self.num_filters,
-                act_type=self.act
-            ) for _ in range(int(math.log(self.scale, 2)))]
+            upsample_blocks = [
+                upsample_block(
+                    in_nc=self.num_filters,
+                    out_nc=self.num_filters,
+                    act_type=self.act
+                )
+                for _ in range(int(math.log(self.scale, 2)))
+            ]
 
-        self.model = block.sequential(
+        self.model = blocks.sequential(
             # fea conv
-            block.conv_block(
+            blocks.conv_block(
                 in_nc=self.in_nc,
                 out_nc=self.num_filters,
                 kernel_size=3,
                 norm_type=None,
                 act_type=None
             ),
-            block.ShortcutBlock(block.sequential(
+            blocks.ShortcutBlock(blocks.sequential(
                 # rrdb blocks
                 *[RRDB(
                     nc=self.num_filters,
@@ -137,7 +135,7 @@ class ESRGAN(nn.Module):
                     plus=self.plus
                 ) for _ in range(self.num_blocks)],
                 # lr conv
-                block.conv_block(
+                blocks.conv_block(
                     in_nc=self.num_filters,
                     out_nc=self.num_filters,
                     kernel_size=3,
@@ -148,7 +146,7 @@ class ESRGAN(nn.Module):
             )),
             *upsample_blocks,
             # hr_conv0
-            block.conv_block(
+            blocks.conv_block(
                 in_nc=self.num_filters,
                 out_nc=self.num_filters,
                 kernel_size=3,
@@ -156,7 +154,7 @@ class ESRGAN(nn.Module):
                 act_type=self.act
             ),
             # hr_conv1
-            block.conv_block(
+            blocks.conv_block(
                 in_nc=self.num_filters,
                 out_nc=self.out_nc,
                 kernel_size=3,
@@ -241,94 +239,7 @@ class ESRGAN(nn.Module):
         return self.model(x)
 
 
-class RealESRGANv2(nn.Module):
-    def __init__(self, state: STATE_T, act_type: Optional[block.ACT_TYPES_T] = "prelu") -> None:
-        """
-        Real-ESRGAN - Training Real-World Blind Super-Resolution with Pure Synthetic Data.
-        By Xintao Wang, Liangbin Xie, Chao Dong, and Ying Shan.
-
-        This is specifically the alternate version used mainly for video inference.
-        However, this is still not a video super-resolution network as it still only takes in
-        one frame (or image) at a time. See:
-        https://github.com/xinntao/Real-ESRGAN/blob/master/docs/model_zoo.md#for-anime-videos
-
-        This is a compact VGG-style network structure for super-resolution, which performs
-        upsampling in the last layer. No convolution is conducted on the HR feature space.
-
-        Args:
-            state: PyTorch Model State dictionary.
-            act_type: Activation type: 'relu', 'prelu', 'leakyrelu'.
-        """
-        super().__init__()
-
-        self.state = state
-        self.act_type = act_type
-
-        if "params" in self.state:
-            # TODO: Should *all* Real-ESRGAN v2 models begin with "params" key?
-            #       Reject models that don't?
-            self.state = self.state["params"]
-
-        self.state_keys = list(self.state.keys())
-
-        self.num_in_ch = self.get_in_nc()
-        self.num_out_ch = self.num_in_ch  # TODO: Find a way. Assuming same as in_nc...
-        self.num_conv = self.get_num_conv()
-        self.num_feat = self.get_num_feats()
-        self.pixel_shuffle_shape = self.get_pixel_shuffle_shape()
-        self.scale = self.get_scale()
-
-        # body structure
-        self.body = nn.ModuleList()
-        for n in range(self.num_conv + 1):
-            self.body.append(nn.Conv2d(self.num_in_ch if n == 0 else self.num_feat, self.num_feat, 3, 1, 1))
-            self.body.append({
-                "relu": nn.ReLU(inplace=True),
-                "prelu": nn.PReLU(num_parameters=self.num_feat),
-                "leakyrelu": nn.LeakyReLU(negative_slope=0.1, inplace=True)
-            }[self.act_type])
-
-        # last conv
-        self.body.append(nn.Conv2d(self.num_feat, self.pixel_shuffle_shape, 3, 1, 1))
-
-        # upsampler
-        self.upsampler = nn.PixelShuffle(self.scale)
-
-        self.load_state_dict(self.state, strict=False)
-
-    def get_in_nc(self) -> int:
-        return self.state[self.state_keys[0]].shape[1]
-
-    def get_num_conv(self) -> int:
-        return (int(self.state_keys[-1].split(".")[1]) - 2) // 2
-
-    def get_num_feats(self) -> int:
-        return self.state[self.state_keys[0]].shape[0]
-
-    def get_pixel_shuffle_shape(self) -> int:
-        return self.state[self.state_keys[-1]].shape[0]
-
-    def get_scale(self) -> int:
-        # Assume out_nc is the same as in_nc
-        # I cant think of a better way to do that
-        self.num_out_ch = self.num_in_ch
-        scale = math.sqrt(self.pixel_shuffle_shape / self.num_out_ch)
-        if scale - int(scale) > 0:
-            print("out_nc is probably different than in_nc, scale calculation might be wrong")
-        scale = int(scale)
-        return scale
-
-    def forward(self, x):
-        out = x
-        for i in range(0, len(self.body)):
-            out = self.body[i](out)
-
-        out = self.upsampler(out)
-        # add the nearest upsampled image, so that the network learns the residual
-        base = F.interpolate(x, scale_factor=self.scale, mode="nearest")
-        out += base
-        return out
-
+# Blocks only used by RRDBNet
 
 class ResidualDenseBlock5C(nn.Module):
     """
@@ -344,26 +255,31 @@ class ResidualDenseBlock5C(nn.Module):
         gc: int = 32,
         stride: int = 1,
         bias: bool = True,
-        pad_type: Optional[block.PAD_TYPES_T] = "zero",
-        norm_type: Optional[block.NORM_TYPES_T] = None,
-        act_type: Optional[block.ACT_TYPES_T] = "leakyrelu",
-        mode: block.CONV_MODE_T = "CNA",
+        pad_type: Optional[blocks.PAD_TYPES_T] = "zero",
+        norm_type: Optional[blocks.NORM_TYPES_T] = None,
+        act_type: Optional[blocks.ACT_TYPES_T] = "leakyrelu",
+        mode: blocks.CONV_MODE_T = "CNA",
         plus: bool = False
     ):
         super().__init__()
         last_act = None if mode == "CNA" else act_type
 
         self.conv1x1 = conv1x1(nc, gc) if plus else None
-        self.conv1 = block.conv_block(nc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv2 = block.conv_block(nc + gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv3 = block.conv_block(nc + 2 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv4 = block.conv_block(nc + 3 * gc, gc, kernel_size, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=act_type, mode=mode)
-        self.conv5 = block.conv_block(nc + 4 * gc, nc, 3, stride, bias=bias, pad_type=pad_type,
-                                      norm_type=norm_type, act_type=last_act, mode=mode)
+        self.conv1 = blocks.conv_block(
+            nc, gc, kernel_size, stride,
+            bias=bias, pad_type=pad_type, norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv2 = blocks.conv_block(
+            nc + gc, gc, kernel_size, stride,
+            bias=bias, pad_type=pad_type, norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv3 = blocks.conv_block(
+            nc + 2 * gc, gc, kernel_size, stride,
+            bias=bias, pad_type=pad_type, norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv4 = blocks.conv_block(
+            nc + 3 * gc, gc, kernel_size, stride,
+            bias=bias, pad_type=pad_type, norm_type=norm_type, act_type=act_type, mode=mode)
+        self.conv5 = blocks.conv_block(
+            nc + 4 * gc, nc, 3, stride,
+            bias=bias, pad_type=pad_type, norm_type=norm_type, act_type=last_act, mode=mode)
 
     def forward(self, x):
         x1 = self.conv1(x)
@@ -388,24 +304,27 @@ class RRDB(nn.Module):
         gc: int = 32,
         stride: int = 1,
         bias: bool = True,
-        pad_type: Optional[block.PAD_TYPES_T] = "zero",
-        norm_type: Optional[block.NORM_TYPES_T] = None,
-        act_type: Optional[block.ACT_TYPES_T] = "leakyrelu",
-        mode: block.CONV_MODE_T = "CNA",
+        pad_type: Optional[blocks.PAD_TYPES_T] = "zero",
+        norm_type: Optional[blocks.NORM_TYPES_T] = None,
+        act_type: Optional[blocks.ACT_TYPES_T] = "leakyrelu",
+        mode: blocks.CONV_MODE_T = "CNA",
         plus: bool = False
     ):
         super().__init__()
-        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
-        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
-        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.rdb1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.rdb2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.rdb3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
 
     def forward(self, x):
-        out = self.RDB1(x)
-        out = self.RDB2(out)
-        out = self.RDB3(out)
+        out = self.rdb1(x)
+        out = self.rdb2(out)
+        out = self.rdb3(out)
         # Empirically, we use 0.2 to scale the residual for better performance
         return out.mul(0.2) + x
 
 
 def conv1x1(in_planes: int, out_planes: int, stride: int = 1) -> nn.Conv2d:
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+
+
+__ALL__ = (RRDBNet, ResidualDenseBlock5C, RRDB, conv1x1)

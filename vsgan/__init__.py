@@ -1,4 +1,3 @@
-from vsgan import archs, utilities
-from vsgan.networks import EGVSR, ESRGAN
+from vsgan.archs import EGVSR, ESRGAN
 
-__ALL__ = (archs, utilities, ESRGAN, EGVSR)
+__ALL__ = (EGVSR, ESRGAN)
