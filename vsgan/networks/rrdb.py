@@ -308,14 +308,14 @@ class RRDB(nn.Module):
         plus: bool = False
     ):
         super().__init__()
-        self.rdb1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
-        self.rdb2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
-        self.rdb3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB1 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB2 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
+        self.RDB3 = ResidualDenseBlock5C(nc, kernel_size, gc, stride, bias, pad_type, norm_type, act_type, mode, plus)
 
     def forward(self, x):
-        out = self.rdb1(x)
-        out = self.rdb2(out)
-        out = self.rdb3(out)
+        out = self.RDB1(x)
+        out = self.RDB2(out)
+        out = self.RDB3(out)
         # Empirically, we use 0.2 to scale the residual for better performance
         return out.mul(0.2) + x
 
