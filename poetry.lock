@@ -1143,4 +1143,4 @@ vs = ["VapourSynth", "VapourSynth", "VapourSynth"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<3.12"
-content-hash = "af4eb0f0d38022ee21633b382fb9cce2204f8d36a59d269f5214a07bc314bc6f"
+content-hash = "0ba9d66d0b8f010130e5acb8a591d8d2b53eadc0827b9fecc4c10db5828e578e"

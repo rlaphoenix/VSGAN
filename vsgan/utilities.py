@@ -5,6 +5,7 @@ import gc
 import numpy as np
 import torch
 import vapoursynth as vs
+from torch import Tensor
 from vapoursynth import core
 
 from vsgan.constants import IS_VS_API_4, VS_DTYPE_MAP
@@ -193,3 +194,37 @@ def join_tiles(tiles: tuple[torch.Tensor, ...], overlap: int) -> torch.Tensor:
     joined_tile[..., -h // 2:, -w // 2:] = tiles[3][..., -h // 2:, -w // 2:]
 
     return joined_tile
+
+
+def window_partition(x: Tensor, window_size: int) -> Tensor:
+    """
+    Chunk a Tensor to batches of n windows/chunks.
+
+    Parameters:
+        x: Tensor in the shape (b, h, w, c)
+        window_size: Window size
+
+    Returns Tensor in the shape (num_windows*b, window_size, window_size, c)
+    """
+    b, h, w, c = x.shape
+    x = x.view(b, h // window_size, window_size, w // window_size, window_size, c)
+    windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size, window_size, c)
+    return windows
+
+
+def window_reverse(windows: Tensor, window_size: int, h: int, w: int) -> Tensor:
+    """
+    Stitch back together batches of Windows/Chunks.
+
+    Parameters:
+        windows: Tensor in the shape (num_windows*b, window_size, window_size, c)
+        window_size: Window size
+        h: Height of image
+        w: Width of image
+
+    Returns stitched tensor in the shape (b, h, w, c)
+    """
+    b = int(windows.shape[0] / (h * w / window_size / window_size))
+    x = windows.view(b, h // window_size, w // window_size, window_size, window_size, -1)
+    x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(b, h, w, -1)
+    return x

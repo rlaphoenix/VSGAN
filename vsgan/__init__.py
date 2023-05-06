@@ -1,3 +1,3 @@
-from vsgan.archs import EGVSR, ESRGAN
+from vsgan.archs import EGVSR, ESRGAN, SwinIR
 
-__ALL__ = (EGVSR, ESRGAN)
+__ALL__ = (EGVSR, ESRGAN, SwinIR)

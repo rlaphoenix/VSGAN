@@ -76,6 +76,9 @@ Supported Models
 `EGVSR <https://arxiv.org/abs/2107.05307>`_
   Real-Time Super-Resolution System of 4K-Video Based on Deep Learning.
 
+`SwinIR <https://arxiv.org/abs/2108.10257>`_
+  Image Restoration Using Swin Transformer.
+
 Quick shoutout to pvsfunc.PD2V
 ------------------------------
 
