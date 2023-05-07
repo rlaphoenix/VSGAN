@@ -15,9 +15,7 @@ Release v\ |version|. (:ref:`Installation <installation>`)
 .. image:: https://img.shields.io/pypi/pyversions/vsgan.svg
     :target: https://pypi.org/project/vsgan
 
-Single Image Super-Resolution Generative Adversarial Network (GAN)
-which uses the VapourSynth processing framework to handle input and output
-image data.
+PyTorch-based Super-Resolution and Restoration Image Processing Module for VapourSynth.
 
 -------------------
 

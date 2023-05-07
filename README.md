@@ -9,7 +9,7 @@
     <img align="right" src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/>
 </a>
 
-VSGAN is a Single Image Super-Resolution Generative Adversarial Network (GAN) which uses the VapourSynth processing framework to handle input and output image data.
+PyTorch-based Super-Resolution and Restoration Image Processing Module for VapourSynth.
 
 **Documentation**: https://vsgan.phoeniix.dev  
 **License**: [MIT License](LICENSE)

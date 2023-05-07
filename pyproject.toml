@@ -5,7 +5,7 @@ build-backend = 'poetry.core.masonry.api'
 [tool.poetry]
 name = 'vsgan'
 version = '1.6.4'
-description = 'VapourSynth Single Image Super-Resolution Generative Adversarial Network (GAN)'
+description = 'PyTorch-based Super-Resolution and Restoration Image Processing Module for VapourSynth'
 authors = ['rlaphoenix <rlaphoenix@pm.me>']
 license = 'MIT'
 readme = 'README.md'
