@@ -18,6 +18,7 @@ release = Version.from_git().base
 extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
     'm2r2',
     'sphinxcontrib.youtube',
     'sphinxcontrib.images',
