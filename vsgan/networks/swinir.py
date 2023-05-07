@@ -902,7 +902,7 @@ class PatchEmbed(nn.Module):
             self.norm = None
 
     def forward(self, x):
-        x = x.flatten(2).transpose(1, 2)  # b Ph*Pw c
+        x = x.flatten(2).transpose(1, 2)  # B Ph*Pw C
         if self.norm is not None:
             x = self.norm(x)
         return x
@@ -948,7 +948,8 @@ class PatchUnEmbed(nn.Module):
         self.num_patches = self.patches_resolution[0] * self.patches_resolution[1]
 
     def forward(self, x, x_size):
-        x = x.transpose(1, 2).view(x.shape[0], self.embed_dim, x_size[0], x_size[1])  # b Ph*Pw c
+        x = x.transpose(1, 2).\
+            view(x.shape[0], self.embed_dim, x_size[0], x_size[1])  # B Ph*Pw C
         return x
 
     def flops(self):
@@ -1006,7 +1007,7 @@ class UpsampleOneStep(nn.Sequential):
 
 
 class DropPath(nn.Module):
-    def __init__(self, drop_prob=None):
+    def __init__(self, drop_prob: Optional[float] = None):
         """
         Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
 
@@ -1015,7 +1016,7 @@ class DropPath(nn.Module):
         super().__init__()
         self.drop_prob = drop_prob
 
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
         return drop_path(x, self.drop_prob, self.training)
 
 
@@ -1053,13 +1054,15 @@ def drop_path(x: Tensor, drop_prob: float = 0., training: bool = False) -> Tenso
 
     From: https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/layers/drop.py
     """
-    if drop_prob == 0. or not training:
+    if drop_prob == 0.0 or not training:
         return x
+
     keep_prob = 1 - drop_prob
-    shape = (x.shape[0], ) + (1, ) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
+    shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
     random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
     random_tensor.floor_()  # binarize
     output = x.div(keep_prob) * random_tensor
+
     return output
 
 
