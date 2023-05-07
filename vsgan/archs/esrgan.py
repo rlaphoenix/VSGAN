@@ -20,7 +20,7 @@ class ESRGAN(BaseArch):
     By Xintao Wang, Ke Yu, Shixiang Wu, Jinjin Gu, Yihao Liu, Chao Dong, Yu Qiao,
     and Chen Change Loy.
 
-    Supported Model architectures:
+    Supports the following iterative architectures/degradation models:
     - ESRGAN (old/new): https://arxiv.org/abs/1809.00219
     - ESRGAN+: https://arxiv.org/abs/2001.08073
     - Real-ESRGAN (v1 only): https://arxiv.org/abs/2107.10833
