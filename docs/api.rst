@@ -9,8 +9,8 @@ Each time you run a model, it will apply to the base clip, and then overwrite it
 Once you have done all the calls you wish to do on the clip, get the final clip by taking the `clip`
 property of the Network object.
 
-Networks
---------
+Architectures
+-------------
 
 .. autoclass:: vsgan.archs.ESRGAN
    :member-order: bysource
