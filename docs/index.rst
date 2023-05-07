@@ -58,15 +58,13 @@ Supported Models
 ----------------
 
 `ESRGAN <https://arxiv.org/abs/1809.00219>`_
-  Enhanced Super-Resolution Generative Adversarial Networks. Supports both old and new-arch models of any scale.
+  Enhanced Super-Resolution Generative Adversarial Networks.
 
 `ESRGAN+ <https://arxiv.org/abs/2001.08073>`_
   Further Improving Enhanced Super-Resolution Generative Adversarial Network.
 
 `Real-ESRGAN <https://arxiv.org/abs/2107.10833>`_
-  Training Real-World Blind Super-Resolution with Pure Synthetic Data. Supports 2x and 1x models if they used
-  pixel-shuffle. Includes support for Real-ESRGAN v2 the arch mainly intended as an ultra-light model for fast
-  video inference. However, it's *not* a video network.
+  Training Real-World Blind Super-Resolution with Pure Synthetic Data.
 
 `A-ESRGAN <https://arxiv.org/abs/2112.10046>`_
   Training Real-World Blind Super-Resolution with Attention U-Net Discriminators.
