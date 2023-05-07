@@ -23,6 +23,7 @@ class ESRGAN(BaseArch):
     Supports the following iterative architectures/degradation models:
     - ESRGAN (old/new): https://arxiv.org/abs/1809.00219
     - ESRGAN+: https://arxiv.org/abs/2001.08073
+    - BSRGAN: https://arxiv.org/abs/2103.14006
     - Real-ESRGAN (v1 only): https://arxiv.org/abs/2107.10833
     - A-ESRGAN: https://arxiv.org/abs/2112.10046
     """
