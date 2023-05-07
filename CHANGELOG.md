@@ -7,32 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-All changes listed will likely be released as v1.7.0 which will likely be the last major release to
-support Python 3.7. Version 1.7.0 will only be released when the `multi-gpu` branch is merged or removed.
-
 ### Added
 
-- Full Support for Python 3.10.
+- Added support for Python 3.11.
+- Added pre-commit hooks and config, as well as flake8 and isort for use during development.
+- Wrote a Contributing bible to CONTRIBUTING.md.
+- Added support for two more model architectures:
+  [HAT](https://arxiv.org/abs/2205.04437) and [SwinIR](https://arxiv.org/abs/2108.10257).
 
 ### Changed
 
-- Updated Versioning support matrix for VapourSynth versions respective to Python 3.7-3.10.
-  Python 3.7, 3.9, and 3.8 + 3.10 now use correct latest versions instead of r57 on all.
-- Updated numpy to v1.23.1, or v1.21.6 for Python 3.7.
-- The `load` method of Network's have has the `model` parameter renamed to `state`.
-  The doc-strings have also been reflected. This is to reflect more closely to what the "model"
-  parameter actually is, a state file (.pth), not a "model" per-say.
+- The structural definition of model, arch, networks, and blocks have been refreshed in both the files and docs.
+  Effectively the code between the `/archs` and `/networks` folders have been flipped to be more correct.
+  If you imported via the `networks` sub-package, e.g., `from vsgan.networks import ESRGAN`, then please update the
+  import path to `from vsgan.archs import ESRGAN` or just `from vsgan import ESRGAN`.
+- All previous networks (previously under the `/archs` folder) have been renamed from the name of the Architecture
+  they were used for, to their actual network name. E.g., `ESRGAN.py` with the class `ESRGAN(nn.Module)` is now more
+  appropriately named `rrdb.py` with the class `RRDBNet(nn.Module)`.
+- The minimum supported PyTorch version is now v1.12.0. This is still a fairly old version so compatibility with other
+  tools and environments should still be the same.
+- The utility `recursive_tile_tensor` has been renamed to `tile_tensor_r` to reduce line length.
+- The `load` method of Network's have has the `model` parameter renamed to `state`. The doc-strings have also been
+  reflected. This is to reflect more closely to what the "model" parameter actually is, a state file (.pth), not a
+  "model" per-say.
 - The `device` and `model` class instance variables have been privatized to `_device` and `_model`.
   This is to discourage access to them externally, especially manually altering their value.
+- Reversed the following change in v1.6.4: [`Now directly loads a tensor from the VideoFrame data directly, without
+  numpy as a middleman.`](https://github.com/rlaphoenix/VSGAN/commit/a49e844d6a6a2edaa588f6e012a24fdaf265c4d6).
+  This is because the method used in that change doesn't seem to have any performance benefits, but causes torch to
+  complain about the tensor not being writable. This doesn't seem to be problematic for me on Windows, but it might
+  be on others (perhaps linux? mac?).
+
+### Removed
+
+- Dropped support for Python 3.7 (therefore, also dropping support for VapourSynth R48).
+- Removed unused block `ConcatBlock` which could be used to concat the input with the output of a submodule.
+- Removed unused activation initialization when constructing SRVGGNetCompact (Real-ESRGAN v2) Models.
+  The same activation was initialized per conv layer instead.
+- Removed unused function `float32_to_uint8` from EGVSR which could be used to cast numpy arrays of precision
+  float32 to uint8.
 
 ### Fixed
 
-- Docs Interface/API page now shows the interfaces/classes/utilities. This was a build bug due to VapourSynth
-  dependency issues.
-- Docs copyright year is now up-to-date and automated for the future.
-- Add missing future annotations import on architectures, fixing Python 3.7
-- Some VapourSynth frames when converted to a tensor would be slightly out of the 0,1 range bounds.
-  Tensors are now clamped 0,1 after being passed to a device, not within frame_to_tensor.
+- Fixed loading error of some model files if the `.pth` file had the params data moved from the `params`/`params_ema`
+  key to the root. E.g., chaiNNer's interpolate models feature.
+- Clamped VapourSynth frames after being converted to a tensor as they would be slightly out of the 0,1 range bounds.
+  This fixes an issue with EGVSR where some tensors would be -inf instead of 0.0, as well as small weird issues in the
+  resulting frame.
+- Fixed an edge-case when chaining models by using a UUID4 as a run identifier instead of the depth cache length.
+- Fixed VapourSynth dependency markers version matrix to correctly use the latest versions for each Python version
+  instead of asking for R57 on all versions, including those with only support for older versions. For example, Python
+  3.7 only supports VapourSynth R48 and nothing newer, so asking for R57 on 3.7 wouldn't be possible.
+- Added missing future annotations import on architectures, fixing support for Python 3.7 (which support for has since
+  been dropped).
+- Various issues during Docs building procedure has been squashed. ReadTheDocs now correctly builds the entirety of
+  the docs without needing VapourSynth installed (which isn't currently possible to do on their build runners). This
+  includes fixing the Interface (api) page which was previously blank due to it failing to build that page.
 
 ## [1.6.4] - 2022-01-25
 
@@ -334,7 +364,7 @@ support Python 3.7. Version 1.7.0 will only be released when the `multi-gpu` bra
 
 Initial Release.
 
-[Unreleased]: https://github.com/rlaphoenix/VSGAN/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/rlaphoenix/VSGAN/compare/v1.6.4...HEAD
 [1.6.4]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.4
 [1.6.3]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.3
 [1.6.2]: https://github.com/rlaphoenix/VSGAN/releases/tag/v1.6.2
