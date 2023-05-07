@@ -20,6 +20,14 @@ Networks
    :member-order: bysource
    :members:
 
+.. autoclass:: vsgan.archs.SwinIR
+   :member-order: bysource
+   :members:
+
+.. autoclass:: vsgan.archs.HAT
+   :member-order: bysource
+   :members:
+
 Utilities
 ---------
 
