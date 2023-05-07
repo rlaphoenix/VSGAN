@@ -960,8 +960,8 @@ test = ["pytest"]
 
 [[package]]
 name = "sphinxcontrib-youtube"
-version = "1.2.0"
-description = "Sphinx \"youtube\" extension"
+version = "1.3.0"
+description = "Sphinx \"youtube\" extension."
 category = "main"
 optional = true
 python-versions = "*"
@@ -973,14 +973,15 @@ requests = "*"
 Sphinx = ">=0.6"
 
 [package.extras]
-doc = ["furo", "sphinx-copybutton"]
-testing = ["pytest", "sphinx-pytest (>=0.0.4)"]
+dev = ["nox"]
+doc = ["pydata-sphinx-theme", "sphinx-copybutton", "sphinx-design"]
+test = ["beautifulsoup4", "pytest", "pytest-cov", "pytest-regressions"]
 
 [package.source]
 type = "git"
 url = "https://github.com/sphinx-contrib/youtube.git"
-reference = "master"
-resolved_reference = "6ac4730bae06fe34a2c3098653326e3d47bb045a"
+reference = "v1.3.0"
+resolved_reference = "919a1a8b50607017752a0994baabf72474847905"
 
 [[package]]
 name = "torch"
@@ -1155,4 +1156,4 @@ vs = ["VapourSynth", "VapourSynth", "VapourSynth"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<3.12"
-content-hash = "36c1a619f2d7763a8121453d7f947ea83aadbc9ede2a66967b473a48c638ba77"
+content-hash = "088c8a3bc60225d222186a68e85eebaf263dc77e595b0ab7f59b0c2175e70def"
