@@ -21,6 +21,7 @@ class ESRGAN(BaseArch):
     and Chen Change Loy.
 
     Supports the following iterative architectures/degradation models:
+
     - ESRGAN (old/new): https://arxiv.org/abs/1809.00219
     - ESRGAN+: https://arxiv.org/abs/2001.08073
     - BSRGAN: https://arxiv.org/abs/2103.14006
