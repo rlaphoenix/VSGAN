@@ -79,6 +79,9 @@ Supported Models
 `SwinIR <https://arxiv.org/abs/2108.10257>`_
   Image Restoration Using Swin Transformer.
 
+`HAT <https://arxiv.org/abs/2205.04437>`_
+  Activating More Pixels in Image Super-Resolution Transformer.
+
 Quick shoutout to pvsfunc.PD2V
 ------------------------------
 

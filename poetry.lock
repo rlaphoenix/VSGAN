@@ -207,6 +207,18 @@ files = [
 packaging = ">=20.9"
 
 [[package]]
+name = "einops"
+version = "0.6.1"
+description = "A new flavour of deep learning operations"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "einops-0.6.1-py3-none-any.whl", hash = "sha256:99149e46cc808956b174932fe563d920db4d6e5dadb8c6ecdaa7483b7ef7cfc3"},
+    {file = "einops-0.6.1.tar.gz", hash = "sha256:f95f8d00f4ded90dbc4b19b6f98b177332614b0357dde66997f3ae5d474dc8c8"},
+]
+
+[[package]]
 name = "filelock"
 version = "3.10.7"
 description = "A platform independent file lock."
@@ -1143,4 +1155,4 @@ vs = ["VapourSynth", "VapourSynth", "VapourSynth"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<3.12"
-content-hash = "0ba9d66d0b8f010130e5acb8a591d8d2b53eadc0827b9fecc4c10db5828e578e"
+content-hash = "36c1a619f2d7763a8121453d7f947ea83aadbc9ede2a66967b473a48c638ba77"
