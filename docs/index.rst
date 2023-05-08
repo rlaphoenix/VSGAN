@@ -71,11 +71,11 @@ Supported Model Architectures
   `ESRGAN+ <https://arxiv.org/abs/2001.08073>`_
     Further Improving Enhanced Super-Resolution Generative Adversarial Network.
 
-  `Real-ESRGAN <https://arxiv.org/abs/2107.10833>`_
-    Training Real-World Blind Super-Resolution with Pure Synthetic Data.
-
   Also supports other models with only differences during training, i.e., blind degradation models like
   A-ESRGAN and BSRGAN.
+
+`Real-ESRGAN <https://arxiv.org/abs/2107.10833>`_
+  Training Real-World Blind Super-Resolution with Pure Synthetic Data.
 
 `EGVSR <https://arxiv.org/abs/2107.05307>`_
   Real-Time Super-Resolution System of 4K-Video Based on Deep Learning.
