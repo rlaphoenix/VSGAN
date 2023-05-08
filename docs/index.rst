@@ -25,14 +25,22 @@ PyTorch-based Super-Resolution and Restoration Image Processing Module for Vapou
 
     from vsgan import ESRGAN
     clip = ESRGAN(clip, device="cuda").\
-        load(r"C:\Users\PHOENiX\Documents\PSNR_x4_DB.pth").\
+        load(r"C:\Users\PHOENiX\Documents\Denoise_x1.pth").\
         apply().\
-        load(r"C:\Users\PHOENiX\Documents\4X_DoubleRunExample.pth").\
+        load(r"C:\Users\PHOENiX\Documents\PSNR_x2.pth").\
         apply(overlap=16).\
         apply(overlap=32).\
         clip
 
-For more information see (:ref:`Getting Started <getting started>`).
+This runs an ESRGAN denoising model at x1 scale on the input clip using the Nvidia CUDA GPU as the device.
+It then loads a new PSNR-optimized model at 2x scale to the same GPU device and applies it twice over.
+Finally, it returns the internal clip that had the models applied to it.
+
+Note that by chaining the application of the 2x scale model twice-over, the resulting clip is now four times
+the size of the original clip. Normally, this is a very expensive operation. However, with VSGAN, this is
+possible thanks to its automatic tiling system.
+
+For more information, see (:ref:`Getting Started <getting started>`).
 
 Features of VSGAN
 -----------------
