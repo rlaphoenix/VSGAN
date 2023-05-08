@@ -144,6 +144,8 @@ Comparison against the official Disney Blu-ray:
    Disney's Blu-ray. You're not seeing things, I didn't mix up the order of these results. The Disney Blu-ray
    really was that crap!
 
+`(VapourSynth Script) <https://gist.github.com/rlaphoenix/0957656a97559c397ec12544743f2898>`_
+
 American Dad S01E01
 ^^^^^^^^^^^^^^^^^^^
 
