@@ -50,11 +50,11 @@ Features of VSGAN
 
 - VapourSynth_ — Transform, Filter, or Enhance your input video, or the VSGAN result with VapourSynth,
   a Script-based NLE_.
-- :ref:`Easy Model Chaining <Chaining calls, or Models>` — You can chain models or re-run the model twice-over
-  (or more).
-- :ref:`Seamless Tiling` — Have low VRAM? Don't worry! The Network will be applied in quadrants of the
-  image to reduce up-front VRAM usage.
-- Supports All RGB formats — You can use *any* RGB video input, including float32 (e.g., RGBS) inputs.
+- :ref:`Model Chaining <Chaining calls, or Models>` — Apply multiple models on the input video, or apply models
+  multiple times over.
+- :ref:`Seamless Tiling` — Reduce up-front memory usage by automatically applying the model on quadrants of the
+  input image at a time, without leaving any noticeable seams.
+- Supports All RGB formats — You can use any RGB video input of any bit depth.
 - No Frame Extraction Necessary — Using VapourSynth you can pass a Video directly to VSGAN, without any frame
   extraction needed.
 - Repeatable Edits — Any edit you make in the VapourSynth script with or without VSGAN can be re-used for any
