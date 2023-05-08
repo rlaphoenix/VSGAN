@@ -86,22 +86,19 @@ Supported Model Architectures
 `HAT <https://arxiv.org/abs/2205.04437>`_
   Activating More Pixels in Image Super-Resolution Transformer.
 
-Quick shoutout to pvsfunc.PD2V
-------------------------------
+Quick shoutout to MPGG
+----------------------
 
-A lot of Super-Resolution users work with old low-resolution media.
-If you plan to work with DVD video files, or generally NTSC/PAL standard MPEG-1/2 media, you should take a look
-at my other project `pvsfunc <https://github.com/rlaphoenix/pvsfunc>`_.
+.. _deinterlacing: https://en.wikipedia.org/wiki/Deinterlacing
+.. _detelecining: https://en.wikipedia.org/wiki/Telecine#Reverse_telecine_(a.k.a._inverse_telecine_(IVTC),_reverse_pulldown)
 
-In pvsfunc there's a class `PD2V` which is intended specifically for DVD video files, but can work on other
-sourced MPEG-1/2 media. It optimally loads the video data Frame-accurately with various helper functions.
+If you plan to work with DVD-Video files, or general MPEG-1/2 media, you should take a look at my other project
+`MPGG <https://github.com/rlaphoenix/mpgg>`_: a Streamlined MPEG-1 and MPEG-2 source loader and helper utility for
+VapourSynth.
 
-* Frame-accurate frame-serving. Check for and supports mixed scan-type inputs.
-* `recover()` — Recover progressive frames in an interlaced stream in some scenarios, usually on animation or fake-interlacing.
-* `floor()` or `ceil()` — Convert Variable Frame-rate (VFR) to Constant Frame-rate. `floor()` is experimental.
-* `deinterlace()` — Deinterlace efficiently, only when needed. This is only a wrapper, an actual deinterlace function is still
-  needed.
-* All of this and more with self-chaining support, just like VSGAN.
+I always recommend deinterlacing_ and detelecining_ sources before using VSGAN, and MPGG will greatly assist in doing
+so, as well as a lot more! It is designed specifically for DVD-Video files, but can work on other MPEG-1/2 media, e.g.,
+Camcorders, VHS digitizers, old console capture cards, and more.
 
 Example Results
 ---------------
