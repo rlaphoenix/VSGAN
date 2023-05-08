@@ -110,7 +110,35 @@ Mickey's Christmas Carol
    :aspect: 4:3
    :width: 100%
 
-`This is what the official Disney Blu-ray looks like <https://vimeo.com/115284525>`_...
+.. thumbnail:: _static/images/examples/mickeys_christmas_carol/dvd_before.webp
+   :group: ex1_dvd
+   :width: 49%
+
+   Original Input (EUR PAL R2 DVD 720x576, DAR of 768x576)
+
+.. thumbnail:: _static/images/examples/mickeys_christmas_carol/dvd_after.webp
+   :group: ex1_dvd
+   :width: 49%
+
+   Result with various pre-and-post-filtering. The main gut of the work was done with 2X_DigitalFilmV5_Lite.
+
+Comparison against the official Disney Blu-ray:
+
+.. thumbnail:: _static/images/examples/mickeys_christmas_carol/bd_disney.webp
+   :group: ex1_bd
+   :width: 49%
+
+   Original Blu-ray release, completely unaltered. DNR'd removing a lot of fine detail, green tint across the
+   board, all edges have large positive lobes, edges are squashed/thickened and posterized, 4:3 cropped to 16:9,
+   then further cropped again, I could go on... -- Yes! They really released it like this...
+
+.. thumbnail:: _static/images/examples/mickeys_christmas_carol/bd_rlaphoenix.webp
+   :group: ex1_bd
+   :width: 49%
+
+   Same ESRGAN result using the same pre-and-post-filtering and model, just cropped to the same aspect ratio as
+   Disney's Blu-ray. You're not seeing things, I didn't mix up the order of these results. The Disney Blu-ray
+   really was that crap!
 
 American Dad S01E01
 ^^^^^^^^^^^^^^^^^^^
@@ -120,13 +148,13 @@ American Dad S01E01
    :width: 100%
 
 .. thumbnail:: _static/images/examples/american_dad_s01e01/before.webp
-   :group: ex1
+   :group: ex2
    :width: 49%
 
    Original Input (USA NTSC R1 DVD 720x480)
 
 .. thumbnail:: _static/images/examples/american_dad_s01e01/after.webp
-   :group: ex1
+   :group: ex2
    :width: 49%
 
    Private 4x Model Applied (2880x1920 -> 1620x1080)
@@ -138,13 +166,13 @@ Family Guy S01E01
 ^^^^^^^^^^^^^^^^^
 
 .. thumbnail:: _static/images/examples/family_guy_s01e01/before.webp
-   :group: ex2
+   :group: ex3
    :width: 49%
 
    Original Input (USA NTSC R1 DVD 720x480)
 
 .. thumbnail:: _static/images/examples/family_guy_s01e01/after.webp
-   :group: ex2
+   :group: ex3
    :width: 49%
 
    Private 4x Model Applied (2880x1920 -> 1620x1080)
