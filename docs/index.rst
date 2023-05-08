@@ -107,8 +107,12 @@ Mickey's Christmas Carol
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. vimeo:: 657905289
-   :aspect: 4:3
+   :aspect: 10:7
    :width: 100%
+
+.. raw:: html
+
+   <br>
 
 .. thumbnail:: _static/images/examples/mickeys_christmas_carol/dvd_before.webp
    :group: ex1_dvd
@@ -144,8 +148,12 @@ American Dad S01E01
 ^^^^^^^^^^^^^^^^^^^
 
 .. vimeo:: 382251167
-   :aspect: 3:2
+   :aspect: 8:5
    :width: 100%
+
+.. raw:: html
+
+   <br>
 
 .. thumbnail:: _static/images/examples/american_dad_s01e01/before.webp
    :group: ex2
