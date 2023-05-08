@@ -62,20 +62,20 @@ Features of VSGAN
 - :ref:`Freedom <License>` — VSGAN is released under the MIT License, ensuring it will stay free, with the
   ability to be used commercially.
 
-Supported Models
-----------------
+Supported Model Architectures
+-----------------------------
 
 `ESRGAN <https://arxiv.org/abs/1809.00219>`_
   Enhanced Super-Resolution Generative Adversarial Networks.
 
-`ESRGAN+ <https://arxiv.org/abs/2001.08073>`_
-  Further Improving Enhanced Super-Resolution Generative Adversarial Network.
+  `ESRGAN+ <https://arxiv.org/abs/2001.08073>`_
+    Further Improving Enhanced Super-Resolution Generative Adversarial Network.
 
-`Real-ESRGAN <https://arxiv.org/abs/2107.10833>`_
-  Training Real-World Blind Super-Resolution with Pure Synthetic Data.
+  `Real-ESRGAN <https://arxiv.org/abs/2107.10833>`_
+    Training Real-World Blind Super-Resolution with Pure Synthetic Data.
 
-`A-ESRGAN <https://arxiv.org/abs/2112.10046>`_
-  Training Real-World Blind Super-Resolution with Attention U-Net Discriminators.
+  Also supports other models with only differences during training, i.e., blind degradation models like
+  A-ESRGAN and BSRGAN.
 
 `EGVSR <https://arxiv.org/abs/2107.05307>`_
   Real-Time Super-Resolution System of 4K-Video Based on Deep Learning.
