@@ -118,31 +118,35 @@ Mickey's Christmas Carol
    :group: ex1_dvd
    :width: 49%
 
-   Original Input (EUR PAL R2 DVD 720x576, DAR of 768x576)
+   Before (Unaltered EUR PAL R2 DVD 720x576, DAR of 768x576)
 
 .. thumbnail:: _static/images/examples/mickeys_christmas_carol/dvd_after.webp
    :group: ex1_dvd
    :width: 49%
 
-   Result with various pre-and-post-filtering. The main gut of the work was done with 2X_DigitalFilmV5_Lite.
+   After (2X_DigitalFilmV5_Lite with some pre-and-post-filtering)
 
-Comparison against the official Disney Blu-ray:
+There wasn't really any issues with the original source to fix, but it did improve the sharpness while not over
+doing it or causing other artifacts, unlike the official Disney Blu-ray, which did a terrible job.
 
-.. thumbnail:: _static/images/examples/mickeys_christmas_carol/bd_disney.webp
-   :group: ex1_bd
-   :width: 49%
+   Comparison against the official Disney Blu-ray:
 
-   Original Blu-ray release, completely unaltered. DNR'd removing a lot of fine detail, green tint across the
-   board, all edges have large positive lobes, edges are squashed/thickened and posterized, 4:3 cropped to 16:9,
-   then further cropped again, I could go on... -- Yes! They really released it like this...
+   .. thumbnail:: _static/images/examples/mickeys_christmas_carol/bd_disney.webp
+      :group: ex1_bd
+      :width: 49%
 
-.. thumbnail:: _static/images/examples/mickeys_christmas_carol/bd_rlaphoenix.webp
-   :group: ex1_bd
-   :width: 49%
+      Before (Original Blu-ray release, completely unaltered)
 
-   Same ESRGAN result using the same pre-and-post-filtering and model, just cropped to the same aspect ratio as
-   Disney's Blu-ray. You're not seeing things, I didn't mix up the order of these results. The Disney Blu-ray
-   really was that crap!
+   .. thumbnail:: _static/images/examples/mickeys_christmas_carol/bd_rlaphoenix.webp
+      :group: ex1_bd
+      :width: 49%
+
+      After (2X_DigitalFilmV5_Lite with some pre-and-post-filtering, cropped to the same aspect ratio as Disney's Blu-ray)
+
+   As you can see they over-sharpened, posterized the image, removed detail, caused Halo'ing, added a sort of green
+   tint across the picture, and cropped in to 16:9 from a 4:3 source. Yikes!
+
+   I did not mix up the labels of these images. The one labeled as the Official Blu-ray release, really is like that!
 
 `(VapourSynth Script) <https://gist.github.com/rlaphoenix/0957656a97559c397ec12544743f2898>`_
 
@@ -169,8 +173,8 @@ American Dad S01E01
 
    Private 4x Model Applied (2880x1920 -> 1620x1080)
 
-This model was trained to fix inaccuracies in the DVD's color, remove Halo'ing/Glow, and remove Chroma Droop. The
-result is a very crisp output for a show originally animated in SD.
+Fixed Halo'ing/Glow around outlines, and a bit of Chroma Droop. However, the colors between images in the dataset
+pair had a mistake so it learned to modify the colors incorrectly.
 
 Family Guy S01E01
 ^^^^^^^^^^^^^^^^^
@@ -187,9 +191,9 @@ Family Guy S01E01
 
    Private 4x Model Applied (2880x1920 -> 1620x1080)
 
-This model was trained to fix inaccuracies in the DVD's color, remove Halo'ing/Glow, and remove Chroma Droop. The
-result is a very crisp output for a show originally animated in SD. Do note that the warping/stretch on the edges
-is an animation/dvd edit and not caused by VSGAN or the model.
+Fixed slight inaccuracies in the Color, Halo'ing/Glow around outlines, Chroma Location Misplacement, as well as a
+bit of Chroma Droop (on some scenes only). This is an almost perfect result (in my opinion). Do note that the
+warping/stretch on the edges is an animation/dvd edit and not caused by VSGAN or the model.
 
 .. toctree::
    :hidden:
