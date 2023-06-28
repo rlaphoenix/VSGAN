@@ -56,6 +56,10 @@ html_css_files = [
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/brands.min.css',
 ]
 
+html_js_files = [
+    'js/sphinxcontrib-images.js'
+]
+
 html_sidebars = {
     '**': [
         'sidebar/scroll-start.html',
