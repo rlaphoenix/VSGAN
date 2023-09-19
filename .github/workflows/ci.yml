@@ -32,18 +32,18 @@ jobs:
             vapoursynth-version: '62'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install VapourSynth R${{ matrix.vapoursynth-version }}
-      uses: rlaphoenix/install-vapoursynth-action@a3efdd83bdeda6df58ed8d6a725faaa12a34052f
+      uses: rlaphoenix/install-vapoursynth-action@v2.1.1
       with:
         version: ${{ matrix.vapoursynth-version }}
         cache: true
     - name: Install Poetry
-      uses: abatilo/actions-poetry@v2.3.0
+      uses: abatilo/actions-poetry@v2
     - name: Install project
       run: poetry install --no-dev
     - name: Install flake8 and isort
